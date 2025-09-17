@@ -1,10 +1,10 @@
 export function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\$&');
 }
 
 export function buildWordRegex(term) {
   const esc = escapeRegExp(term);
-  return new RegExp(`\b${esc}\b`, 'gi');
+  return new RegExp('\\b' + esc + '\\b', 'gi');
 }
 
 export function replaceWithMark(text, term, translation) {
