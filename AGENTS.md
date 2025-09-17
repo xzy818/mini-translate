@@ -2,6 +2,14 @@
 
 This file provides guidance and memory for Codex CLI.
 
+## 项目贡献准则
+
+为保证主干分支稳定，所有贡献者必须遵守以下规范：
+
+1. **拉分支开发**：所有改动需从最新 main 分支拉取特性分支，提交 PR 并通过 CI 后才可合入 main。
+2. **本地检查与验证**：提交前务必完成本地静态检查与基础单元测试，确保改动质量。
+3. **监控 CI 并修复**：提交 PR 后需持续关注 CI，若失败必须立即排查并修复直至全部通过。
+
 <!-- BEGIN: BMAD-AGENTS -->
 # BMAD-METHOD Agents and Tasks
 
