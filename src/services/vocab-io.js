@@ -62,7 +62,7 @@ export function importFromJson(jsonText, existingList) {
   let parsed;
   try {
     parsed = JSON.parse(String(jsonText || ''));
-  } catch (e) {
+  } catch {
     return { list: existingList || [], inserted: 0, failed: [{ line: 0, reason: 'INVALID_JSON' }] };
   }
   const items = Array.isArray(parsed.items) ? parsed.items : [];
@@ -98,5 +98,3 @@ export function importFromJson(jsonText, existingList) {
   }
   return { list, inserted, failed };
 }
-
-

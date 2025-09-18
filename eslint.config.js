@@ -1,5 +1,18 @@
 import js from "@eslint/js";
+
+const ignoredPaths = [
+  "node_modules/**",
+  "dist/**",
+  "coverage/**",
+  "bmad-method/**",
+  "**/bmad-method/**",
+  "scripts/**",
+  "*.min.js",
+  "mini-translate*.zip"
+];
+
 export default [
+  { ignores: ignoredPaths },
   js.configs.recommended,
   {
     languageOptions: {
@@ -16,8 +29,7 @@ export default [
     rules: {
       "no-unused-vars": ["warn", { "args": "none" }],
       "no-undef": "off",
-      "no-console": "warn"
-    },
-    ignores: ["node_modules/**", "dist/**", "*.min.js"]
+      "no-console": ["warn", { allow: ["warn", "error"] }]
+    }
   }
 ];

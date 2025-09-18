@@ -1,0 +1,44 @@
+schema: 1
+story: 'E2.S4'
+story_title: '词库列表 UI'
+gate: PASS
+status_reason: '词库管理页实现分页、删除确认、空态提示，前端 lint/单测全部通过。'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-18T12:12:52Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed: 5
+  risks_identified: 0
+  trace:
+    ac_covered: [1, 2, 3, 4]
+    ac_gaps: []
+
+test_design:
+  scenarios_total: 4
+  by_level:
+    unit: 4
+    integration: 0
+    e2e: 0
+  by_priority:
+    p0: 2
+    p1: 2
+    p2: 0
+  coverage_gaps: []
+
+nfr_validation:
+  _assessed: [usability, maintainability]
+  usability:
+    status: PASS
+    notes: '分页与空态提示明确，删除有二次确认。'
+  maintainability:
+    status: PASS
+    notes: 'UI 与存储逻辑模块化拆分，具备单元测试覆盖。'
+
+recommendations:
+  immediate: []
+  future:
+    - action: '后续可在真实 Chrome 环境做一次手动巡检确认样式。'
+      refs: ['public/options.html']
