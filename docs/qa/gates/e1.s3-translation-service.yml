@@ -1,0 +1,50 @@
+schema: 1
+story: 'E1.S3'
+story_title: '翻译服务抽象'
+gate: PASS
+status_reason: '四模型路径、错误标准化、超时与重试均有覆盖，单测全部通过。'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-18T00:00:00Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed: 24
+  risks_identified: 2
+  trace:
+    ac_covered: [1, 2, 3, 4]
+    ac_gaps: []
+
+test_design:
+  scenarios_total: 13
+  by_level:
+    unit: 13
+    integration: 0
+    e2e: 0
+  by_priority:
+    p0: 6
+    p1: 7
+    p2: 0
+  coverage_gaps: []
+
+nfr_validation:
+  _assessed: [security, performance, reliability, maintainability]
+  security:
+    status: PASS
+    notes: '调用前进行配置校验；Key 仅本地存储'
+  performance:
+    status: PASS
+    notes: '10s 超时 + 有限重试'
+  reliability:
+    status: PASS
+    notes: '错误类型标准化 + 重试'
+  maintainability:
+    status: PASS
+    notes: '统一入口函数 + 充分单测'
+
+recommendations:
+  immediate: []
+  future:
+    - action: '在 UI 层增加错误提示映射的集成测试'
+      refs: ['options/settings', 'content message handling']
