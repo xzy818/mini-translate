@@ -1,0 +1,41 @@
+{
+  "name": "mini-translate",
+  "version": "1.0.0",
+  "description": "A mini translation plugin developed for Chrome that does not discrupt the reading experience and only translates a few unfamiliar words.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run tests/integration.test.js",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "build": "echo 'Build step - Chrome extension ready'",
+    "validate": "npm run lint && npm test",
+    "ci": "npm run validate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xzy818/mini-translate.git"
+  },
+  "keywords": ["chrome-extension", "translation", "vocabulary", "mini-translate"],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/xzy818/mini-translate/issues"
+  },
+  "homepage": "https://github.com/xzy818/mini-translate#readme",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.35.0",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
