@@ -1,0 +1,41 @@
+schema: 1
+story: 'E2.S5'
+story_title: 'Story S5 — API/模型配置模块'
+gate: PASS
+status_reason: 'Options 设置区支持模型切换、保存与测试，API Key 遮挡交互符合规范。'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-18T14:39:29Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed: 4
+  risks_identified: 0
+  trace:
+    ac_covered: [1, 2, 3, 4, 5]
+    ac_gaps: []
+
+test_design:
+  scenarios_total: 4
+  by_level:
+    unit: 4
+    integration: 0
+    e2e: 0
+  by_priority:
+    p0: 2
+    p1: 2
+    p2: 0
+  coverage_gaps: []
+
+nfr_validation:
+  _assessed: [usability]
+  usability:
+    status: PASS
+    notes: '遮挡切换即刻响应，保存后提示明确。'
+
+recommendations:
+  immediate: []
+  future:
+    - action: '后续可结合翻译 API 模拟请求进行端到端验证。'
+      refs: ['public/options.js']

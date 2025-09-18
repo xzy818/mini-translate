@@ -23,10 +23,10 @@ Settings fields:
 
 ## Vocabulary Limit & Import/Export
 
-- Max items: 500
-- TXT import: one term per line
-- JSON export: `{ version, exportedAt, items }`
-- JSON import follows `docs/vocabulary-spec.md`
+- Max items: 500（超限时会提示并阻止继续添加/导入）
+- **导入**：TXT（每行一个词）、JSON（遵循 `docs/vocabulary-spec.md`），部分失败会给出行号和原因
+- **导出**：TXT（按创建时间排序），JSON `{ version, exportedAt, items }`
+- 导出的 JSON 可直接再次导入，便于备份与迁移
 
 ## Build & Release
 

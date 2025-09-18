@@ -1,0 +1,41 @@
+schema: 1
+story: 'E3.S8'
+story_title: 'Story S8 — 文档与 Release 交付'
+gate: PASS
+status_reason: 'README、打包脚本与 release checklist 已更新，验证通过 build-zip.sh。'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-18T14:40:39Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed: 0
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3, 4, 5]
+    ac_gaps: []
+
+test_design:
+  scenarios_total: 1
+  by_level:
+    unit: 0
+    integration: 0
+    e2e: 1
+  by_priority:
+    p0: 1
+    p1: 0
+    p2: 0
+  coverage_gaps: []
+
+nfr_validation:
+  _assessed: [maintainability]
+  maintainability:
+    status: PASS
+    notes: 'build-zip.sh 自动化打包，README 明确使用流程。'
+
+recommendations:
+  immediate: []
+  future:
+    - action: '正式 release 前在 GitHub 上执行 checklist，并附上生成的 ZIP 包。'
+      refs: ['release-checklist.md']
