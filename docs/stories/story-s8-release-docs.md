@@ -20,3 +20,7 @@
 - Release 附件齐全，Checklist 项全部完成。
 - QA 验证安装流程、文档内容与打包脚本。
 
+## QA Results
+- Gate: PASS — README 更新模型/词库/导入导出说明，打包脚本生成 ZIP 可加载，Release checklist 可执行。
+- Tests: `npm run validate`
+- Notes: 手动运行 `bash scripts/build-zip.sh` 验证打包产物；实际发布需在 GitHub Release 附加 ZIP 并附更新日志。

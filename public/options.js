@@ -1,4 +1,10 @@
 import { createStorageClient, createVocabularyManager } from './vocab-ui.js';
+import {
+  exportToTxt,
+  exportToJson,
+  importFromTxt,
+  importFromJson
+} from '../src/services/vocab-io.js';
 
 const PAGE_SELECTORS = {
   counter: 'vocab-counter',
@@ -12,50 +18,72 @@ const PAGE_SELECTORS = {
   alert: 'vocab-alert'
 };
 
-function $(id) {
-  return document.getElementById(id);
+export function query(id, root = document) {
+  return root.getElementById(id);
 }
 
-function collectVocabularyElements() {
+export function collectVocabularyElements(root = document) {
   return {
-    counter: $(PAGE_SELECTORS.counter),
-    tbody: $(PAGE_SELECTORS.tbody),
-    emptyState: $(PAGE_SELECTORS.emptyState),
-    tableWrapper: $(PAGE_SELECTORS.tableWrapper),
-    pagination: $(PAGE_SELECTORS.pagination),
-    prevButton: $(PAGE_SELECTORS.prevButton),
-    nextButton: $(PAGE_SELECTORS.nextButton),
-    pageInfo: $(PAGE_SELECTORS.pageInfo),
-    alert: $(PAGE_SELECTORS.alert)
+    counter: query(PAGE_SELECTORS.counter, root),
+    tbody: query(PAGE_SELECTORS.tbody, root),
+    emptyState: query(PAGE_SELECTORS.emptyState, root),
+    tableWrapper: query(PAGE_SELECTORS.tableWrapper, root),
+    pagination: query(PAGE_SELECTORS.pagination, root),
+    prevButton: query(PAGE_SELECTORS.prevButton, root),
+    nextButton: query(PAGE_SELECTORS.nextButton, root),
+    pageInfo: query(PAGE_SELECTORS.pageInfo, root),
+    alert: query(PAGE_SELECTORS.alert, root)
   };
 }
 
-function initSettingsSection() {
-  const modelEl = $('model');
-  const baseEl = $('base');
-  const keyEl = $('key');
-  const toggleKeyEl = $('toggleKey');
-  const saveEl = $('save');
-  const testEl = $('test');
-  const hasChrome = typeof chrome !== 'undefined' && chrome?.storage?.local;
+function wrapAsync(callback) {
+  return new Promise((resolve, reject) => {
+    try {
+      const maybePromise = callback(resolve, reject);
+      if (maybePromise && typeof maybePromise.then === 'function') {
+        maybePromise.then(resolve).catch(reject);
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 
-  async function loadSettings() {
+export function createSettingsController({ chromeLike, notify, elements }) {
+  const modelEl = elements.model;
+  const baseEl = elements.base;
+  const keyEl = elements.key;
+  const toggleKeyEl = elements.toggle;
+  const saveEl = elements.save;
+  const testEl = elements.test;
+
+  const hasChrome = Boolean(chromeLike?.storage?.local);
+
+  async function load() {
     if (!hasChrome) return;
     try {
-      const result = await chrome.storage.local.get(['settings']);
-      const settings = result.settings || {};
-      if (settings.model) modelEl.value = settings.model;
-      if (settings.apiBaseUrl) baseEl.value = settings.apiBaseUrl;
-      if (settings.apiKey) keyEl.value = settings.apiKey;
+      const result = await wrapAsync((resolve, reject) => {
+        chromeLike.storage.local.get(['settings'], (items) => {
+          const error = chromeLike.runtime?.lastError;
+          if (error) {
+            reject(new Error(error.message));
+            return;
+          }
+          resolve(items.settings || {});
+        });
+      });
+      if (result.model) modelEl.value = result.model;
+      if (result.apiBaseUrl) baseEl.value = result.apiBaseUrl;
+      if (result.apiKey) keyEl.value = result.apiKey;
     } catch (error) {
       console.error('读取设置失败', error);
-      window.showToast?.('读取设置失败');
+      notify('读取设置失败');
     }
   }
 
-  async function saveSettings() {
+  async function save() {
     if (!hasChrome) {
-      window.showToast?.('当前环境不支持保存');
+      notify('当前环境不支持保存');
       return;
     }
     const payload = {
@@ -64,20 +92,31 @@ function initSettingsSection() {
       apiKey: keyEl.value.trim()
     };
     try {
-      await chrome.storage.local.set({ settings: payload });
-      if (chrome.runtime?.sendMessage) {
-        chrome.runtime.sendMessage({ type: 'SETTINGS_UPDATED', payload });
+      await wrapAsync((resolve, reject) => {
+        chromeLike.storage.local.set({ settings: payload }, () => {
+          const error = chromeLike.runtime?.lastError;
+          if (error) {
+            reject(new Error(error.message));
+            return;
+          }
+          resolve();
+        });
+      });
+      if (chromeLike.runtime?.sendMessage) {
+        chromeLike.runtime.sendMessage({ type: 'SETTINGS_UPDATED', payload }, () => {
+          // ignore callback errors for broadcast message
+        });
       }
-      window.showToast?.('已保存');
+      notify('已保存');
     } catch (error) {
       console.error('保存失败', error);
-      window.showToast?.('保存失败');
+      notify('保存失败');
     }
   }
 
-  async function testSettings() {
+  async function testConnection() {
     if (!hasChrome) {
-      window.showToast?.('当前环境不支持测试');
+      notify('当前环境不支持测试');
       return;
     }
     const payload = {
@@ -86,19 +125,28 @@ function initSettingsSection() {
       apiKey: keyEl.value.trim()
     };
     try {
-      const response = await chrome.runtime.sendMessage({
-        type: 'TEST_TRANSLATOR_SETTINGS',
-        payload
+      const response = await wrapAsync((resolve, reject) => {
+        chromeLike.runtime.sendMessage(
+          { type: 'TEST_TRANSLATOR_SETTINGS', payload },
+          (res) => {
+            const error = chromeLike.runtime?.lastError;
+            if (error) {
+              reject(new Error(error.message));
+              return;
+            }
+            resolve(res);
+          }
+        );
       });
       if (response?.ok) {
-        window.showToast?.('测试通过');
+        notify('测试通过');
       } else {
         const message = response?.error ? `测试失败: ${response.error}` : '测试失败';
-        window.showToast?.(message);
+        notify(message);
       }
     } catch (error) {
       console.error('测试异常', error);
-      window.showToast?.('测试异常');
+      notify('测试异常');
     }
   }
 
@@ -112,25 +160,184 @@ function initSettingsSection() {
     }
   }
 
-  toggleKeyEl.addEventListener('click', toggleKeyVisibility);
-  saveEl.addEventListener('click', saveSettings);
-  testEl.addEventListener('click', testSettings);
-  loadSettings();
+  function bind() {
+    toggleKeyEl.addEventListener('click', toggleKeyVisibility);
+    saveEl.addEventListener('click', () => {
+      save();
+    });
+    testEl.addEventListener('click', () => {
+      testConnection();
+    });
+  }
+
+  return { load, save, testConnection, toggleKeyVisibility, bind };
 }
 
-function initVocabularySection() {
+export function triggerDownload(filename, data, mimeType) {
+  const blob = new Blob([data], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+export function createImportExportController({
+  storage,
+  notify,
+  elements,
+  download = triggerDownload,
+  now = () => new Date()
+}) {
+  const importTxtBtn = elements.importTxt;
+  const importTxtInput = elements.importTxtInput;
+  const importJsonBtn = elements.importJson;
+  const importJsonInput = elements.importJsonInput;
+  const exportTxtBtn = elements.exportTxt;
+  const exportJsonBtn = elements.exportJson;
+  const summaryEl = elements.summary;
+
+  function showSummary(message) {
+    if (!summaryEl) return;
+    summaryEl.textContent = message;
+    summaryEl.hidden = !message;
+  }
+
+  async function exportTxt() {
+    const list = await storage.getVocabulary();
+    const content = exportToTxt(list);
+    const filename = `mini-translate-vocab-${now().toISOString().slice(0, 10)}.txt`;
+    download(filename, content, 'text/plain');
+    notify('已导出 TXT');
+  }
+
+  async function exportJson() {
+    const list = await storage.getVocabulary();
+    const content = exportToJson(list);
+    const filename = `mini-translate-vocab-${now().toISOString().slice(0, 10)}.json`;
+    download(filename, content, 'application/json');
+    notify('已导出 JSON');
+  }
+
+  async function importTxt(file) {
+    if (!file) return;
+    const text = await file.text();
+    const current = await storage.getVocabulary();
+    const result = importFromTxt(text, current);
+    await storage.setVocabulary(result.list);
+    const success = result.inserted || 0;
+    const failed = result.failed?.length || 0;
+    notify(`导入完成：成功 ${success} 条${failed ? `，失败 ${failed} 条` : ''}`);
+    if (failed) {
+      const detail = result.failed.slice(0, 5).map((item) => `${item.line}:${item.reason}`).join('，');
+      showSummary(`失败条目(${failed})：${detail}${result.failed.length > 5 ? '…' : ''}`);
+    } else {
+      showSummary('导入成功');
+    }
+    importTxtInput.value = '';
+  }
+
+  async function importJson(file) {
+    if (!file) return;
+    const text = await file.text();
+    const current = await storage.getVocabulary();
+    const result = importFromJson(text, current);
+    await storage.setVocabulary(result.list);
+    const success = result.inserted || 0;
+    const failed = result.failed?.length || 0;
+    notify(`导入完成：成功 ${success} 条${failed ? `，失败 ${failed} 条` : ''}`);
+    if (failed) {
+      const detail = result.failed.slice(0, 5).map((item) => `${item.line}:${item.reason}`).join('，');
+      showSummary(`失败条目(${failed})：${detail}${result.failed.length > 5 ? '…' : ''}`);
+    } else {
+      showSummary('导入成功');
+    }
+    importJsonInput.value = '';
+  }
+
+  function bind() {
+    exportTxtBtn.addEventListener('click', () => {
+      exportTxt();
+    });
+    exportJsonBtn.addEventListener('click', () => {
+      exportJson();
+    });
+    importTxtBtn.addEventListener('click', () => importTxtInput.click());
+    importJsonBtn.addEventListener('click', () => importJsonInput.click());
+    importTxtInput.addEventListener('change', (event) => {
+      const [file] = event.target.files || [];
+      importTxt(file);
+    });
+    importJsonInput.addEventListener('change', (event) => {
+      const [file] = event.target.files || [];
+      importJson(file);
+    });
+  }
+
+  return {
+    exportTxt,
+    exportJson,
+    importTxt,
+    importJson,
+    bind
+  };
+}
+
+function initSettings(chromeLike, notify) {
+  const settingsElements = {
+    model: query('model'),
+    base: query('base'),
+    key: query('key'),
+    toggle: query('toggleKey'),
+    save: query('save'),
+    test: query('test')
+  };
+  const controller = createSettingsController({ chromeLike, notify, elements: settingsElements });
+  controller.bind();
+  controller.load();
+  return controller;
+}
+
+function initImportExport(storage, notify) {
+  const elements = {
+    importTxt: query('import-txt'),
+    importTxtInput: query('import-txt-input'),
+    importJson: query('import-json'),
+    importJsonInput: query('import-json-input'),
+    exportTxt: query('export-txt'),
+    exportJson: query('export-json'),
+    summary: query('import-summary')
+  };
+  const controller = createImportExportController({ storage, notify, elements });
+  controller.bind();
+  return controller;
+}
+
+function initVocabulary(chromeLike) {
   const elements = collectVocabularyElements();
   const fallbackData = window.__MINI_TRANSLATE_VOCAB__ || [];
-  const storage = createStorageClient({
-    chromeLike: typeof chrome !== 'undefined' ? chrome : null,
-    fallbackData
-  });
+  const storage = createStorageClient({ chromeLike, fallbackData });
   const manager = createVocabularyManager({ elements, storage });
   manager.init();
   window.__miniTranslateVocabularyManager = manager;
+  return { storage, manager };
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initVocabularySection();
-  initSettingsSection();
-});
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const chromeLike = typeof chrome !== 'undefined' ? chrome : null;
+    const notify = (message) => window.showToast?.(message);
+    const { storage } = initVocabulary(chromeLike);
+    initSettings(chromeLike, notify);
+    initImportExport(storage, notify);
+  });
+}
+
+export const __controllers = {
+  createSettingsController,
+  createImportExportController,
+  initSettings,
+  initImportExport,
+  initVocabulary
+};
