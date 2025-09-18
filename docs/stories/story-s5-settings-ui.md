@@ -20,3 +20,7 @@
 - API Key 遮挡/显示交互符合预期。
 - QA 覆盖保存、更新、错误提示、无 Key 状态。
 
+## QA Results
+- Gate: PASS — 设置表单支持保存/测试/遮挡切换，背景翻译调用读取最新配置。
+- Tests: `npm run validate`
+- Notes: jsdom 单测覆盖加载、保存、测试与遮挡交互；真实环境需确认通知权限与 API 回调行为。

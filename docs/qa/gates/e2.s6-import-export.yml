@@ -1,0 +1,41 @@
+schema: 1
+story: 'E2.S6'
+story_title: 'Story S6 — 词库导入导出'
+gate: PASS
+status_reason: 'TXT/JSON 导入导出流程完成，失败条目提示与词库同步均符合规范。'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-18T14:39:57Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed: 4
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3, 4]
+    ac_gaps: []
+
+test_design:
+  scenarios_total: 4
+  by_level:
+    unit: 4
+    integration: 0
+    e2e: 0
+  by_priority:
+    p0: 2
+    p1: 2
+    p2: 0
+  coverage_gaps: []
+
+nfr_validation:
+  _assessed: [reliability]
+  reliability:
+    status: PASS
+    notes: '失败条目不会污染现有词库，上限控制与提示完善。'
+
+recommendations:
+  immediate: []
+  future:
+    - action: '建议对超大词库文件执行性能评估，并在 UI 中提供进度反馈。'
+      refs: ['public/options.js']

@@ -252,6 +252,26 @@
       margin: 0;
     }
 
+    .import-export-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .import-actions h3,
+    .export-actions h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     .toast {
       position: fixed;
       right: 24px;
@@ -362,6 +382,36 @@
         </div>
         <p class="hint" style="color: var(--text-secondary); font-size: 13px;">请妥善保管 API Key，避免在公共场合暴露。</p>
       </div>
+    </section>
+
+    <section class="panel" id="import-export-panel">
+      <header>
+        <div>
+          <h2>导入与导出</h2>
+          <p>备份与恢复词库，支持 TXT/JSON 格式。</p>
+        </div>
+      </header>
+      <div class="import-export-grid">
+        <div class="import-actions">
+          <h3>导入词库</h3>
+          <div class="btn-row">
+            <button id="import-txt" type="button" class="btn btn-secondary">导入 TXT</button>
+            <input id="import-txt-input" type="file" accept=".txt" hidden />
+            <button id="import-json" type="button" class="btn btn-secondary">导入 JSON</button>
+            <input id="import-json-input" type="file" accept=".json,application/json" hidden />
+          </div>
+          <p class="hint">TXT：每行一个词条；JSON：遵循 vocabulary-spec.md。</p>
+        </div>
+        <div class="export-actions">
+          <h3>导出词库</h3>
+          <div class="btn-row">
+            <button id="export-txt" type="button" class="btn btn-secondary">导出 TXT</button>
+            <button id="export-json" type="button" class="btn btn-secondary">导出 JSON</button>
+          </div>
+          <p class="hint">导出文件可直接重新导入；JSON 包含完整字段。</p>
+        </div>
+      </div>
+      <div id="import-summary" class="hint" hidden></div>
     </section>
   </main>
 
