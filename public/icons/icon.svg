@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#ffffff"/>
+  <!-- 双向蓝色箭头，横梁厚度约为高度的 1/5 (~25.6) -->
+  <g fill="#1976d2">
+    <!-- 左向箭头 -->
+    <path d="M72 26 H30 L50 14 L30 26 H72 V52 H30 L50 64 L30 52 H72 Z"/>
+    <!-- 右向箭头 -->
+    <path d="M56 76 H98 L78 64 L98 76 H56 V102 H98 L78 114 L98 102 H56 Z"/>
+    <!-- 中横梁（粗度约 25.6）-->
+    <rect x="28" y="51" width="72" height="26" rx="6"/>
+  </g>
+</svg>
+
