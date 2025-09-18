@@ -1,3 +1,14 @@
 # BMAD (local only)
 .bmad-core/
 .bmad-*/
+
+# Node.js
+node_modules/
+dist/
+coverage/
+*.log
+
+# Editors
+.vscode/
+.idea/
+.DS_Store

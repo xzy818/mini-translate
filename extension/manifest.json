@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Mini Translate",
+  "description": "A lightweight translator that keeps the reading flow while translating selected unfamiliar words.",
+  "version": "0.1.0",
+  "permissions": ["storage", "contextMenus"],
+  "options_ui": {
+    "page": "options/index.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Mini Translate"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

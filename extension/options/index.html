@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini Translate 词库管理</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="options-container">
+      <header class="options-header">
+        <div>
+          <h1>词库列表</h1>
+          <p class="subtitle">管理生词、查看状态、导出前预览</p>
+        </div>
+        <div class="counter" id="vocab-counter">0 / 500</div>
+      </header>
+
+      <section class="alert" id="alert" role="status" aria-live="polite" hidden></section>
+
+      <section class="empty-state" id="empty-state" hidden>
+        <h2>词库为空</h2>
+        <p>从网页右键菜单添加词条，或使用导入功能批量添加。</p>
+      </section>
+
+      <section class="table-wrapper" id="table-wrapper">
+        <table class="vocab-table">
+          <thead>
+            <tr>
+              <th scope="col">原文</th>
+              <th scope="col">译文</th>
+              <th scope="col">类型</th>
+              <th scope="col">长度</th>
+              <th scope="col">添加时间</th>
+              <th scope="col">状态</th>
+              <th scope="col" class="actions-col">操作</th>
+            </tr>
+          </thead>
+          <tbody id="vocab-body"></tbody>
+        </table>
+      </section>
+
+      <footer class="pagination" id="pagination" hidden>
+        <button type="button" class="btn btn-secondary" id="prev-page" aria-label="上一页">上一页</button>
+        <span id="page-info" class="page-info">第 1 / 1 页</span>
+        <button type="button" class="btn btn-secondary" id="next-page" aria-label="下一页">下一页</button>
+      </footer>
+    </main>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
