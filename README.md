@@ -2,6 +2,16 @@
 
 A mini translation plugin developed for Chrome that does not disrupt the reading experience and only translates a few unfamiliar words.
 
+## Icon
+
+Blue double-arrow icon used by the extension:
+
+<p>
+  <img src="public/icons/icon-128.png" alt="Mini Translate Icon" width="128" height="128"/>
+  <br/>
+  <em>Vector source: public/icons/icon.svg</em>
+</p>
+
 ## 🚀 Features
 
 - **Right-click Context Menu**: Add/remove vocabulary and toggle page translation

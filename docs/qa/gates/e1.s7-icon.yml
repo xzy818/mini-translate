@@ -1,0 +1,17 @@
+schema: 1
+story: 'E1.S7'
+story_title: '蓝色双箭头图标'
+gate: PASS
+status_reason: 'SVG 源文件与 README/manifest 校验通过'
+reviewer: 'Quinn'
+updated: '2025-09-18T00:00:00Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed: 0
+  risks_identified: 0
+  trace:
+    ac_covered: [1, 2, 3]
+    ac_gaps: []

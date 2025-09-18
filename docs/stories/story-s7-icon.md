@@ -18,3 +18,16 @@
 - 工具栏、扩展详情页均显示新图标。
 - QA 验证图标文件存在、命名正确且已被 manifest 引用。
 
+## QA Results
+
+### Review Date: 2025-09-18
+Reviewed By: Quinn
+
+- SVG 源：`public/icons/icon.svg` 已添加
+- Manifest 引用：`public/manifest.json` 包含 16/32/48/128 PNG 图标
+- README 已展示图标示意
+
+Gate: PASS → docs/qa/gates/e1.s7-icon.yml
+
+Test design: docs/qa/assessments/e1.s7-test-design-20250918.md
+
