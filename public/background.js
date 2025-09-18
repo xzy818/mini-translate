@@ -1,16 +1,46 @@
-// Background entry for Mini Translate
-// Settings quick validation for TEST button
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg && msg.type === 'TEST_TRANSLATOR_SETTINGS'){
-    const s = msg.payload || {};
-    if (!s.apiKey || !s.model || !s.apiBaseUrl){
-      sendResponse({ ok: false, error: '配置不完整' });
-      return true;
+import { initializeBackground } from '../src/services/context-menu.js';
+import { translateText, validateTranslationConfig } from '../src/services/translator.js';
+
+let initialized = false;
+
+function setup() {
+  if (initialized) return;
+  initializeBackground(chrome);
+  initialized = true;
+}
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (!message || !message.type) return;
+
+  if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
+    const result = validateTranslationConfig(message.payload || {});
+    if (!result.isValid) {
+      sendResponse({ ok: false, error: result.errors.join('、') });
+      return false;
     }
-    // 仅进行本地验证，不真正访问外部 API
+    // 轻量检测不访问外部 API
     sendResponse({ ok: true });
-    return true;
+    return false;
+  }
+
+  if (message.type === 'TRANSLATE_TERM') {
+    translateText(message.payload)
+      .then((translation) => {
+        sendResponse({ ok: true, translation });
+      })
+      .catch((error) => {
+        sendResponse({ ok: false, error: error.message || '翻译失败' });
+      });
+    return true; // keep channel open for async response
   }
 });
 
+chrome.runtime.onInstalled.addListener(() => {
+  setup();
+});
 
+chrome.runtime.onStartup.addListener(() => {
+  setup();
+});
+
+setup();

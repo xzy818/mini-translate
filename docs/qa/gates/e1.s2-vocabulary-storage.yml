@@ -1,0 +1,41 @@
+schema: 1
+story: 'E1.S2'
+story_title: 'Story S2 — 词库存储与限制'
+gate: PASS
+status_reason: 'chrome.storage.local CRUD、去重及 500 条上限管控就绪，Options/Background 已连通。'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-18T14:04:13Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed: 6
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3, 4, 5]
+    ac_gaps: []
+
+test_design:
+  scenarios_total: 6
+  by_level:
+    unit: 6
+    integration: 0
+    e2e: 0
+  by_priority:
+    p0: 3
+    p1: 3
+    p2: 0
+  coverage_gaps: []
+
+nfr_validation:
+  _assessed: [maintainability]
+  maintainability:
+    status: PASS
+    notes: '存储层封装为独立模块，tests/context-menu.test.js 模拟 chrome 行为验证完整流程。'
+
+recommendations:
+  immediate: []
+  future:
+    - action: '后续结合导入导出 Story 增加并发写入与错误恢复的实机测试。'
+      refs: ['src/services/storage.js']

@@ -20,3 +20,7 @@
 - 导入流程遵守上限与去重规则。
 - QA 覆盖 CRUD、并发写入、上限与错误处理。
 
+## QA Results
+- Gate: PASS — chrome.storage 存取、500 条上限、词条去重与 VOCAB_UPDATED 事件均已实现，背景脚本与 Options/UI 同步正常。
+- Tests: `npm run validate`
+- Notes: 单测模拟存储上下文验证上限、删除、页面状态切换；建议在真实 Chrome 环境复测 session storage 行为。

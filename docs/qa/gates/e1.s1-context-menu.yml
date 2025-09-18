@@ -1,0 +1,44 @@
+schema: 1
+story: 'E1.S1'
+story_title: 'Story S1 — 右键菜单与页面翻译开关'
+gate: PASS
+status_reason: '右键菜单三种场景、词条翻译/恢复及页面级开关均实现，自动化测试覆盖主流程。'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-18T14:03:45Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed: 4
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3, 4]
+    ac_gaps: []
+
+test_design:
+  scenarios_total: 5
+  by_level:
+    unit: 5
+    integration: 0
+    e2e: 0
+  by_priority:
+    p0: 3
+    p1: 2
+    p2: 0
+  coverage_gaps: []
+
+nfr_validation:
+  _assessed: [usability, reliability]
+  usability:
+    status: PASS
+    notes: '菜单展示切换迅速，错误时通过通知提示。'
+  reliability:
+    status: PASS
+    notes: 'tab 状态保存在 storage.session，重复启停无异常。'
+
+recommendations:
+  immediate: []
+  future:
+    - action: '补充手动测试确认通知权限与菜单刷新在不同浏览器版本下表现。'
+      refs: ['public/background.js']
