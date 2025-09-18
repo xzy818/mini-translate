@@ -20,3 +20,20 @@
 - 删除后词库数据与 UI 同步更新。
 - QA 覆盖加载、删除、分页、空态、错误提示。
 
+## QA Results
+- Gate: PASS — 构建的 Options 词库表满足列展示、分页、删除确认、空态提示等需求，UI 逻辑与存储交互均符合验收标准。
+- Tests: `npm test`
+- Notes: 单元测试覆盖分页收敛、时间格式化与删除回归；Chrome 扩展实际加载需后续集成测试验证。
+
+## Status
+Ready for Release
+
+## Change Log
+- 2025-09-18: QA Gate PASS
+
+## Release Impact
+- Adds Options UI for vocabulary with full unit test coverage.
+
+## Recommended Follow-up
+- Perform manual verification in Chrome extension environment once background/content workflows are implemented.
+
