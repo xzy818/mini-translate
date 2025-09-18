@@ -1,5 +1,5 @@
 export function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\$&');
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 export function buildWordRegex(term) {
