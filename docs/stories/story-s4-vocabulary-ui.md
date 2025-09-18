@@ -20,3 +20,7 @@
 - 删除后词库数据与 UI 同步更新。
 - QA 覆盖加载、删除、分页、空态、错误提示。
 
+## QA Results
+- Gate: PASS — 词库表格支持计数、分页、删除确认与空态提示；错误分支能提示并保持 UI 状态。
+- Tests: `npm run validate`
+- Notes: Vitest jsdom 用例覆盖加载成功/失败、删除与分页；运行失败分支时会输出预期的错误日志。

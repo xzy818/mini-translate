@@ -1,62 +1,370 @@
 <!doctype html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mini Translate - 设置</title>
+  <title>Mini Translate 管理页</title>
   <style>
-    body { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial; margin: 16px; }
-    .section { margin-bottom: 24px; }
-    .row { margin: 8px 0; display: flex; align-items: center; gap: 8px; }
-    label { width: 140px; font-weight: 600; }
-    input[type="text"], input[type="password"], select { flex: 1; padding: 6px 8px; }
-    .hint { color: #666; font-size: 12px; }
-    .actions { display: flex; gap: 8px; }
-    .toast { position: fixed; right: 16px; bottom: 16px; background:#333;color:#fff;padding:8px 12px;border-radius:6px; display:none; }
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #1f2937;
+      --text-secondary: #475569;
+      --accent: #2563eb;
+      --danger: #dc2626;
+      --success: #16a34a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    main.options-container {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    section.panel {
+      background: var(--panel);
+      border-radius: 18px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .panel header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .panel header h2 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    .panel header p {
+      margin: 6px 0 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .counter {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(37, 99, 235, 0.12);
+      padding: 8px 18px;
+      border-radius: 999px;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-size: 14px;
+    }
+
+    .alert--info {
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--accent);
+      border-color: rgba(37, 99, 235, 0.2);
+    }
+
+    .alert--success {
+      background: rgba(22, 163, 74, 0.1);
+      color: var(--success);
+      border-color: rgba(22, 163, 74, 0.2);
+    }
+
+    .alert--error {
+      background: rgba(220, 38, 38, 0.1);
+      color: var(--danger);
+      border-color: rgba(220, 38, 38, 0.2);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    table.vocab-table {
+      width: 100%;
+      min-width: 960px;
+      border-collapse: collapse;
+    }
+
+    table.vocab-table thead {
+      background: rgba(15, 23, 42, 0.04);
+    }
+
+    table.vocab-table th,
+    table.vocab-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    table.vocab-table tbody tr:hover {
+      background: rgba(37, 99, 235, 0.06);
+    }
+
+    .actions-col {
+      width: 90px;
+      text-align: right;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .btn-secondary {
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--accent);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-danger {
+      background: rgba(220, 38, 38, 0.12);
+      color: var(--danger);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(220, 38, 38, 0.18);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+      color: var(--text-secondary);
+    }
+
+    .status-badge.status-active {
+      background: rgba(22, 163, 74, 0.18);
+      color: var(--success);
+    }
+
+    .status-badge.status-error {
+      background: rgba(220, 38, 38, 0.18);
+      color: var(--danger);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .page-info {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .empty-state {
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .empty-state h3 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .settings-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .settings-row label {
+      width: 150px;
+      font-weight: 600;
+    }
+
+    .settings-row input,
+    .settings-row select {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .settings-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .hint {
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: #1f2937;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+      display: none;
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .panel header { flex-direction: column; }
+      .counter { align-self: flex-start; }
+      .settings-row { flex-direction: column; align-items: stretch; }
+      .settings-row label { width: 100%; }
+      .settings-actions { flex-wrap: wrap; }
+    }
   </style>
-  <script defer src="options.js"></script>
   <script>
-    // 简单 toast
     function showToast(text) {
       const el = document.getElementById('toast');
-      el.textContent = text; el.style.display = 'block';
-      setTimeout(()=>{ el.style.display='none'; }, 1800);
+      el.textContent = text;
+      el.style.display = 'block';
+      setTimeout(() => {
+        el.style.display = 'none';
+      }, 1800);
     }
     window.showToast = showToast;
   </script>
-  </head>
+  <script type="module" src="options.js"></script>
+</head>
 <body>
-  <h1>设置</h1>
+  <main class="options-container">
+    <section class="panel" id="vocab-panel">
+      <header>
+        <div>
+          <h2>词库列表</h2>
+          <p>浏览与维护已保存的生词，支持分页、删除与状态查看。</p>
+        </div>
+        <div class="counter" id="vocab-counter">0 / 500</div>
+      </header>
 
-  <div class="section">
-    <h2>翻译服务配置</h2>
-    <div class="row">
-      <label for="model">模型</label>
-      <select id="model">
-        <option value="deepseek-v3">DeepSeek V3</option>
-        <option value="qwen-mt-turbo">Qwen MT Turbo</option>
-        <option value="qwen-mt-plus">Qwen MT Plus</option>
-        <option value="gpt-4o-mini">gpt-4o-mini</option>
-      </select>
-    </div>
-    <div class="row">
-      <label for="base">API Base URL</label>
-      <input id="base" type="text" placeholder="https://api.example.com" />
-    </div>
-    <div class="row">
-      <label for="key">API Key</label>
-      <input id="key" type="password" placeholder="••••••••" />
-      <button id="toggleKey" type="button">显示</button>
-    </div>
-    <div class="row actions">
-      <button id="save" type="button">保存</button>
-      <button id="test" type="button">测试</button>
-    </div>
-    <div class="hint">请妥善保管 API Key，避免在公共场合暴露。</div>
-  </div>
+      <div class="alert" id="vocab-alert" role="status" aria-live="polite" hidden></div>
+
+      <div class="empty-state" id="vocab-empty" hidden>
+        <h3>词库为空</h3>
+        <p>请通过网页右键菜单添加词条，或在后续导入文件。</p>
+      </div>
+
+      <div class="table-wrapper" id="vocab-table-wrapper" hidden>
+        <table class="vocab-table">
+          <thead>
+            <tr>
+              <th scope="col">原文</th>
+              <th scope="col">译文</th>
+              <th scope="col">类型</th>
+              <th scope="col">长度</th>
+              <th scope="col">添加时间</th>
+              <th scope="col">状态</th>
+              <th scope="col" class="actions-col">操作</th>
+            </tr>
+          </thead>
+          <tbody id="vocab-body"></tbody>
+        </table>
+      </div>
+
+      <footer class="pagination" id="vocab-pagination" hidden>
+        <button type="button" class="btn btn-secondary" id="vocab-prev">上一页</button>
+        <span class="page-info" id="vocab-page-info">第 1 / 1 页</span>
+        <button type="button" class="btn btn-secondary" id="vocab-next">下一页</button>
+      </footer>
+    </section>
+
+    <section class="panel" id="settings-panel">
+      <header>
+        <div>
+          <h2>翻译服务配置</h2>
+          <p>配置模型、接口地址与密钥，支持保存与测试连通性。</p>
+        </div>
+      </header>
+      <div class="settings-grid">
+        <div class="settings-row">
+          <label for="model">模型</label>
+          <select id="model">
+            <option value="deepseek-v3">DeepSeek V3</option>
+            <option value="qwen-mt-turbo">Qwen MT Turbo</option>
+            <option value="qwen-mt-plus">Qwen MT Plus</option>
+            <option value="gpt-4o-mini">gpt-4o-mini</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <label for="base">API Base URL</label>
+          <input id="base" type="text" placeholder="https://api.example.com" />
+        </div>
+        <div class="settings-row">
+          <label for="key">API Key</label>
+          <div style="display:flex; gap:8px; width:100%;">
+            <input id="key" type="password" placeholder="••••••••" style="flex:1;" />
+            <button id="toggleKey" type="button" class="btn btn-secondary">显示</button>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button id="save" type="button" class="btn btn-secondary">保存</button>
+          <button id="test" type="button" class="btn btn-secondary">测试</button>
+        </div>
+        <p class="hint" style="color: var(--text-secondary); font-size: 13px;">请妥善保管 API Key，避免在公共场合暴露。</p>
+      </div>
+    </section>
+  </main>
 
   <div id="toast" class="toast"></div>
 </body>
 </html>
-
-
