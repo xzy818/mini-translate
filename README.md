@@ -12,6 +12,30 @@ Blue double-arrow icon used by the extension:
   <em>Vector source: public/icons/icon.svg</em>
 </p>
 
+## Models & Settings
+
+Supported models (via Settings UI): `deepseek-v3`, `qwen-mt-turbo`, `qwen-mt-plus`, `gpt-4o-mini`.
+
+Settings fields:
+- Model (select)
+- API Base URL (text)
+- API Key (masked, toggle show/hide)
+
+## Vocabulary Limit & Import/Export
+
+- Max items: 500
+- TXT import: one term per line
+- JSON export: `{ version, exportedAt, items }`
+- JSON import follows `docs/vocabulary-spec.md`
+
+## Build & Release
+
+### Local package
+Use `mini-translate.zip` to load unpacked extension from `chrome://extensions`.
+
+### Release assets
+Each GitHub Release includes the ZIP package and changelog.
+
 ## 🚀 Features
 
 - **Right-click Context Menu**: Add/remove vocabulary and toggle page translation
