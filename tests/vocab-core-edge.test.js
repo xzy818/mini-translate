@@ -1,5 +1,5 @@
 import { describe,it,expect } from 'vitest';
-import { validateTerm, upsert, removeByTerm, MAX_VOCAB } from '../src/services/vocab-core.js';
+import { validateTerm, upsert, removeByTerm } from '../src/services/vocab-core.js';
 
 describe('vocab-core edge cases',()=>{
   it('validateTerm handles null/undefined',()=>{ 
