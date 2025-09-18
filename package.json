@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "build": "echo 'Build step - Chrome extension ready'",
+    "build": "bash scripts/build-zip.sh",
     "validate": "npm run lint && npm test",
     "ci": "npm run validate"
   },
