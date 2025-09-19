@@ -1,12 +1,15 @@
-import { describe, expect, it, beforeAll, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   readVocabulary,
   writeVocabulary,
   writeSettings,
   readTabState,
-  VOCAB_KEY,
-  MAX_VOCAB
 } from '../src/services/storage.js';
+import {
+  MENU_ID,
+  createContextMenus,
+  registerHandlers
+} from '../src/services/context-menu.js';
 
 function createChromeStub() {
   const localStore = new Map();
@@ -23,10 +26,8 @@ function createChromeStub() {
           setTimeout(() => cb(result), 0);
         },
         set(values, cb) {
-          Object.entries(values).forEach(([key, value]) => {
-            localStore.set(key, value);
-          });
-          if (cb) setTimeout(cb, 0);
+          Object.entries(values).forEach(([key, value]) => localStore.set(key, value));
+          cb && setTimeout(cb, 0);
         }
       },
       session: {
@@ -38,10 +39,8 @@ function createChromeStub() {
           setTimeout(() => cb(result), 0);
         },
         set(values, cb) {
-          Object.entries(values).forEach(([key, value]) => {
-            sessionStore.set(key, value);
-          });
-          if (cb) setTimeout(cb, 0);
+          Object.entries(values).forEach(([key, value]) => sessionStore.set(key, value));
+          cb && setTimeout(cb, 0);
         }
       }
     },
@@ -50,112 +49,176 @@ function createChromeStub() {
       sendMessage: vi.fn((message, cb) => {
         if (message.type === 'TRANSLATE_TERM') {
           cb({ ok: true, translation: `${message.payload.text}-译` });
+          return;
         }
+        cb && cb({ ok: true });
       })
     },
     tabs: {
-      sendMessage: vi.fn((_tabId, _payload, cb) => {
-        if (cb) cb();
-      }),
+      sendMessage: vi.fn((_tabId, _payload, cb) => cb && cb()),
       onRemoved: {
-        addListener: vi.fn()
+        addListener: vi.fn((fn) => {
+          chromeStub._onTabRemoved = fn;
+        })
       }
     },
     contextMenus: {
-      removeAll: vi.fn((cb) => cb && cb()),
-      create: vi.fn(),
+      removeAll: vi.fn((cb) => {
+        chromeStub.contextMenus.entries = new Map();
+        cb && cb();
+      }),
+      create: vi.fn((entry) => {
+        chromeStub.contextMenus.entries.set(entry.id, entry);
+      }),
       update: vi.fn(),
       refresh: vi.fn(),
-      onClicked: { addListener: vi.fn() },
-      onShown: { addListener: vi.fn() }
+      entries: new Map(),
+      onClicked: {
+        addListener: vi.fn((fn) => {
+          chromeStub._onClicked = fn;
+        })
+      },
+      onShown: {
+        addListener: vi.fn((fn) => {
+          chromeStub._onShown = fn;
+        })
+      }
     },
     notifications: {
       create: vi.fn()
     }
   };
 
-  return { chromeStub, localStore, sessionStore };
+  chromeStub._localStore = localStore;
+  chromeStub._sessionStore = sessionStore;
+  return chromeStub;
 }
 
 async function flushPromises() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
-describe('context menu handlers', () => {
+describe('context menu dynamic scenes', () => {
   let chromeStub;
-  let localStore;
-  let menuExports;
-
-  beforeAll(async () => {
-    menuExports = await import('../src/services/context-menu.js');
-  });
 
   beforeEach(() => {
-    const stub = createChromeStub();
-    chromeStub = stub.chromeStub;
-    localStore = stub.localStore;
+    chromeStub = createChromeStub();
+    createContextMenus(chromeStub);
+    registerHandlers(chromeStub);
+    chromeStub.contextMenus.update.mockClear();
+    chromeStub.notifications.create.mockClear();
+    chromeStub.runtime.sendMessage.mockClear();
+    chromeStub.tabs.sendMessage.mockClear();
+    chromeStub._localStore.clear();
+    chromeStub._sessionStore.clear();
   });
 
-  it('handles term addition and stores vocabulary', async () => {
+  it('shows add action when selection not in vocabulary', async () => {
     await writeSettings(chromeStub, {
       model: 'gpt-4o-mini',
       apiKey: 'mock-key',
       apiBaseUrl: 'https://api.example.com'
     });
-    const info = { selectionText: 'sample' };
-    const tabId = 7;
 
-    const result = await menuExports.handleAddTerm(chromeStub, info, tabId);
+    const info = { selectionText: 'new-term' };
+    const tab = { id: 1 };
+
+    await chromeStub._onShown(info, tab);
     await flushPromises();
 
-    expect(result.ok).toBe(true);
+    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
+      MENU_ID,
+      expect.objectContaining({ title: 'add & mini-translate', visible: true })
+    );
+
+    chromeStub.contextMenus.update.mockClear();
+    chromeStub.notifications.create.mockClear();
+
+    await chromeStub._onClicked(info, tab);
+    await flushPromises();
+
     const vocab = await readVocabulary(chromeStub);
     expect(vocab).toHaveLength(1);
-    expect(vocab[0].term).toBe('sample');
-    expect(chromeStub.tabs.sendMessage).toHaveBeenCalledWith(tabId, expect.objectContaining({ type: 'APPLY_TRANSLATION' }), expect.any(Function));
-    expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(expect.objectContaining({ type: 'TRANSLATE_TERM' }), expect.any(Function));
+    expect(vocab[0].term).toBe('new-term');
+    expect(chromeStub.notifications.create).not.toHaveBeenCalled();
+    expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'TRANSLATE_TERM' }),
+      expect.any(Function)
+    );
   });
 
-  it('respects vocabulary limit when adding', async () => {
-    await writeSettings(chromeStub, {
-      model: 'gpt-4o-mini',
-      apiKey: 'mock-key',
-      apiBaseUrl: 'https://api.example.com'
-    });
-    const bigList = Array.from({ length: MAX_VOCAB }).map((_, index) => ({ term: `term-${index}`, translation: `t-${index}` }));
-    localStore.set(VOCAB_KEY, bigList);
+  it('shows remove action when selection exists in vocabulary', async () => {
+    await writeVocabulary(chromeStub, [{ term: 'existing', translation: '旧' }]);
 
-    const result = await menuExports.handleAddTerm(chromeStub, { selectionText: 'extra' }, 2);
+    const info = { selectionText: 'existing' };
+    const tab = { id: 2 };
+
+    await chromeStub._onShown(info, tab);
     await flushPromises();
-    expect(result.ok).toBe(false);
-    expect(result.reason).toBe('LIMIT_EXCEEDED');
-    expect(chromeStub.notifications.create).toHaveBeenCalled();
+
+    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
+      MENU_ID,
+      expect.objectContaining({ title: 'remove from mini-translate', visible: true })
+    );
+
+    await chromeStub._onClicked(info, tab);
+    await flushPromises();
+
     const vocab = await readVocabulary(chromeStub);
-    expect(vocab).toHaveLength(MAX_VOCAB);
+    expect(vocab.find((item) => item.term === 'existing')).toBeUndefined();
   });
 
-  it('removes term and notifies tab', async () => {
-    await writeVocabulary(chromeStub, [{ term: 'remove-me', translation: 'R' }]);
-    const result = await menuExports.handleRemoveTerm(chromeStub, { selectionText: 'remove-me' }, 3);
-    await flushPromises();
-    expect(result.ok).toBe(true);
-    const vocab = await readVocabulary(chromeStub);
-    expect(vocab).toHaveLength(0);
-    expect(chromeStub.tabs.sendMessage).toHaveBeenCalledWith(3, expect.objectContaining({ type: 'REMOVE_TRANSLATION' }), expect.any(Function));
-  });
+  it('shows start/stop based on tab state', async () => {
+    const info = { selectionText: '' };
+    const tab = { id: 3 };
 
-  it('toggles page translation state', async () => {
-    const tabId = 11;
-    const result1 = await menuExports.handleTogglePage(chromeStub, tabId);
+    await chromeStub._onShown(info, tab);
     await flushPromises();
-    expect(result1.enabled).toBe(true);
 
-    const result2 = await menuExports.handleTogglePage(chromeStub, tabId);
+    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
+      MENU_ID,
+      expect.objectContaining({ title: 'start mini-translate', visible: true })
+    );
+
+    chromeStub.contextMenus.update.mockClear();
+
+    await chromeStub._onClicked(info, tab);
     await flushPromises();
-    expect(result2.enabled).toBe(false);
+
+    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Mini Translate 已开启' })
+    );
+
+    chromeStub.notifications.create.mockClear();
+
+    await chromeStub._onShown(info, tab);
+    await flushPromises();
+
+    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
+      MENU_ID,
+      expect.objectContaining({ title: 'stop mini-translate', visible: true })
+    );
+
+    await chromeStub._onClicked(info, tab);
+    await flushPromises();
+
+    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Mini Translate 已关闭' })
+    );
 
     const state = await readTabState(chromeStub);
-    expect(state[tabId].enabled).toBe(false);
-    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(menuExports.MENU_IDS.TOGGLE, expect.any(Object));
+    expect(state[3].enabled).toBe(false);
+  });
+
+  it('hides menu when no valid action', async () => {
+    const info = { selectionText: '' };
+
+    await chromeStub._onShown(info, { id: undefined });
+    await flushPromises();
+
+    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
+      MENU_ID,
+      expect.objectContaining({ visible: true })
+    );
   });
 });

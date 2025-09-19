@@ -10,11 +10,9 @@ import {
 } from './storage.js';
 import { validateTerm } from './vocab-core.js';
 
-export const MENU_IDS = {
-  ADD: 'mini-translate-add',
-  REMOVE: 'mini-translate-remove',
-  TOGGLE: 'mini-translate-toggle'
-};
+export const MENU_ID = 'mini-translate-action';
+
+const menuState = new Map();
 
 export function safeSendMessage(chromeLike, tabId, payload) {
   try {
@@ -33,13 +31,13 @@ function inferType(term) {
   return term.split(/\s+/).length > 1 ? 'phrase' : 'word';
 }
 
-async function translateText(chromeLike, text) {
+async function translateTerm(chromeLike, text) {
   const settings = await readSettings(chromeLike);
   const { model, apiKey, apiBaseUrl } = settings;
   if (!model || !apiKey || !apiBaseUrl) {
     return { ok: false, reason: 'INVALID_SETTINGS' };
   }
-  const composer = new Promise((resolve) => {
+  return new Promise((resolve) => {
     chromeLike.runtime.sendMessage(
       {
         type: 'TRANSLATE_TERM',
@@ -54,10 +52,9 @@ async function translateText(chromeLike, text) {
       }
     );
   });
-  return composer;
 }
 
-export async function handleAddTerm(chromeLike, info, tabId) {
+async function handleAddTerm(chromeLike, info, tabId) {
   const selectionText = (info.selectionText || '').trim();
   if (!selectionText) {
     return { ok: false, reason: 'EMPTY_SELECTION' };
@@ -66,7 +63,7 @@ export async function handleAddTerm(chromeLike, info, tabId) {
   if (!validity.ok) {
     return { ok: false, reason: validity.error };
   }
-  const translationResult = await translateText(chromeLike, selectionText);
+  const translationResult = await translateTerm(chromeLike, selectionText);
   const translation = translationResult.ok ? translationResult.translation : '';
 
   const payload = {
@@ -78,12 +75,6 @@ export async function handleAddTerm(chromeLike, info, tabId) {
 
   const upserted = await appendVocabulary(chromeLike, payload);
   if (upserted.error === 'LIMIT_EXCEEDED') {
-    chromeLike.notifications?.create({
-      type: 'basic',
-      iconUrl: 'icons/icon-128.png',
-      title: 'Mini Translate',
-      message: '词库已达到 500 条上限，无法继续添加。'
-    });
     return { ok: false, reason: 'LIMIT_EXCEEDED', count: MAX_VOCAB };
   }
   if (translationResult.ok) {
@@ -96,7 +87,7 @@ export async function handleAddTerm(chromeLike, info, tabId) {
   return { ok: true, payload };
 }
 
-export async function handleRemoveTerm(chromeLike, info, tabId) {
+async function handleRemoveTerm(chromeLike, info, tabId) {
   const term = (info.selectionText || '').trim();
   if (!term) {
     return { ok: false, reason: 'EMPTY_SELECTION' };
@@ -113,100 +104,112 @@ export async function handleRemoveTerm(chromeLike, info, tabId) {
   return { ok: true };
 }
 
-export async function updateToggleTitle(chromeLike, tabId) {
-  const states = await readTabState(chromeLike);
-  const enabled = states[tabId]?.enabled || false;
-  chromeLike.contextMenus.update(MENU_IDS.TOGGLE, {
-    title: enabled ? 'stop mini-translate' : 'start mini-translate'
-  });
-}
-
-export async function handleTogglePage(chromeLike, tabId) {
+async function handleTogglePage(chromeLike, tabId) {
   const enabled = await toggleTabState(chromeLike, tabId);
   const vocabulary = await readVocabulary(chromeLike);
   safeSendMessage(chromeLike, tabId, {
     type: enabled ? 'TRANSLATE_ALL' : 'RESET_PAGE',
     payload: { vocabulary }
   });
-  await updateToggleTitle(chromeLike, tabId);
   return { ok: true, enabled };
+}
+
+function notify(chromeLike, message, title = 'Mini Translate') {
+  chromeLike.notifications?.create({
+    type: 'basic',
+    iconUrl: 'icons/icon-128.png',
+    title,
+    message
+  });
+}
+
+async function resolveMenuContext(chromeLike, info, tabId) {
+  const selection = (info.selectionText || '').trim();
+  const vocabulary = await readVocabulary(chromeLike);
+  const states = await readTabState(chromeLike);
+  const enabled = tabId ? Boolean(states[tabId]?.enabled) : false;
+
+  if (selection) {
+    const exists = vocabulary.find((entry) => entry.term === selection);
+    if (!exists) {
+      return {
+        title: 'add & mini-translate',
+        execute: async () => {
+          const result = await handleAddTerm(chromeLike, info, tabId);
+          if (!result.ok && result.reason) {
+            notify(
+              chromeLike,
+              result.reason === 'LIMIT_EXCEEDED'
+                ? '词库已满 (500)，请删除后再添加。'
+                : '添加失败，请检查配置或稍后重试。'
+            );
+          }
+        }
+      };
+    }
+    return {
+      title: 'remove from mini-translate',
+      execute: async () => {
+        const result = await handleRemoveTerm(chromeLike, info, tabId);
+        if (!result.ok) {
+          notify(chromeLike, '未找到对应词条。');
+        }
+      }
+    };
+  }
+
+  return {
+    title: enabled ? 'stop mini-translate' : 'start mini-translate',
+    execute: async () => {
+      const result = await handleTogglePage(chromeLike, tabId || info.frameId || 0);
+      notify(
+        chromeLike,
+        '右键菜单随状态更新。',
+        result.enabled ? 'Mini Translate 已开启' : 'Mini Translate 已关闭'
+      );
+    }
+  };
 }
 
 export async function createContextMenus(chromeLike) {
   chromeLike.contextMenus.removeAll(() => {
     chromeLike.contextMenus.create({
-      id: MENU_IDS.ADD,
-      title: 'add & mini-translate',
-      contexts: ['selection']
-    });
-    chromeLike.contextMenus.create({
-      id: MENU_IDS.REMOVE,
-      title: 'remove from mini-translate',
-      contexts: ['selection']
-    });
-    chromeLike.contextMenus.create({
-      id: MENU_IDS.TOGGLE,
-      title: 'toggle mini-translate',
+      id: MENU_ID,
+      title: 'start mini-translate',
       contexts: ['all']
     });
   });
 }
 
 export function registerHandlers(chromeLike) {
-  const handler = async (info, tab) => {
+  chromeLike.contextMenus.onClicked.addListener(async (info, tab) => {
     const tabId = tab?.id;
-    if (!tabId) return;
-
-    if (info.menuItemId === MENU_IDS.ADD) {
-      const result = await handleAddTerm(chromeLike, info, tabId);
-      if (!result.ok && result.reason) {
-        chromeLike.notifications?.create({
-          type: 'basic',
-          iconUrl: 'icons/icon-128.png',
-          title: 'Mini Translate',
-          message: result.reason === 'LIMIT_EXCEEDED'
-            ? '词库已满 (500)，请删除后再添加。'
-            : '添加失败，请检查配置或稍后重试。'
-        });
-      }
+    const key = tabId ?? 'global';
+    const context = menuState.get(key);
+    if (!context) {
+      return;
     }
-
-    if (info.menuItemId === MENU_IDS.REMOVE) {
-      const result = await handleRemoveTerm(chromeLike, info, tabId);
-      if (!result.ok) {
-        chromeLike.notifications?.create({
-          type: 'basic',
-          iconUrl: 'icons/icon-128.png',
-          title: 'Mini Translate',
-          message: '未找到对应词条。'
-        });
-      }
-    }
-
-    if (info.menuItemId === MENU_IDS.TOGGLE) {
-      const result = await handleTogglePage(chromeLike, tabId);
-      const title = result?.enabled ? 'Mini Translate 已开启' : 'Mini Translate 已关闭';
-      chromeLike.notifications?.create({
-        type: 'basic',
-        iconUrl: 'icons/icon-128.png',
-        title,
-        message: '右键菜单随状态更新。'
-      });
-    }
-  };
-
-  chromeLike.contextMenus.onClicked.addListener(handler);
+    await context.execute();
+  });
 
   chromeLike.tabs.onRemoved.addListener((tabId) => {
     removeTabState(chromeLike, tabId);
+    menuState.delete(tabId);
   });
 
-  chromeLike.contextMenus.onShown.addListener((info, tab) => {
-    const hasSelection = Boolean(info.selectionText && info.selectionText.trim());
-    chromeLike.contextMenus.update(MENU_IDS.ADD, { visible: hasSelection });
-    chromeLike.contextMenus.update(MENU_IDS.REMOVE, { visible: hasSelection });
-    if (tab?.id) {
-      updateToggleTitle(chromeLike, tab.id);
+  chromeLike.contextMenus.onShown.addListener(async (info, tab) => {
+    const tabId = tab?.id;
+    const context = await resolveMenuContext(chromeLike, info, tabId);
+    const key = tabId ?? 'global';
+    if (context) {
+      chromeLike.contextMenus.update(MENU_ID, {
+        visible: true,
+        title: context.title
+      });
+      menuState.set(key, context);
+    } else {
+      chromeLike.contextMenus.update(MENU_ID, { visible: false });
+      menuState.delete(key);
     }
     chromeLike.contextMenus.refresh();
   });
