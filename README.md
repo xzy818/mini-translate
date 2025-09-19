@@ -31,7 +31,8 @@ Settings fields:
 ## Build & Release
 
 ### Local package
-Use `mini-translate.zip` to load unpacked extension from `chrome://extensions`.
+Run `bash scripts/build-zip.sh` to produce `dist/` and `mini-translate-extension.zip`.
+Load the unpacked extension by选择 `dist/` 目录或解压 ZIP 后加载根目录。
 
 ### Release assets
 Each GitHub Release includes the ZIP package and changelog.

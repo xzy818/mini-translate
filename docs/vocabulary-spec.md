@@ -79,7 +79,6 @@
 ## 7. Release 检查清单
 1. `npm run lint && npm run test` 通过。
 2. 自动化 / 手动验证所有 Story 验收标准。
-3. 运行打包脚本生成 `mini-translate.zip`，验证可在本地安装。
+3. 运行 `bash scripts/build-zip.sh` 生成 `mini-translate-extension.zip`，验证 `dist/` 可在本地安装。
 4. 更新 README release 说明，包含词库上限、模型支持、安装指南。
 5. 附件上传：ZIP 包 + 变更日志。
-
