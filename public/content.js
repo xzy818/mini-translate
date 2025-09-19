@@ -114,3 +114,42 @@ chrome.runtime.onMessage.addListener((message) => {
       break;
   }
 });
+
+let selectionDebounce = null;
+let lastSelectionText = '';
+
+function notifySelectionChange(nextText) {
+  if (nextText === lastSelectionText) {
+    return;
+  }
+  lastSelectionText = nextText;
+  chrome.runtime.sendMessage({
+    type: 'SELECTION_CHANGED',
+    payload: { selectionText: nextText }
+  });
+}
+
+function readCurrentSelection() {
+  try {
+    const selection = window.getSelection();
+    return selection ? selection.toString().trim() : '';
+  } catch {
+    return '';
+  }
+}
+
+function scheduleSelectionNotification() {
+  if (selectionDebounce) {
+    clearTimeout(selectionDebounce);
+  }
+  selectionDebounce = setTimeout(() => {
+    const text = readCurrentSelection();
+    notifySelectionChange(text);
+  }, 150);
+}
+
+document.addEventListener('selectionchange', scheduleSelectionNotification, {
+  passive: true
+});
+
+notifySelectionChange('');

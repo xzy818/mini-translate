@@ -14,6 +14,29 @@ export const MENU_ID = 'mini-translate-action';
 
 const menuState = new Map();
 
+function setMenuContext(chromeLike, tabKey, context) {
+  if (context) {
+    chromeLike.contextMenus.update(MENU_ID, {
+      visible: true,
+      title: context.title
+    });
+    menuState.set(tabKey, context);
+  } else {
+    chromeLike.contextMenus.update(MENU_ID, { visible: false });
+    menuState.delete(tabKey);
+  }
+}
+
+async function updateMenuForInfo(chromeLike, info, tabId) {
+  try {
+    const context = await resolveMenuContext(chromeLike, info, tabId);
+    const key = tabId ?? 'global';
+    setMenuContext(chromeLike, key, context);
+  } catch (error) {
+    console.warn('Failed to resolve menu context', error);
+  }
+}
+
 export function safeSendMessage(chromeLike, tabId, payload) {
   try {
     chromeLike.tabs.sendMessage(tabId, payload, () => {
@@ -185,11 +208,21 @@ export function registerHandlers(chromeLike) {
   chromeLike.contextMenus.onClicked.addListener(async (info, tab) => {
     const tabId = tab?.id;
     const key = tabId ?? 'global';
-    const context = menuState.get(key);
+    let context = menuState.get(key);
+    if (!context) {
+      context = await resolveMenuContext(chromeLike, info, tabId);
+      if (context) {
+        setMenuContext(chromeLike, key, context);
+      }
+    }
     if (!context) {
       return;
     }
     await context.execute();
+    // Refresh menu state after action execution to reflect latest scenario.
+    if (tabId != null) {
+      await updateMenuForInfo(chromeLike, info, tabId);
+    }
   });
 
   chromeLike.tabs.onRemoved.addListener((tabId) => {
@@ -197,21 +230,17 @@ export function registerHandlers(chromeLike) {
     menuState.delete(tabId);
   });
 
-  chromeLike.contextMenus.onShown.addListener(async (info, tab) => {
-    const tabId = tab?.id;
-    const context = await resolveMenuContext(chromeLike, info, tabId);
-    const key = tabId ?? 'global';
-    if (context) {
-      chromeLike.contextMenus.update(MENU_ID, {
-        visible: true,
-        title: context.title
-      });
-      menuState.set(key, context);
-    } else {
-      chromeLike.contextMenus.update(MENU_ID, { visible: false });
-      menuState.delete(key);
+  chromeLike.runtime.onMessage.addListener((message, sender) => {
+    if (!message || message.type !== 'SELECTION_CHANGED') {
+      return;
     }
-    chromeLike.contextMenus.refresh();
+    const selection = (message.payload?.selectionText || '').trim();
+    const info = {
+      selectionText: selection,
+      frameId: sender?.frameId ?? message.payload?.frameId ?? 0
+    };
+    const tabId = sender?.tab?.id ?? message.payload?.tabId ?? null;
+    updateMenuForInfo(chromeLike, info, tabId);
   });
 }
 

@@ -40,13 +40,13 @@ class ChromeStorageClient {
     const chrome = this.chrome;
     const result = await new Promise((resolve, reject) => {
       try {
-        chrome.storage.local.get({ vocabulary: [] }, (items) => {
+        chrome.storage.local.get({ miniTranslateVocabulary: [] }, (items) => {
           const lastError = chrome.runtime && chrome.runtime.lastError;
           if (lastError) {
             reject(new Error(lastError.message));
             return;
           }
-          resolve(items.vocabulary);
+          resolve(items.miniTranslateVocabulary);
         });
       } catch (error) {
         reject(error);
@@ -59,7 +59,7 @@ class ChromeStorageClient {
     const chrome = this.chrome;
     await new Promise((resolve, reject) => {
       try {
-        chrome.storage.local.set({ vocabulary: list }, () => {
+        chrome.storage.local.set({ miniTranslateVocabulary: list }, () => {
           const lastError = chrome.runtime && chrome.runtime.lastError;
           if (lastError) {
             reject(new Error(lastError.message));
@@ -95,8 +95,8 @@ class ChromeStorageClient {
       return () => {};
     }
     const handler = (changes, area) => {
-      if (area !== 'local' || !changes.vocabulary) return;
-      const next = normalizeList(changes.vocabulary.newValue);
+      if (area !== 'local' || !changes.miniTranslateVocabulary) return;
+      const next = normalizeList(changes.miniTranslateVocabulary.newValue);
       callback(next);
     };
     this.chrome.storage.onChanged.addListener(handler);
