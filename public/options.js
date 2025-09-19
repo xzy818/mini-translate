@@ -49,6 +49,34 @@ function wrapAsync(callback) {
   });
 }
 
+function createToastNotifier(root = document) {
+  if (!root || typeof root.createElement !== 'function') {
+    return () => {};
+  }
+  let timer = null;
+  let toast = root.getElementById('toast');
+  if (!toast) {
+    toast = root.createElement('div');
+    toast.id = 'toast';
+    toast.className = 'toast';
+    toast.style.display = 'none';
+    root.body?.appendChild(toast);
+  }
+  return (message) => {
+    if (!toast || !message) {
+      return;
+    }
+    toast.textContent = message;
+    toast.style.display = 'block';
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      toast.style.display = 'none';
+    }, 1800);
+  };
+}
+
 export function createSettingsController({ chromeLike, notify, elements }) {
   const modelEl = elements.model;
   const baseEl = elements.base;
@@ -327,7 +355,7 @@ function initVocabulary(chromeLike) {
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
     const chromeLike = typeof chrome !== 'undefined' ? chrome : null;
-    const notify = (message) => window.showToast?.(message);
+    const notify = createToastNotifier(document);
     const { storage } = initVocabulary(chromeLike);
     initSettings(chromeLike, notify);
     initImportExport(storage, notify);
@@ -339,5 +367,6 @@ export const __controllers = {
   createImportExportController,
   initSettings,
   initImportExport,
-  initVocabulary
+  initVocabulary,
+  createToastNotifier
 };
