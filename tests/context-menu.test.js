@@ -52,7 +52,12 @@ function createChromeStub() {
           return;
         }
         cb && cb({ ok: true });
-      })
+      }),
+      onMessage: {
+        addListener: vi.fn((fn) => {
+          chromeStub._onRuntimeMessage = fn;
+        })
+      }
     },
     tabs: {
       sendMessage: vi.fn((_tabId, _payload, cb) => cb && cb()),
@@ -71,18 +76,13 @@ function createChromeStub() {
         chromeStub.contextMenus.entries.set(entry.id, entry);
       }),
       update: vi.fn(),
-      refresh: vi.fn(),
       entries: new Map(),
       onClicked: {
         addListener: vi.fn((fn) => {
           chromeStub._onClicked = fn;
         })
       },
-      onShown: {
-        addListener: vi.fn((fn) => {
-          chromeStub._onShown = fn;
-        })
-      }
+      refresh: vi.fn()
     },
     notifications: {
       create: vi.fn()
@@ -96,6 +96,18 @@ function createChromeStub() {
 
 async function flushPromises() {
   await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+async function dispatchSelection(chromeStub, selectionText, tabId = 1) {
+  if (!chromeStub._onRuntimeMessage) {
+    throw new Error('runtime.onMessage listener not registered');
+  }
+  chromeStub._onRuntimeMessage(
+    { type: 'SELECTION_CHANGED', payload: { selectionText } },
+    { tab: { id: tabId }, frameId: 0 }
+  );
+  await flushPromises();
+  await flushPromises();
 }
 
 describe('context menu dynamic scenes', () => {
@@ -123,8 +135,7 @@ describe('context menu dynamic scenes', () => {
     const info = { selectionText: 'new-term' };
     const tab = { id: 1 };
 
-    await chromeStub._onShown(info, tab);
-    await flushPromises();
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
@@ -153,8 +164,7 @@ describe('context menu dynamic scenes', () => {
     const info = { selectionText: 'existing' };
     const tab = { id: 2 };
 
-    await chromeStub._onShown(info, tab);
-    await flushPromises();
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
@@ -172,8 +182,7 @@ describe('context menu dynamic scenes', () => {
     const info = { selectionText: '' };
     const tab = { id: 3 };
 
-    await chromeStub._onShown(info, tab);
-    await flushPromises();
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
@@ -191,8 +200,7 @@ describe('context menu dynamic scenes', () => {
 
     chromeStub.notifications.create.mockClear();
 
-    await chromeStub._onShown(info, tab);
-    await flushPromises();
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
@@ -211,10 +219,7 @@ describe('context menu dynamic scenes', () => {
   });
 
   it('hides menu when no valid action', async () => {
-    const info = { selectionText: '' };
-
-    await chromeStub._onShown(info, { id: undefined });
-    await flushPromises();
+    await dispatchSelection(chromeStub, '', undefined);
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
