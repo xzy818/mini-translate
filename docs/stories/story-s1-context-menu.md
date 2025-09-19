@@ -26,3 +26,27 @@
 - Gate: PASS — 导入的右键菜单逻辑支持添加、移除与页面级开关，词库/翻译事件与 content script 联动正常。
 - Tests: `npm run validate`
 - Notes: 自动化覆盖词库上限、菜单增删、翻译开启/关闭；需在浏览器环境验证通知展示与实际 API 调用。
+
+### Review Date: 2025-09-19
+
+### Reviewed By: Quinn (Test Architect)
+
+### Code Quality Assessment
+- ✅ 已实现单一菜单入口与互斥场景切换，`resolveMenuContext`/`menuState` 逻辑清晰。
+- ⚠️ `resolveMenuContext` 每次读取全量词库与 tab 状态，500 词库规模下是否能在 500ms 内刷新仍需验证。
+- ⚠️ `onShown` → `onClicked` 之间依赖异步缓存，缺少防抖/过期控制，快速点击可能执行旧动作。
+
+### Test Coverage Review
+- 自动化：`tests/context-menu.test.js` 覆盖 add/remove/start/stop 场景，单测结果通过。
+- 覆盖缺口：缺少真实 Chrome 环境下的端到端验证（Scenario E1.S1-E2E-001/E1.S1-E2E-002），尚未补充 QA 记录。
+
+### NFR & Risk Notes
+- 性能：高词库体量下的菜单响应需实测（NFR 状态 CONCERNS）。
+- 可靠性：竞态风险未被测试覆盖，建议在 release 验证中重点观察。
+
+### Issues & Recommendations
+1. **执行手动 E2E 验证**：按照 Test Design 场景运行真实浏览器测试，记录响应时间、浏览器版本，并更新 Issue #21 与 QA 文档。（Owner: QA）
+2. **确认/优化缓存策略**：评估是否需要在 background 中缓存词库或限制 onShown 调用频率，至少提供性能数据支撑。（Owner: Dev）
+
+### Gate Recommendation
+- 建议 Gate 结果：`CONCERNS`，待补充端到端验证数据与性能证据后再考虑通过。
