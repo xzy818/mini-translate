@@ -1,44 +1,91 @@
 schema: 1
 story: 'E1.S1'
 story_title: 'Story S1 — 右键菜单与页面翻译开关'
-gate: PASS
-status_reason: '右键菜单三种场景、词条翻译/恢复及页面级开关均实现，自动化测试覆盖主流程。'
+gate: CONCERNS
+status_reason: '缺少端到端验证与性能证据，风险尚未关闭'
 reviewer: 'Quinn (Test Architect)'
-updated: '2025-09-18T14:03:45Z'
+updated: '2025-09-19T12:00:00Z'
 
-top_issues: []
+top_issues:
+  - id: 'QA-001'
+    severity: medium
+    summary: '缺少真实浏览器场景的端到端验证（E1.S1-E2E-001/E1.S1-E2E-002 未执行）'
+    recommended_action: '执行手动测试、记录响应时间并更新 Issue #21 与 QA 文档'
+    suggested_owner: qa
+  - id: 'QA-002'
+    severity: medium
+    summary: '未提供大词库场景下的菜单响应数据，可能无法满足 ≤500ms 要求'
+    recommended_action: '测量 500 词库规模下的 onShown 响应时间或引入缓存优化'
+    suggested_owner: dev
 waiver: { active: false }
+
+quality_score: 80
+expires: '2025-10-03T12:00:00Z'
+
+risk_summary:
+  profile: 'docs/qa/assessments/e1.s1-risk-20250919.md'
+  total: 3
+  critical: 0
+  high: 0
+  medium: 2
+  low: 1
 
 evidence:
   tests_reviewed: 4
-  risks_identified: 1
+  risks_identified: 3
   trace:
-    ac_covered: [1, 2, 3, 4]
-    ac_gaps: []
-
-test_design:
-  scenarios_total: 5
-  by_level:
-    unit: 5
-    integration: 0
-    e2e: 0
-  by_priority:
-    p0: 3
-    p1: 2
-    p2: 0
-  coverage_gaps: []
+    ac_covered: [1]
+    ac_gaps: [2, 3]
 
 nfr_validation:
-  _assessed: [usability, reliability]
-  usability:
+  _assessed: [security, performance, reliability, maintainability]
+  security:
     status: PASS
-    notes: '菜单展示切换迅速，错误时通过通知提示。'
+    notes: '仅本地 storage/消息传递，无新增外部攻击面'
+  performance:
+    status: CONCERNS
+    notes: '缺少 500 词库真实场景的菜单响应时间验证'
   reliability:
+    status: CONCERNS
+    notes: 'onShown/onClicked 竞态未做节流，需端到端复测'
+  maintainability:
     status: PASS
-    notes: 'tab 状态保存在 storage.session，重复启停无异常。'
+    notes: '结构简单，有单测覆盖并符合标准'
+
+test_design:
+  scenarios_total: 6
+  by_level:
+    unit: 3
+    integration: 1
+    e2e: 2
+  by_priority:
+    p0: 3
+    p1: 3
+    p2: 0
+  coverage_gaps:
+    - 'Scenario E1.S1-E2E-001 尚未执行'
+    - 'Scenario E1.S1-E2E-002 尚未执行'
+
+trace:
+  totals:
+    requirements: 3
+    full: 1
+    partial: 2
+    none: 0
+  planning_ref: 'docs/qa/assessments/e1.s1-test-design-20250919.md'
+  uncovered:
+    - ac: 'AC2'
+      reason: '缺少真实 Chrome 端到端验证，需执行 Scenario E1.S1-E2E-001'
+    - ac: 'AC3'
+      reason: '缺少内容脚本端到端验证，需执行 Scenario E1.S1-E2E-002'
+  notes: '详见 docs/qa/assessments/e1.s1-trace-20250919.md'
 
 recommendations:
-  immediate: []
+  immediate:
+    - action: '执行 Scenario E1.S1-E2E-001/E1.S1-E2E-002 并将结果回写 Issue #21 与 QA 记录'
+      refs: ['docs/qa/assessments/e1.s1-test-design-20250919.md']
+    - action: '测量或优化 500 词库规模下的菜单响应时间，确保 ≤500ms 要求'
+      refs: ['src/services/context-menu.js']
   future:
-    - action: '补充手动测试确认通知权限与菜单刷新在不同浏览器版本下表现。'
-      refs: ['public/background.js']
+    - action: '评估在 background 层引入词库缓存以减少 storage 调用次数'
+      refs: ['src/services/context-menu.js']
