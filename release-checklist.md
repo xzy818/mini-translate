@@ -1,4 +1,4 @@
-# Release Checklist - Mini Translate v0.1.0
+# Release Checklist - Mini Translate v0.2.0
 
 ## 📋 Story 验收状态
 
