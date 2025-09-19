@@ -9,11 +9,12 @@
 - 可以随时开启/关闭页面翻译，保持阅读节奏。
 
 ## 需求要点
-1. 原文选中 → 菜单显示 `add & mini-translate`，执行添加并翻译。
-2. 已翻译选中 → 菜单显示 `remove from mini-translate`，执行移除并恢复原文。
-3. 任意位置右键 → 显示 `start mini-translate` 或 `stop mini-translate`（状态互斥）。
-4. Background 维护 `tab` 翻译状态；Content script 根据命令批量翻译或恢复。
-5. 菜单更新需≤500ms，操作反馈清晰。
+1. 浏览器右键菜单只暴露一条可见入口（Chrome 会自动以插件名分组），根据场景动态展示互斥动作。
+2. 原文选中且未翻译 → 菜单显示 `add & mini-translate`，执行添加并翻译。
+3. 已翻译选中 → 菜单显示 `remove from mini-translate`，执行移除并恢复原文。
+4. 未选中文本（默认场景） → 菜单显示 `start mini-translate` 或 `stop mini-translate`，根据当前 tab 状态互斥切换，默认首次为 `start`。
+5. Background 维护 `tab` 翻译状态；Content script 根据命令批量翻译或恢复。
+6. 菜单更新需≤500ms，操作反馈清晰。
 
 ## 验收标准
 - 三种场景下菜单项正确展示且逻辑互斥。
