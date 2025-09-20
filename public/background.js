@@ -13,14 +13,27 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!message || !message.type) return;
 
   if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
-    const result = validateTranslationConfig(message.payload || {});
-    if (!result.isValid) {
-      sendResponse({ ok: false, error: result.errors.join('、') });
+    const config = message.payload || {};
+    const validation = validateTranslationConfig(config);
+    if (!validation.isValid) {
+      sendResponse({ ok: false, error: validation.errors.join('、') });
       return false;
     }
-    // 轻量检测不访问外部 API
-    sendResponse({ ok: true });
-    return false;
+
+    translateText({
+      text: 'diagnostic check',
+      model: config.model,
+      apiKey: config.apiKey,
+      apiBaseUrl: config.apiBaseUrl,
+      timeout: 5000
+    })
+      .then(() => {
+        sendResponse({ ok: true });
+      })
+      .catch((error) => {
+        sendResponse({ ok: false, error: error.message || '测试失败' });
+      });
+    return true;
   }
 
   if (message.type === 'TRANSLATE_TERM') {

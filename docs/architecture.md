@@ -11,6 +11,10 @@ Chrome 插件由三个核心部分组成：
 3. **Options / 管理页（`options.html` + JS）**：
    - 管理词库、导入导出、API 配置。
    - 直接操作 `chrome.storage.local`。
+   - 与弹窗共享控制器/模块，作为完整的管理入口。
+4. **弹窗快捷面板（`popup.html` + JS）**：
+   - 点击扩展图标后出现，提供与 Options 页面相同的核心操作。
+   - 复用词库与配置控制器，展示精简 UI 并支持导入导出。
 
 补充模块：
 - **翻译服务封装（`services/translator.js`）**：统一处理 DeepSeek、Qwen、OpenAI 等模型调用。
@@ -68,7 +72,7 @@ content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
 - 缓存策略：针对相同 term + model + context 可写入 `chrome.storage.local` 的 LRU（可选优化）。
 
 ## 4. UI 与交互
-- Options 页面使用原生 Web 组件或轻量框架（默认为原生）。
+- Options/弹窗 使用原生 Web 组件或轻量框架（默认为原生）。
 - 词库表顶部显示计数（`n/500`），超限后禁用添加按钮。
 - API 设置模块提供：模型下拉、Base URL、Key（星号遮挡 + 查看按钮）。
 - 导入导出按钮放在词表区域右上角，导入时给出浮层反馈。

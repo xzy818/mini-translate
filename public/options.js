@@ -49,7 +49,7 @@ function wrapAsync(callback) {
   });
 }
 
-function createToastNotifier(root = document) {
+export function createToastNotifier(root = document) {
   if (!root || typeof root.createElement !== 'function') {
     return () => {};
   }
