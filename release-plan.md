@@ -1,4 +1,4 @@
-# Release Plan - Mini Translate v0.2.0
+# Release Plan - Mini Translate v0.2.1
 
 ## 🎯 发布目标
 
@@ -27,18 +27,18 @@
 - [x] 最终集成测试
 - [x] 发布包构建验证（`bash scripts/build-zip.sh`）
 
-### Phase 3: 正式发布 (1 天)
-- [ ] 创建 GitHub Release
-- [ ] 生成扩展包
+### Phase 3: 正式发布 (进行中)
+- [ ] 创建 GitHub Release（附上 v0.2.1 新包）
+- [x] 生成扩展包
 - [ ] 发布文档更新
 - [ ] 社区通知
 
 ## 🚀 发布策略
 
 ### 版本策略
-- **版本号**: v0.2.0
-- **版本类型**: MVP (Minimum Viable Product)
-- **发布范围**: 核心架构 + 基础功能框架 + 翻译服务抽象
+- **版本号**: v0.2.1
+- **版本类型**: 补丁发布
+- **发布范围**: 修正右键菜单互斥逻辑在打包物中的回归，统一版本号与发布包
 
 ### 发布渠道
 1. **GitHub Releases**: 主要发布渠道
