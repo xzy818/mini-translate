@@ -14,15 +14,37 @@ export const MENU_ID = 'mini-translate-action';
 
 const menuState = new Map();
 
+function refreshContextMenu(chromeLike) {
+  try {
+    if (typeof chromeLike.contextMenus.refresh === 'function') {
+      chromeLike.contextMenus.refresh();
+    }
+  } catch (error) {
+    console.warn('contextMenus.refresh failed', error);
+  }
+}
+
 function setMenuContext(chromeLike, tabKey, context) {
-  if (context) {
-    chromeLike.contextMenus.update(MENU_ID, {
-      visible: true,
-      title: context.title
+  const nextState = context
+    ? { visible: true, title: context.title }
+    : { visible: false };
+
+  try {
+    chromeLike.contextMenus.update(MENU_ID, nextState, () => {
+      const lastError = chromeLike.runtime?.lastError;
+      if (lastError) {
+        console.warn('contextMenus.update failed', lastError.message);
+        return;
+      }
+      refreshContextMenu(chromeLike);
     });
+  } catch (error) {
+    console.warn('contextMenus.update exception', error);
+  }
+
+  if (context) {
     menuState.set(tabKey, context);
   } else {
-    chromeLike.contextMenus.update(MENU_ID, { visible: false });
     menuState.delete(tabKey);
   }
 }

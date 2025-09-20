@@ -75,7 +75,13 @@ function createChromeStub() {
       create: vi.fn((entry) => {
         chromeStub.contextMenus.entries.set(entry.id, entry);
       }),
-      update: vi.fn(),
+      update: vi.fn((id, details, cb) => {
+        const current = chromeStub.contextMenus.entries.get(id) || {};
+        chromeStub.contextMenus.entries.set(id, { ...current, ...details });
+        if (typeof cb === 'function') {
+          setTimeout(cb, 0);
+        }
+      }),
       entries: new Map(),
       onClicked: {
         addListener: vi.fn((fn) => {
@@ -118,6 +124,7 @@ describe('context menu dynamic scenes', () => {
     createContextMenus(chromeStub);
     registerHandlers(chromeStub);
     chromeStub.contextMenus.update.mockClear();
+    chromeStub.contextMenus.refresh.mockClear();
     chromeStub.notifications.create.mockClear();
     chromeStub.runtime.sendMessage.mockClear();
     chromeStub.tabs.sendMessage.mockClear();
@@ -136,13 +143,17 @@ describe('context menu dynamic scenes', () => {
     const tab = { id: 1 };
 
     await dispatchSelection(chromeStub, info.selectionText, tab.id);
+    await flushPromises();
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ title: 'add & mini-translate', visible: true })
+      expect.objectContaining({ title: 'add & mini-translate', visible: true }),
+      expect.any(Function)
     );
+    expect(chromeStub.contextMenus.refresh).toHaveBeenCalled();
 
     chromeStub.contextMenus.update.mockClear();
+    chromeStub.contextMenus.refresh.mockClear();
     chromeStub.notifications.create.mockClear();
 
     await chromeStub._onClicked(info, tab);
@@ -165,11 +176,14 @@ describe('context menu dynamic scenes', () => {
     const tab = { id: 2 };
 
     await dispatchSelection(chromeStub, info.selectionText, tab.id);
+    await flushPromises();
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ title: 'remove from mini-translate', visible: true })
+      expect.objectContaining({ title: 'remove from mini-translate', visible: true }),
+      expect.any(Function)
     );
+    expect(chromeStub.contextMenus.refresh).toHaveBeenCalled();
 
     await chromeStub._onClicked(info, tab);
     await flushPromises();
@@ -183,13 +197,17 @@ describe('context menu dynamic scenes', () => {
     const tab = { id: 3 };
 
     await dispatchSelection(chromeStub, info.selectionText, tab.id);
+    await flushPromises();
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ title: 'start mini-translate', visible: true })
+      expect.objectContaining({ title: 'start mini-translate', visible: true }),
+      expect.any(Function)
     );
+    expect(chromeStub.contextMenus.refresh).toHaveBeenCalled();
 
     chromeStub.contextMenus.update.mockClear();
+    chromeStub.contextMenus.refresh.mockClear();
 
     await chromeStub._onClicked(info, tab);
     await flushPromises();
@@ -201,11 +219,14 @@ describe('context menu dynamic scenes', () => {
     chromeStub.notifications.create.mockClear();
 
     await dispatchSelection(chromeStub, info.selectionText, tab.id);
+    await flushPromises();
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ title: 'stop mini-translate', visible: true })
+      expect.objectContaining({ title: 'stop mini-translate', visible: true }),
+      expect.any(Function)
     );
+    expect(chromeStub.contextMenus.refresh).toHaveBeenCalled();
 
     await chromeStub._onClicked(info, tab);
     await flushPromises();
@@ -220,10 +241,13 @@ describe('context menu dynamic scenes', () => {
 
   it('hides menu when no valid action', async () => {
     await dispatchSelection(chromeStub, '', undefined);
+    await flushPromises();
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ visible: true })
+      expect.objectContaining({ visible: true }),
+      expect.any(Function)
     );
+    expect(chromeStub.contextMenus.refresh).toHaveBeenCalled();
   });
 });
