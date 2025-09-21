@@ -88,6 +88,67 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   const hasChrome = Boolean(chromeLike?.storage?.local);
 
+  function getOriginPattern(baseUrl) {
+    try {
+      const url = new URL(baseUrl);
+      return {
+        origin: url.origin,
+        pattern: `${url.origin}/*`
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async function ensureHostPermission(patternInfo) {
+    if (!patternInfo) {
+      return { ok: false, error: 'API 地址无效' };
+    }
+    if (!chromeLike?.permissions?.contains) {
+      return { ok: true, origin: patternInfo.origin, pattern: patternInfo.pattern, granted: false };
+    }
+
+    try {
+      const alreadyGranted = await wrapAsync((resolve, reject) => {
+        chromeLike.permissions.contains({ origins: [patternInfo.pattern] }, (result) => {
+          const error = chromeLike.runtime?.lastError;
+          if (error) {
+            reject(new Error(error.message));
+            return;
+          }
+          resolve(result);
+        });
+      });
+
+      if (alreadyGranted) {
+        return { ok: true, origin: patternInfo.origin, pattern: patternInfo.pattern, granted: false };
+      }
+
+      if (!chromeLike.permissions?.request) {
+        return { ok: false, error: `缺少访问权限：${patternInfo.origin}` };
+      }
+
+      const granted = await wrapAsync((resolve, reject) => {
+        chromeLike.permissions.request({ origins: [patternInfo.pattern] }, (result) => {
+          const error = chromeLike.runtime?.lastError;
+          if (error) {
+            reject(new Error(error.message));
+            return;
+          }
+          resolve(result);
+        });
+      });
+
+      if (!granted) {
+        return { ok: false, error: `已取消授权：${patternInfo.origin}` };
+      }
+
+      return { ok: true, origin: patternInfo.origin, pattern: patternInfo.pattern, granted: true };
+    } catch (error) {
+      return { ok: false, error: error.message || '权限校验失败' };
+    }
+  }
+
   function normalizeBaseUrlInput({ notifyOnChange = true } = {}) {
     const raw = baseEl.value ?? '';
     const trimmed = raw.trim();
@@ -129,6 +190,15 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       return;
     }
     const normalizedBaseUrl = normalizeBaseUrlInput();
+    const originInfo = getOriginPattern(normalizedBaseUrl);
+    const permission = await ensureHostPermission(originInfo);
+    if (!permission.ok) {
+      notify(permission.error || '权限校验失败');
+      return;
+    }
+    if (permission.granted) {
+      notify(`已授权访问 ${permission.origin}`);
+    }
     const payload = {
       model: modelEl.value,
       apiBaseUrl: normalizedBaseUrl,
@@ -163,6 +233,15 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       return;
     }
     const normalizedBaseUrl = normalizeBaseUrlInput();
+    const originInfo = getOriginPattern(normalizedBaseUrl);
+    const permission = await ensureHostPermission(originInfo);
+    if (!permission.ok) {
+      notify(permission.error || '权限校验失败');
+      return;
+    }
+    if (permission.granted) {
+      notify(`已授权访问 ${permission.origin}`);
+    }
     const payload = {
       model: modelEl.value,
       apiBaseUrl: normalizedBaseUrl,

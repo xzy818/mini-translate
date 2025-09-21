@@ -1,5 +1,34 @@
 import { initializeBackground } from '../src/services/context-menu.js';
-import { translateText, validateTranslationConfig } from '../src/services/translator.js';
+import {
+  translateText,
+  validateTranslationConfig,
+  normalizeApiBaseUrl
+} from '../src/services/translator.js';
+
+function getOriginPattern(baseUrl) {
+  try {
+    const url = new URL(baseUrl);
+    return {
+      origin: url.origin,
+      pattern: `${url.origin}/*`
+    };
+  } catch {
+    return null;
+  }
+}
+
+function checkOriginPermission(pattern) {
+  return new Promise((resolve) => {
+    chrome.permissions.contains({ origins: [pattern] }, (granted) => {
+      const error = chrome.runtime?.lastError;
+      if (error) {
+        resolve({ ok: false, error: error.message });
+        return;
+      }
+      resolve({ ok: true, granted });
+    });
+  });
+}
 
 let initialized = false;
 
@@ -20,30 +49,70 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       return false;
     }
 
-    translateText({
-      text: 'diagnostic check',
-      model: config.model,
-      apiKey: config.apiKey,
-      apiBaseUrl: validation.normalizedBaseUrl || config.apiBaseUrl,
-      timeout: 5000
-    })
-      .then(() => {
-        sendResponse({ ok: true });
+    const normalizedBaseUrl = validation.normalizedBaseUrl || config.apiBaseUrl;
+    const originInfo = getOriginPattern(normalizedBaseUrl);
+    if (!originInfo) {
+      sendResponse({ ok: false, error: 'API Base URL 无效' });
+      return false;
+    }
+
+    (async () => {
+      const permission = await checkOriginPermission(originInfo.pattern);
+      if (!permission.ok) {
+        sendResponse({ ok: false, error: permission.error || '权限校验失败' });
+        return;
+      }
+      if (!permission.granted) {
+        sendResponse({ ok: false, error: `缺少访问权限：${originInfo.origin}` });
+        return;
+      }
+
+      translateText({
+        text: 'diagnostic check',
+        model: config.model,
+        apiKey: config.apiKey,
+        apiBaseUrl: normalizedBaseUrl,
+        timeout: 5000
       })
-      .catch((error) => {
-        sendResponse({ ok: false, error: error.message || '测试失败' });
-      });
+        .then(() => {
+          sendResponse({ ok: true });
+        })
+        .catch((error) => {
+          sendResponse({ ok: false, error: error.message || '测试失败' });
+        });
+    })();
     return true;
   }
 
   if (message.type === 'TRANSLATE_TERM') {
-    translateText(message.payload)
-      .then((translation) => {
-        sendResponse({ ok: true, translation });
-      })
-      .catch((error) => {
-        sendResponse({ ok: false, error: error.message || '翻译失败' });
-      });
+    const payload = message.payload || {};
+    const normalizedBaseUrl = normalizeApiBaseUrl(payload.apiBaseUrl || '');
+    const originInfo = getOriginPattern(normalizedBaseUrl);
+
+    if (!originInfo) {
+      sendResponse({ ok: false, error: 'API Base URL 未配置或无效' });
+      return false;
+    }
+
+    (async () => {
+      const permission = await checkOriginPermission(originInfo.pattern);
+      if (!permission.ok) {
+        sendResponse({ ok: false, error: permission.error || '权限校验失败' });
+        return;
+      }
+      if (!permission.granted) {
+        sendResponse({ ok: false, error: `缺少访问权限：${originInfo.origin}` });
+        return;
+      }
+
+      translateText({ ...payload, apiBaseUrl: normalizedBaseUrl })
+        .then((translation) => {
+          sendResponse({ ok: true, translation });
+        })
+        .catch((error) => {
+          sendResponse({ ok: false, error: error.message || '翻译失败' });
+        });
+    })();
     return true; // keep channel open for async response
   }
 });

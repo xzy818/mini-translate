@@ -44,6 +44,7 @@
 - Story S5：API/模型配置模块
   - 管理页底部展示模型选择、API Key、Base URL，提供密钥遮挡与保存。
   - Base URL 输入需兼容根路径、以 `/v1` 结尾的路径，或完整接口路径（如 `.../v1/chat/completions`），系统保存前自动标准化并在发生修正时提示用户。
+  - 保存或测试前解析 Base URL 的域名，若未授权则引导用户授予 `host_permissions`；授权失败需阻断翻译并给出提示。
 - Story S6：导入导出
   - TXT：一行一个词或短语。
   - JSON：约定 schema（见章节 4.2）。
