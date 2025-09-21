@@ -5,6 +5,7 @@ import {
   importFromTxt,
   importFromJson
 } from '../src/services/vocab-io.js';
+import { normalizeApiBaseUrl } from '../src/services/translator.js';
 
 const PAGE_SELECTORS = {
   counter: 'vocab-counter',
@@ -87,6 +88,78 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   const hasChrome = Boolean(chromeLike?.storage?.local);
 
+  function getOriginPattern(baseUrl) {
+    try {
+      const url = new URL(baseUrl);
+      return {
+        origin: url.origin,
+        pattern: `${url.origin}/*`
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async function ensureHostPermission(patternInfo) {
+    if (!patternInfo) {
+      return { ok: false, error: 'API 地址无效' };
+    }
+    if (!chromeLike?.permissions?.contains) {
+      return { ok: true, origin: patternInfo.origin, pattern: patternInfo.pattern, granted: false };
+    }
+
+    try {
+      const alreadyGranted = await wrapAsync((resolve, reject) => {
+        chromeLike.permissions.contains({ origins: [patternInfo.pattern] }, (result) => {
+          const error = chromeLike.runtime?.lastError;
+          if (error) {
+            reject(new Error(error.message));
+            return;
+          }
+          resolve(result);
+        });
+      });
+
+      if (alreadyGranted) {
+        return { ok: true, origin: patternInfo.origin, pattern: patternInfo.pattern, granted: false };
+      }
+
+      if (!chromeLike.permissions?.request) {
+        return { ok: false, error: `缺少访问权限：${patternInfo.origin}` };
+      }
+
+      const granted = await wrapAsync((resolve, reject) => {
+        chromeLike.permissions.request({ origins: [patternInfo.pattern] }, (result) => {
+          const error = chromeLike.runtime?.lastError;
+          if (error) {
+            reject(new Error(error.message));
+            return;
+          }
+          resolve(result);
+        });
+      });
+
+      if (!granted) {
+        return { ok: false, error: `已取消授权：${patternInfo.origin}` };
+      }
+
+      return { ok: true, origin: patternInfo.origin, pattern: patternInfo.pattern, granted: true };
+    } catch (error) {
+      return { ok: false, error: error.message || '权限校验失败' };
+    }
+  }
+
+  function normalizeBaseUrlInput({ notifyOnChange = true } = {}) {
+    const raw = baseEl.value ?? '';
+    const trimmed = raw.trim();
+    const normalized = normalizeApiBaseUrl(trimmed);
+    baseEl.value = normalized;
+    if (notifyOnChange && trimmed && normalized && normalized !== trimmed) {
+      notify('已自动格式化 API 地址');
+    }
+    return normalized;
+  }
+
   async function load() {
     if (!hasChrome) return;
     try {
@@ -101,7 +174,9 @@ export function createSettingsController({ chromeLike, notify, elements }) {
         });
       });
       if (result.model) modelEl.value = result.model;
-      if (result.apiBaseUrl) baseEl.value = result.apiBaseUrl;
+      if (result.apiBaseUrl) {
+        baseEl.value = normalizeApiBaseUrl(result.apiBaseUrl);
+      }
       if (result.apiKey) keyEl.value = result.apiKey;
     } catch (error) {
       console.error('读取设置失败', error);
@@ -114,9 +189,19 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       notify('当前环境不支持保存');
       return;
     }
+    const normalizedBaseUrl = normalizeBaseUrlInput();
+    const originInfo = getOriginPattern(normalizedBaseUrl);
+    const permission = await ensureHostPermission(originInfo);
+    if (!permission.ok) {
+      notify(permission.error || '权限校验失败');
+      return;
+    }
+    if (permission.granted) {
+      notify(`已授权访问 ${permission.origin}`);
+    }
     const payload = {
       model: modelEl.value,
-      apiBaseUrl: baseEl.value.trim(),
+      apiBaseUrl: normalizedBaseUrl,
       apiKey: keyEl.value.trim()
     };
     try {
@@ -147,9 +232,19 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       notify('当前环境不支持测试');
       return;
     }
+    const normalizedBaseUrl = normalizeBaseUrlInput();
+    const originInfo = getOriginPattern(normalizedBaseUrl);
+    const permission = await ensureHostPermission(originInfo);
+    if (!permission.ok) {
+      notify(permission.error || '权限校验失败');
+      return;
+    }
+    if (permission.granted) {
+      notify(`已授权访问 ${permission.origin}`);
+    }
     const payload = {
       model: modelEl.value,
-      apiBaseUrl: baseEl.value.trim(),
+      apiBaseUrl: normalizedBaseUrl,
       apiKey: keyEl.value.trim()
     };
     try {

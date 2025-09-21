@@ -4,6 +4,7 @@
   "version": "0.2.1",
   "description": "Translate selected terms and toggle page translation.",
   "permissions": ["contextMenus","storage","scripting","activeTab","notifications"],
+  "host_permissions": ["https://dashscope.aliyuncs.com/*"],
   "background": {"service_worker": "background.js", "type": "module"},
   "options_ui": {"page":"options.html","open_in_tab": true},
   "action": {

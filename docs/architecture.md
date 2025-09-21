@@ -71,6 +71,14 @@ content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
   - 支持超时、退避重试（指数退避），错误信息标准化。
 - 缓存策略：针对相同 term + model + context 可写入 `chrome.storage.local` 的 LRU（可选优化）。
 
+### 3.5 权限管理
+- Options 保存/测试时根据 Base URL 提取域名：
+  - 先调用 `chrome.permissions.contains` 查看是否已授予；
+  - 未授予时触发 `chrome.permissions.request({ origins: [origin] })`；
+  - 用户拒绝或调用失败则提示“需授权访问该域名”，并阻断翻译。
+- 背景脚本在收到设置变更时缓存已授权域，翻译请求前做兜底校验，避免在 service worker 中出现 `failed to fetch`。
+- Manifest 中为默认支持的公共模型域提供静态 `host_permissions`，其余域通过动态授权扩展。
+
 ## 4. UI 与交互
 - Options/弹窗 使用原生 Web 组件或轻量框架（默认为原生）。
 - 词库表顶部显示计数（`n/500`），超限后禁用添加按钮。

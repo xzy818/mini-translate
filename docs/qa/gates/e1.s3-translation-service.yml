@@ -2,7 +2,7 @@ schema: 1
 story: 'E1.S3'
 story_title: '翻译服务抽象'
 gate: PASS
-status_reason: '四模型路径、错误标准化、超时与重试均有覆盖，单测全部通过。'
+status_reason: '四模型路径、错误标准化、超时与重试与动态 host 权限校验均有覆盖，单测全部通过。'
 reviewer: 'Quinn (Test Architect)'
 updated: '2025-09-18T00:00:00Z'
 
@@ -48,3 +48,5 @@ recommendations:
   future:
     - action: '在 UI 层增加错误提示映射的集成测试'
       refs: ['options/settings', 'content message handling']
+    - action: '补充 host permission 授权/拒绝的端到端回归脚本'
+      refs: ['background permissions', 'options controller']
