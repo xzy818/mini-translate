@@ -147,11 +147,30 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       notify('当前环境不支持测试');
       return;
     }
+    
+    // 前端验证，提供更友好的错误提示
+    const errors = [];
+    if (!modelEl.value) {
+      errors.push('请选择翻译模型');
+    }
+    if (!baseEl.value.trim()) {
+      errors.push('请填写API Base URL');
+    }
+    if (!keyEl.value.trim()) {
+      errors.push('请填写API Key');
+    }
+    
+    if (errors.length > 0) {
+      notify(`请先完成配置: ${errors.join('、')}`);
+      return;
+    }
+    
     const payload = {
       model: modelEl.value,
       apiBaseUrl: baseEl.value.trim(),
       apiKey: keyEl.value.trim()
     };
+    
     try {
       const response = await wrapAsync((resolve, reject) => {
         chromeLike.runtime.sendMessage(
@@ -167,14 +186,14 @@ export function createSettingsController({ chromeLike, notify, elements }) {
         );
       });
       if (response?.ok) {
-        notify('测试通过');
+        notify('✅ 测试通过，翻译功能配置正确');
       } else {
-        const message = response?.error ? `测试失败: ${response.error}` : '测试失败';
+        const message = response?.error ? `❌ 测试失败: ${response.error}` : '❌ 测试失败';
         notify(message);
       }
     } catch (error) {
       console.error('测试异常', error);
-      notify('测试异常');
+      notify('❌ 测试异常，请检查网络连接');
     }
   }
 

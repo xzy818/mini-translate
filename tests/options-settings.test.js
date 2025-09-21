@@ -102,8 +102,14 @@ describe('Settings controller', () => {
 
   it('tests settings via runtime message', async () => {
     const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
+    
+    // 设置测试数据
+    elements.model.value = 'deepseek-v3';
+    elements.base.value = 'https://api.example.com';
+    elements.key.value = 'test-key';
+    
     await controller.testConnection();
     expect(chromeStub.runtime.sendMessage).toHaveBeenCalled();
-    expect(notify).toHaveBeenCalledWith('测试通过');
+    expect(notify).toHaveBeenCalledWith('✅ 测试通过，翻译功能配置正确');
   });
 });
