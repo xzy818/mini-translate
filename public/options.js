@@ -36,10 +36,26 @@ export function collectVocabularyElements(root = document) {
   };
 }
 
-function wrapAsync(callback) {
+function wrapAsync(callback, chromeLike = chrome) {
   return new Promise((resolve, reject) => {
     try {
-      const maybePromise = callback(resolve, reject);
+      const maybePromise = callback((result) => {
+        // 检查chrome.runtime.lastError
+        if (typeof chromeLike !== 'undefined' && chromeLike.runtime && chromeLike.runtime.lastError) {
+          const error = chromeLike.runtime.lastError;
+          // 忽略常见的连接错误
+          if (error.message && (
+              error.message.includes('Could not establish connection') ||
+              error.message.includes('Receiving end does not exist') ||
+              error.message.includes('The message port closed'))) {
+            resolve(result);
+            return;
+          }
+          reject(new Error(error.message));
+          return;
+        }
+        resolve(result);
+      }, reject);
       if (maybePromise && typeof maybePromise.then === 'function') {
         maybePromise.then(resolve).catch(reject);
       }
@@ -99,7 +115,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
           }
           resolve(items.settings || {});
         });
-      });
+      }, chromeLike);
       if (result.model) modelEl.value = result.model;
       if (result.apiBaseUrl) baseEl.value = result.apiBaseUrl;
       if (result.apiKey) keyEl.value = result.apiKey;
@@ -129,7 +145,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
           }
           resolve();
         });
-      });
+      }, chromeLike);
       if (chromeLike.runtime?.sendMessage) {
         chromeLike.runtime.sendMessage({ type: 'SETTINGS_UPDATED', payload }, () => {
           // ignore callback errors for broadcast message
@@ -147,11 +163,30 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       notify('当前环境不支持测试');
       return;
     }
+    
+    // 前端验证，提供更友好的错误提示
+    const errors = [];
+    if (!modelEl.value) {
+      errors.push('请选择翻译模型');
+    }
+    if (!baseEl.value.trim()) {
+      errors.push('请填写API Base URL');
+    }
+    if (!keyEl.value.trim()) {
+      errors.push('请填写API Key');
+    }
+    
+    if (errors.length > 0) {
+      notify(`请先完成配置: ${errors.join('、')}`);
+      return;
+    }
+    
     const payload = {
       model: modelEl.value,
       apiBaseUrl: baseEl.value.trim(),
       apiKey: keyEl.value.trim()
     };
+    
     try {
       const response = await wrapAsync((resolve, reject) => {
         chromeLike.runtime.sendMessage(
@@ -165,16 +200,16 @@ export function createSettingsController({ chromeLike, notify, elements }) {
             resolve(res);
           }
         );
-      });
+      }, chromeLike);
       if (response?.ok) {
-        notify('测试通过');
+        notify('✅ 测试通过，翻译功能配置正确');
       } else {
-        const message = response?.error ? `测试失败: ${response.error}` : '测试失败';
+        const message = response?.error ? `❌ 测试失败: ${response.error}` : '❌ 测试失败';
         notify(message);
       }
     } catch (error) {
       console.error('测试异常', error);
-      notify('测试异常');
+      notify('❌ 测试异常，请检查网络连接');
     }
   }
 

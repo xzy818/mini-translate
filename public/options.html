@@ -304,6 +304,9 @@
           <p>浏览与维护已保存的生词，支持分页、删除与状态查看。</p>
         </div>
         <div class="counter" id="vocab-counter">0 / 500</div>
+        <button id="retry-all-errors" class="btn btn-secondary" style="display: none;">
+          🔄 重新翻译所有错误项
+        </button>
       </header>
 
       <div class="alert" id="vocab-alert" role="status" aria-live="polite" hidden></div>
@@ -342,12 +345,21 @@
         <div>
           <h2>翻译服务配置</h2>
           <p>配置模型、接口地址与密钥，支持保存与测试连通性。</p>
+          <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 14px;">
+            <strong>💡 配置说明：</strong>
+            <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+              <li><strong>模型</strong>：选择要使用的翻译模型</li>
+              <li><strong>API Base URL</strong>：填写API服务地址（如：https://dashscope.aliyuncs.com/compatible-mode/v1）</li>
+              <li><strong>API Key</strong>：填写您的API密钥</li>
+            </ul>
+          </div>
         </div>
       </header>
       <div class="settings-grid">
         <div class="settings-row">
           <label for="model">模型</label>
           <select id="model">
+            <option value="">请选择翻译模型</option>
             <option value="deepseek-v3">DeepSeek V3</option>
             <option value="qwen-mt-turbo">Qwen MT Turbo</option>
             <option value="qwen-mt-plus">Qwen MT Plus</option>
@@ -356,7 +368,7 @@
         </div>
         <div class="settings-row">
           <label for="base">API Base URL</label>
-          <input id="base" type="text" placeholder="https://api.example.com" />
+          <input id="base" type="text" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" />
         </div>
         <div class="settings-row">
           <label for="key">API Key</label>

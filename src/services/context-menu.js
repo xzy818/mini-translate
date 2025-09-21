@@ -39,13 +39,26 @@ async function updateMenuForInfo(chromeLike, info, tabId) {
 
 export function safeSendMessage(chromeLike, tabId, payload) {
   try {
-    chromeLike.tabs.sendMessage(tabId, payload, () => {
+    chromeLike.tabs.sendMessage(tabId, payload, (response) => {
       const error = chromeLike.runtime?.lastError;
       if (error) {
+        // 检查是否是常见的连接错误，避免在控制台显示警告
+        if (error.message.includes('Could not establish connection') || 
+            error.message.includes('Receiving end does not exist') ||
+            error.message.includes('The message port closed')) {
+          // 这些是正常的连接错误，不需要警告
+          return;
+        }
         console.warn('tabs.sendMessage failed', error.message);
       }
     });
   } catch (error) {
+    // 检查是否是常见的连接异常，避免在控制台显示警告
+    if (error.message && (
+        error.message.includes('Could not establish connection') ||
+        error.message.includes('Receiving end does not exist'))) {
+      return;
+    }
     console.warn('tabs.sendMessage exception', error);
   }
 }

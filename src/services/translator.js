@@ -38,12 +38,11 @@ export const TRANSLATION_ERRORS = {
  * 创建翻译错误对象
  */
 function createTranslationError(type, message, originalError = null) {
-  return {
-    type,
-    message,
-    originalError,
-    timestamp: new Date().toISOString()
-  };
+  const error = new Error(message);
+  error.type = type;
+  error.originalError = originalError;
+  error.timestamp = new Date().toISOString();
+  return error;
 }
 
 /**
@@ -62,24 +61,139 @@ function delay(ms) {
 }
 
 /**
+ * 检测是否在Chrome扩展环境中
+ */
+function isChromeExtension() {
+  return typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+}
+
+/**
+ * Chrome扩展专用的网络请求函数
+ * 使用chrome.runtime.sendMessage来绕过Service Worker的fetch限制
+ */
+async function chromeExtensionFetch(url, options) {
+  return new Promise((resolve, reject) => {
+    // 创建一个临时的content script来执行fetch请求
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      if (tabs.length === 0) {
+        reject(new Error('No active tab found'));
+        return;
+      }
+      
+      const tabId = tabs[0].id;
+      
+      // 注入一个临时的fetch脚本
+      chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: async (url, options) => {
+          try {
+            const response = await fetch(url, options);
+            const data = await response.text();
+            return {
+              ok: response.ok,
+              status: response.status,
+              statusText: response.statusText,
+              data: data
+            };
+          } catch (error) {
+            throw error.message;
+          }
+        },
+        args: [url, options]
+      }, (results) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        
+        if (results && results[0] && results[0].result) {
+          const result = results[0].result;
+          if (result.ok) {
+            resolve({
+              ok: true,
+              status: result.status,
+              statusText: result.statusText,
+              json: () => Promise.resolve(JSON.parse(result.data))
+            });
+          } else {
+            reject(new Error(`HTTP ${result.status}: ${result.statusText}`));
+          }
+        } else {
+          reject(new Error('No result from content script'));
+        }
+      });
+    });
+  });
+}
+
+/**
  * 带超时的 fetch 请求
+ * 针对Chrome扩展环境进行优化
  */
 async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const response = await fetch(url, {
+    // 检测环境并调整请求选项
+    const isExtension = isChromeExtension();
+    console.log('🔍 环境检测:', { isExtension, url });
+    
+    const fetchOptions = {
       ...options,
       signal: controller.signal
-    });
+    };
+    
+    // 在Chrome扩展环境中添加特定选项
+    if (isExtension) {
+      fetchOptions.mode = 'cors';
+      fetchOptions.credentials = 'omit';
+      fetchOptions.cache = 'no-cache';
+    }
+    
+    console.log('🔍 发送fetch请求:', { url, options: fetchOptions });
+    
+    let response;
+    
+    // 在Chrome扩展环境中使用专用fetch函数
+    if (isExtension) {
+      console.log('🔍 使用Chrome扩展专用fetch');
+      response = await chromeExtensionFetch(url, fetchOptions);
+    } else {
+      console.log('🔍 使用标准fetch');
+      response = await fetch(url, fetchOptions);
+    }
+    
     clearTimeout(timeoutId);
+    
+    console.log('🔍 fetch响应:', { 
+      status: response.status, 
+      statusText: response.statusText
+    });
+    
     return response;
   } catch (error) {
     clearTimeout(timeoutId);
+    console.log('❌ fetch请求失败:', { 
+      name: error.name, 
+      message: error.message, 
+      stack: error.stack 
+    });
+    
     if (error.name === 'AbortError') {
       throw createTranslationError(TRANSLATION_ERRORS.TIMEOUT, `请求超时 (${timeout}ms)`);
     }
+    
+    // 针对Chrome扩展环境的特殊错误处理
+    if (error.message.includes('Failed to fetch')) {
+      const isExtension = isChromeExtension();
+      if (isExtension) {
+        throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `Chrome扩展网络请求失败，请检查扩展权限和网络连接`, error);
+      } else {
+        throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `网络连接失败，请检查网络连接和API配置`, error);
+      }
+    }
+    
     throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `网络错误: ${error.message}`, error);
   }
 }
@@ -88,7 +202,9 @@ async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
  * DeepSeek V3 翻译实现
  */
 async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
+  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
+  const url = `${baseUrl}/chat/completions`;
   const payload = {
     model: SUPPORTED_MODELS.DEEPSEEK_V3,
     messages: [
@@ -134,17 +250,15 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
  * Qwen MT 翻译实现
  */
 async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
+  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
+  const url = `${baseUrl}/chat/completions`;
   const payload = {
     model,
     messages: [
       {
-        role: 'system',
-        content: '你是一个专业的翻译助手。请将用户提供的文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容。'
-      },
-      {
         role: 'user',
-        content: text
+        content: `请将以下文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容：${text}`
       }
     ],
     temperature: 0.3,
@@ -180,7 +294,9 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
  * OpenAI GPT-4o-mini 翻译实现
  */
 async function translateWithOpenAI(text, apiKey, apiBaseUrl) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
+  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
+  const url = `${baseUrl}/chat/completions`;
   const payload = {
     model: SUPPORTED_MODELS.GPT_4O_MINI,
     messages: [
