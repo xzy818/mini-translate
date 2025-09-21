@@ -32,8 +32,11 @@ async function retryTranslation(item) {
     
     if (response && response.ok) {
       // 重新翻译成功，刷新词库显示
-      await refreshVocabulary();
       showNotification('✅ 重新翻译成功', 'success');
+      // 延迟刷新页面以显示结果
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } else {
       showNotification(`❌ 重新翻译失败: ${response?.error || '未知错误'}`, 'error');
     }
@@ -76,6 +79,17 @@ function showNotification(message, type = 'info') {
 
 // 批量重新翻译所有错误项
 async function retryAllErrors() {
+  // 获取当前词库数据
+  let currentVocabulary = [];
+  try {
+    const result = await chrome.storage.local.get(['vocabulary']);
+    currentVocabulary = result.vocabulary || [];
+  } catch (error) {
+    console.error('获取词库数据失败:', error);
+    showNotification('❌ 获取词库数据失败', 'error');
+    return;
+  }
+
   const errorItems = currentVocabulary.filter(item => item.status === 'error');
   if (errorItems.length === 0) {
     showNotification('没有需要重新翻译的错误项', 'info');
@@ -129,8 +143,8 @@ async function retryAllErrors() {
     }
   }
 
-  // 刷新词库显示
-  await refreshVocabulary();
+  // 刷新词库显示 - 通过触发页面刷新
+  window.location.reload();
 
   // 恢复按钮状态
   if (retryBtn) {
@@ -563,7 +577,8 @@ export function createVocabularyManager({
     destroy: () => {
       unbindEvents();
     },
-    getState: () => ({ ...state })
+    getState: () => ({ ...state }),
+    retryAllErrors
   };
 }
 
