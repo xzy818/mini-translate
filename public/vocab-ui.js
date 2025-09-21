@@ -1,6 +1,153 @@
 export const MAX_VOCABULARY = 500;
 const PAGE_SIZE_DEFAULT = 10;
 
+// 重新翻译功能
+async function retryTranslation(item) {
+  try {
+    // 发送重新翻译请求到background
+    const response = await new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        {
+          type: 'RETRY_TRANSLATION',
+          payload: { term: item.term }
+        },
+        (res) => {
+          if (chrome.runtime.lastError) {
+            const error = chrome.runtime.lastError;
+            // 忽略常见的连接错误
+            if (error.message && (
+                error.message.includes('Could not establish connection') ||
+                error.message.includes('Receiving end does not exist') ||
+                error.message.includes('The message port closed'))) {
+              resolve({ ok: false, error: '连接失败，请重试' });
+              return;
+            }
+            reject(new Error(error.message));
+            return;
+          }
+          resolve(res);
+        }
+      );
+    });
+    
+    if (response && response.ok) {
+      // 重新翻译成功，刷新词库显示
+      await refreshVocabulary();
+      showNotification('✅ 重新翻译成功', 'success');
+    } else {
+      showNotification(`❌ 重新翻译失败: ${response?.error || '未知错误'}`, 'error');
+    }
+  } catch (error) {
+    console.error('重新翻译失败:', error);
+    showNotification(`❌ 重新翻译失败: ${error.message}`, 'error');
+  }
+}
+
+// 显示通知
+function showNotification(message, type = 'info') {
+  // 创建通知元素
+  const notification = document.createElement('div');
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    max-width: 300px;
+    word-wrap: break-word;
+    ${type === 'success' ? 'background: #16a34a;' : 
+      type === 'error' ? 'background: #dc2626;' : 
+      'background: #2563eb;'}
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // 3秒后自动移除
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 3000);
+}
+
+// 批量重新翻译所有错误项
+async function retryAllErrors() {
+  const errorItems = currentVocabulary.filter(item => item.status === 'error');
+  if (errorItems.length === 0) {
+    showNotification('没有需要重新翻译的错误项', 'info');
+    return;
+  }
+
+  const retryBtn = document.getElementById('retry-all-errors');
+  if (retryBtn) {
+    retryBtn.disabled = true;
+    retryBtn.textContent = `🔄 正在重新翻译 ${errorItems.length} 项...`;
+  }
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const item of errorItems) {
+    try {
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          {
+            type: 'RETRY_TRANSLATION',
+            payload: { term: item.term }
+          },
+          (res) => {
+            if (chrome.runtime.lastError) {
+              const error = chrome.runtime.lastError;
+              // 忽略常见的连接错误
+              if (error.message && (
+                  error.message.includes('Could not establish connection') ||
+                  error.message.includes('Receiving end does not exist') ||
+                  error.message.includes('The message port closed'))) {
+                resolve({ ok: false, error: '连接失败' });
+                return;
+              }
+              reject(new Error(error.message));
+              return;
+            }
+            resolve(res);
+          }
+        );
+      });
+      
+      if (response && response.ok) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    } catch (error) {
+      console.error(`重新翻译 ${item.term} 失败:`, error);
+      failCount++;
+    }
+  }
+
+  // 刷新词库显示
+  await refreshVocabulary();
+
+  // 恢复按钮状态
+  if (retryBtn) {
+    retryBtn.disabled = false;
+    retryBtn.textContent = '🔄 重新翻译所有错误项';
+  }
+
+  // 显示结果
+  if (successCount > 0 && failCount === 0) {
+    showNotification(`✅ 成功重新翻译 ${successCount} 项`, 'success');
+  } else if (successCount > 0 && failCount > 0) {
+    showNotification(`⚠️ 成功 ${successCount} 项，失败 ${failCount} 项`, 'info');
+  } else {
+    showNotification(`❌ 重新翻译失败，请检查API配置`, 'error');
+  }
+}
+
 const STATUS_META = {
   active: { label: '启用', className: 'status-badge status-active' },
   inactive: { label: '停用', className: 'status-badge status-inactive' },
@@ -166,7 +313,7 @@ function formatTimestamp(value) {
   }).format(date);
 }
 
-function buildStatusBadge(status) {
+function buildStatusBadge(status, item = null) {
   const meta = STATUS_META[status] || STATUS_META.active;
   const badge = document.createElement('span');
   badge.className = meta.className;
@@ -178,6 +325,17 @@ function buildStatusBadge(status) {
   const text = document.createElement('span');
   text.textContent = meta.label;
   badge.appendChild(text);
+  
+  // 如果是错误状态，添加重新翻译按钮
+  if (status === 'error' && item) {
+    const retryBtn = document.createElement('button');
+    retryBtn.textContent = '重试';
+    retryBtn.className = 'retry-btn';
+    retryBtn.style.cssText = 'margin-left: 8px; padding: 2px 6px; font-size: 12px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;';
+    retryBtn.onclick = () => retryTranslation(item);
+    badge.appendChild(retryBtn);
+  }
+  
   return badge;
 }
 
@@ -283,7 +441,7 @@ export function createVocabularyManager({
       row.appendChild(createCell(item.type === 'phrase' ? '短语' : '单词'));
       row.appendChild(createCell(String(item.length || item.term.length)));
       row.appendChild(createCell(formatTimestamp(item.createdAt)));
-      row.appendChild(createCell(buildStatusBadge(item.status)));
+      row.appendChild(createCell(buildStatusBadge(item.status, item)));
 
       const deleteButton = document.createElement('button');
       deleteButton.type = 'button';
@@ -293,6 +451,23 @@ export function createVocabularyManager({
       row.appendChild(createCell(deleteButton, 'actions-col'));
       refs.tbody.appendChild(row);
     });
+    
+    // 更新批量重新翻译按钮
+    updateRetryAllButton();
+  }
+
+  function updateRetryAllButton() {
+    const retryBtn = document.getElementById('retry-all-errors');
+    if (retryBtn) {
+      const errorCount = state.items.filter(item => item.status === 'error').length;
+      if (errorCount > 0) {
+        retryBtn.style.display = 'inline-block';
+        retryBtn.textContent = `🔄 重新翻译所有错误项 (${errorCount})`;
+        retryBtn.onclick = retryAllErrors;
+      } else {
+        retryBtn.style.display = 'none';
+      }
+    }
   }
 
   function render() {
