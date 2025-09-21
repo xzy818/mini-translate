@@ -88,7 +88,9 @@ async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
  * DeepSeek V3 翻译实现
  */
 async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
+  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
+  const url = `${baseUrl}/chat/completions`;
   const payload = {
     model: SUPPORTED_MODELS.DEEPSEEK_V3,
     messages: [
@@ -134,17 +136,15 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
  * Qwen MT 翻译实现
  */
 async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
+  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
+  const url = `${baseUrl}/chat/completions`;
   const payload = {
     model,
     messages: [
       {
-        role: 'system',
-        content: '你是一个专业的翻译助手。请将用户提供的文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容。'
-      },
-      {
         role: 'user',
-        content: text
+        content: `请将以下文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容：${text}`
       }
     ],
     temperature: 0.3,
@@ -180,7 +180,9 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
  * OpenAI GPT-4o-mini 翻译实现
  */
 async function translateWithOpenAI(text, apiKey, apiBaseUrl) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
+  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
+  const url = `${baseUrl}/chat/completions`;
   const payload = {
     model: SUPPORTED_MODELS.GPT_4O_MINI,
     messages: [
