@@ -68,6 +68,65 @@ function isChromeExtension() {
 }
 
 /**
+ * Chrome扩展专用的网络请求函数
+ * 使用chrome.runtime.sendMessage来绕过Service Worker的fetch限制
+ */
+async function chromeExtensionFetch(url, options) {
+  return new Promise((resolve, reject) => {
+    // 创建一个临时的content script来执行fetch请求
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      if (tabs.length === 0) {
+        reject(new Error('No active tab found'));
+        return;
+      }
+      
+      const tabId = tabs[0].id;
+      
+      // 注入一个临时的fetch脚本
+      chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: async (url, options) => {
+          try {
+            const response = await fetch(url, options);
+            const data = await response.text();
+            return {
+              ok: response.ok,
+              status: response.status,
+              statusText: response.statusText,
+              data: data
+            };
+          } catch (error) {
+            throw error.message;
+          }
+        },
+        args: [url, options]
+      }, (results) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        
+        if (results && results[0] && results[0].result) {
+          const result = results[0].result;
+          if (result.ok) {
+            resolve({
+              ok: true,
+              status: result.status,
+              statusText: result.statusText,
+              json: () => Promise.resolve(JSON.parse(result.data))
+            });
+          } else {
+            reject(new Error(`HTTP ${result.status}: ${result.statusText}`));
+          }
+        } else {
+          reject(new Error('No result from content script'));
+        }
+      });
+    });
+  });
+}
+
+/**
  * 带超时的 fetch 请求
  * 针对Chrome扩展环境进行优化
  */
@@ -94,13 +153,22 @@ async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
     
     console.log('🔍 发送fetch请求:', { url, options: fetchOptions });
     
-    const response = await fetch(url, fetchOptions);
+    let response;
+    
+    // 在Chrome扩展环境中使用专用fetch函数
+    if (isExtension) {
+      console.log('🔍 使用Chrome扩展专用fetch');
+      response = await chromeExtensionFetch(url, fetchOptions);
+    } else {
+      console.log('🔍 使用标准fetch');
+      response = await fetch(url, fetchOptions);
+    }
+    
     clearTimeout(timeoutId);
     
     console.log('🔍 fetch响应:', { 
       status: response.status, 
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries())
+      statusText: response.statusText
     });
     
     return response;
