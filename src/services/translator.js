@@ -21,6 +21,30 @@ const RETRY_CONFIG = {
   maxDelay: 5000   // 最大延迟5秒
 };
 
+const COMPLETIONS_PATH = '/v1/chat/completions';
+
+export function normalizeApiBaseUrl(raw) {
+  if (!raw || typeof raw !== 'string') {
+    return '';
+  }
+  let base = raw.trim();
+  if (!base) {
+    return '';
+  }
+  base = base.replace(/\/+$/, '');
+  const lowerBase = base.toLowerCase();
+  const normalizedPath = COMPLETIONS_PATH.toLowerCase();
+  if (lowerBase.endsWith(normalizedPath)) {
+    base = base.slice(0, base.length - normalizedPath.length);
+    base = base.replace(/\/+$/, '');
+  }
+  if (base.toLowerCase().endsWith('/v1')) {
+    base = base.slice(0, -3);
+    base = base.replace(/\/+$/, '');
+  }
+  return base;
+}
+
 /**
  * 翻译错误类型
  */
@@ -88,7 +112,7 @@ async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
  * DeepSeek V3 翻译实现
  */
 async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  const url = `${apiBaseUrl}${COMPLETIONS_PATH}`;
   const payload = {
     model: SUPPORTED_MODELS.DEEPSEEK_V3,
     messages: [
@@ -134,17 +158,13 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
  * Qwen MT 翻译实现
  */
 async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  const url = `${apiBaseUrl}${COMPLETIONS_PATH}`;
   const payload = {
     model,
     messages: [
       {
-        role: 'system',
-        content: '你是一个专业的翻译助手。请将用户提供的文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容。'
-      },
-      {
         role: 'user',
-        content: text
+        content: `请将以下文本翻译成中文，只返回翻译结果：\n${text}`
       }
     ],
     temperature: 0.3,
@@ -180,7 +200,7 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
  * OpenAI GPT-4o-mini 翻译实现
  */
 async function translateWithOpenAI(text, apiKey, apiBaseUrl) {
-  const url = `${apiBaseUrl}/v1/chat/completions`;
+  const url = `${apiBaseUrl}${COMPLETIONS_PATH}`;
   const payload = {
     model: SUPPORTED_MODELS.GPT_4O_MINI,
     messages: [
@@ -284,8 +304,8 @@ async function translateWithRetry(translator, text, apiKey, apiBaseUrl, model, a
  * @returns {Promise<string>} 翻译结果
  */
 export async function translateText({ text, model, apiKey, apiBaseUrl, timeout = DEFAULT_TIMEOUT }) {
-  // 参数验证
-  if (!text || typeof text !== 'string' || !text.trim()) {
+  const trimmedText = typeof text === 'string' ? text.trim() : '';
+  if (!trimmedText) {
     throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, '翻译文本不能为空');
   }
 
@@ -293,11 +313,13 @@ export async function translateText({ text, model, apiKey, apiBaseUrl, timeout =
     throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, '不支持的翻译模型');
   }
 
-  if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
+  const trimmedKey = typeof apiKey === 'string' ? apiKey.trim() : '';
+  if (!trimmedKey) {
     throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, 'API Key 未配置或无效');
   }
 
-  if (!apiBaseUrl || typeof apiBaseUrl !== 'string' || !apiBaseUrl.trim()) {
+  const normalizedBaseUrl = normalizeApiBaseUrl(apiBaseUrl);
+  if (!normalizedBaseUrl) {
     throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, 'API Base URL 未配置或无效');
   }
 
@@ -305,7 +327,7 @@ export async function translateText({ text, model, apiKey, apiBaseUrl, timeout =
   const translator = getTranslator(model);
 
   // 执行翻译（带重试）
-  return translateWithRetry(translator, text.trim(), apiKey.trim(), apiBaseUrl.trim(), model);
+  return translateWithRetry(translator, trimmedText, trimmedKey, normalizedBaseUrl, model);
 }
 
 /**
@@ -324,12 +346,14 @@ export function validateTranslationConfig(config) {
     errors.push('API Key 未配置或无效');
   }
 
-  if (!config.apiBaseUrl || typeof config.apiBaseUrl !== 'string' || !config.apiBaseUrl.trim()) {
+  const normalizedBaseUrl = normalizeApiBaseUrl(config.apiBaseUrl);
+  if (!normalizedBaseUrl) {
     errors.push('API Base URL 未配置或无效');
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
+    normalizedBaseUrl
   };
 }

@@ -5,6 +5,7 @@ import {
   importFromTxt,
   importFromJson
 } from '../src/services/vocab-io.js';
+import { normalizeApiBaseUrl } from '../src/services/translator.js';
 
 const PAGE_SELECTORS = {
   counter: 'vocab-counter',
@@ -87,6 +88,17 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   const hasChrome = Boolean(chromeLike?.storage?.local);
 
+  function normalizeBaseUrlInput({ notifyOnChange = true } = {}) {
+    const raw = baseEl.value ?? '';
+    const trimmed = raw.trim();
+    const normalized = normalizeApiBaseUrl(trimmed);
+    baseEl.value = normalized;
+    if (notifyOnChange && trimmed && normalized && normalized !== trimmed) {
+      notify('已自动格式化 API 地址');
+    }
+    return normalized;
+  }
+
   async function load() {
     if (!hasChrome) return;
     try {
@@ -101,7 +113,9 @@ export function createSettingsController({ chromeLike, notify, elements }) {
         });
       });
       if (result.model) modelEl.value = result.model;
-      if (result.apiBaseUrl) baseEl.value = result.apiBaseUrl;
+      if (result.apiBaseUrl) {
+        baseEl.value = normalizeApiBaseUrl(result.apiBaseUrl);
+      }
       if (result.apiKey) keyEl.value = result.apiKey;
     } catch (error) {
       console.error('读取设置失败', error);
@@ -114,9 +128,10 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       notify('当前环境不支持保存');
       return;
     }
+    const normalizedBaseUrl = normalizeBaseUrlInput();
     const payload = {
       model: modelEl.value,
-      apiBaseUrl: baseEl.value.trim(),
+      apiBaseUrl: normalizedBaseUrl,
       apiKey: keyEl.value.trim()
     };
     try {
@@ -147,9 +162,10 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       notify('当前环境不支持测试');
       return;
     }
+    const normalizedBaseUrl = normalizeBaseUrlInput();
     const payload = {
       model: modelEl.value,
-      apiBaseUrl: baseEl.value.trim(),
+      apiBaseUrl: normalizedBaseUrl,
       apiKey: keyEl.value.trim()
     };
     try {

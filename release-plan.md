@@ -26,6 +26,7 @@
 - [x] 添加基础图标资源
 - [x] 最终集成测试
 - [x] 发布包构建验证（`bash scripts/build-zip.sh`）
+- [x] Options 设置页支持 API Base URL 自动规范化（兼容根路径/完整路径）
 
 ### Phase 3: 正式发布 (进行中)
 - [ ] 创建 GitHub Release（附上 v0.2.1 新包）

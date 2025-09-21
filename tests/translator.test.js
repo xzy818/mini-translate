@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { 
-  translateText, 
-  validateTranslationConfig, 
-  SUPPORTED_MODELS, 
-  TRANSLATION_ERRORS 
+import {
+  translateText,
+  validateTranslationConfig,
+  SUPPORTED_MODELS,
+  TRANSLATION_ERRORS,
+  normalizeApiBaseUrl
 } from '../src/services/translator.js';
 
 // Mock fetch
@@ -55,6 +56,60 @@ describe('翻译服务 (translator.js)', () => {
       );
     });
 
+    it('应该兼容包含 completions 路径的 Base URL', async () => {
+      const config = {
+        ...mockConfig,
+        apiBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
+      };
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{
+            message: {
+              content: '你好世界'
+            }
+          }]
+        })
+      };
+
+      fetch.mockResolvedValue(mockResponse);
+
+      const result = await translateText(config);
+
+      expect(result).toBe('你好世界');
+      expect(fetch).toHaveBeenCalledWith(
+        'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+        expect.any(Object)
+      );
+    });
+
+    it('应该兼容以 /v1 结尾的 Base URL', async () => {
+      const config = {
+        ...mockConfig,
+        apiBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+      };
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{
+            message: {
+              content: '你好世界'
+            }
+          }]
+        })
+      };
+
+      fetch.mockResolvedValue(mockResponse);
+
+      const result = await translateText(config);
+
+      expect(result).toBe('你好世界');
+      expect(fetch).toHaveBeenCalledWith(
+        'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+        expect.any(Object)
+      );
+    });
+
     it('应该成功翻译文本 (Qwen MT Turbo)', async () => {
       const config = { ...mockConfig, model: SUPPORTED_MODELS.QWEN_MT_TURBO };
       const mockResponse = {
@@ -73,6 +128,12 @@ describe('翻译服务 (translator.js)', () => {
       const result = await translateText(config);
       
       expect(result).toBe('你好世界');
+      const body = JSON.parse(fetch.mock.calls[0][1].body);
+      expect(body.messages).toHaveLength(1);
+      expect(body.messages[0]).toEqual(
+        expect.objectContaining({ role: 'user' })
+      );
+      expect(body.messages[0].content).toContain('请将以下文本翻译成中文');
     });
 
     it('应该成功翻译文本 (Qwen MT Plus)', async () => {
@@ -93,6 +154,11 @@ describe('翻译服务 (translator.js)', () => {
       const result = await translateText(config);
       
       expect(result).toBe('你好世界');
+      const body = JSON.parse(fetch.mock.calls[0][1].body);
+      expect(body.messages).toHaveLength(1);
+      expect(body.messages[0]).toEqual(
+        expect.objectContaining({ role: 'user' })
+      );
     });
 
     it('应该成功翻译文本 (GPT-4o-mini)', async () => {
@@ -267,9 +333,10 @@ describe('翻译服务 (translator.js)', () => {
       };
 
       const result = validateTranslationConfig(config);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
+      expect(result.normalizedBaseUrl).toBe('https://api.example.com');
     });
 
     it('应该检测无效的模型', () => {
@@ -325,6 +392,50 @@ describe('翻译服务 (translator.js)', () => {
       expect(result.errors).toContain('不支持的翻译模型');
       expect(result.errors).toContain('API Key 未配置或无效');
       expect(result.errors).toContain('API Base URL 未配置或无效');
+    });
+
+    it('应该返回规范化后的 Base URL', () => {
+      const config = {
+        model: SUPPORTED_MODELS.QWEN_MT_PLUS,
+        apiKey: 'valid-key',
+        apiBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions/'
+      };
+
+      const result = validateTranslationConfig(config);
+
+      expect(result.isValid).toBe(true);
+      expect(result.normalizedBaseUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode');
+    });
+
+    it('应该处理以 /v1 结尾的 Base URL', () => {
+      const config = {
+        model: SUPPORTED_MODELS.QWEN_MT_TURBO,
+        apiKey: 'valid-key',
+        apiBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+      };
+
+      const result = validateTranslationConfig(config);
+
+      expect(result.isValid).toBe(true);
+      expect(result.normalizedBaseUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode');
+    });
+  });
+
+  describe('normalizeApiBaseUrl 工具函数', () => {
+    it('会移除 completions 路径并去除尾随斜杠', () => {
+      const normalized = normalizeApiBaseUrl(' https://example.com/compat/v1/chat/completions/ ');
+      expect(normalized).toBe('https://example.com/compat');
+    });
+
+    it('会移除末尾 /v1 并去除尾随斜杠', () => {
+      const normalized = normalizeApiBaseUrl('https://example.com/compat/v1');
+      expect(normalized).toBe('https://example.com/compat');
+    });
+
+    it('在输入为空或非法时返回空字符串', () => {
+      expect(normalizeApiBaseUrl('')).toBe('');
+      expect(normalizeApiBaseUrl('   ')).toBe('');
+      expect(normalizeApiBaseUrl(null)).toBe('');
     });
   });
 

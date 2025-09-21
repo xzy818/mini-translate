@@ -27,6 +27,7 @@
 - [x] **鲁棒性**: 超时控制与有限重试（2 次）
 - [x] **测试覆盖**: 24 个测试用例全部通过
 - [x] **质量门**: Gate PASS（docs/qa/gates/e1.s3-translation-service.yml）
+- [x] **配置容错**: Options 支持 Base URL 自动规范化（根路径/完整路径均可）
 
 ## 🔧 技术质量指标
 

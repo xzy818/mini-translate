@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       text: 'diagnostic check',
       model: config.model,
       apiKey: config.apiKey,
-      apiBaseUrl: config.apiBaseUrl,
+      apiBaseUrl: validation.normalizedBaseUrl || config.apiBaseUrl,
       timeout: 5000
     })
       .then(() => {

@@ -27,7 +27,7 @@ function buildDom() {
 
 function createChromeStub({ settings = {} } = {}) {
   const store = { settings };
-  return {
+  const chromeStub = {
     storage: {
       local: {
         get(keys, cb) {
@@ -50,6 +50,8 @@ function createChromeStub({ settings = {} } = {}) {
       })
     }
   };
+  chromeStub.__store = store;
+  return chromeStub;
 }
 
 describe('Settings controller', () => {
@@ -90,6 +92,39 @@ describe('Settings controller', () => {
       { type: 'SETTINGS_UPDATED', payload: expect.objectContaining({ model: 'deepseek-v3' }) },
       expect.any(Function)
     );
+  });
+
+  it('normalizes base url when user提供完整接口路径', async () => {
+    const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
+    controller.bind();
+    elements.model.value = 'deepseek-v3';
+    elements.base.value = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+    elements.key.value = 'secret';
+
+    await controller.save();
+
+    expect(notify).toHaveBeenNthCalledWith(1, '已自动格式化 API 地址');
+    expect(notify).toHaveBeenLastCalledWith('已保存');
+    expect(elements.base.value).toBe('https://dashscope.aliyuncs.com/compatible-mode');
+    expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
+      { type: 'SETTINGS_UPDATED', payload: expect.objectContaining({ apiBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode' }) },
+      expect.any(Function)
+    );
+    expect(chromeStub.__store.settings.apiBaseUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode');
+  });
+
+  it('normalizes base url when user以 /v1 结尾', async () => {
+    const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
+    controller.bind();
+    elements.model.value = 'deepseek-v3';
+    elements.base.value = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+    elements.key.value = 'secret';
+
+    await controller.save();
+
+    expect(notify).toHaveBeenNthCalledWith(1, '已自动格式化 API 地址');
+    expect(elements.base.value).toBe('https://dashscope.aliyuncs.com/compatible-mode');
+    expect(chromeStub.__store.settings.apiBaseUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode');
   });
 
   it('toggleKeyVisibility switches input type', () => {
