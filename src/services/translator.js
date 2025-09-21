@@ -38,12 +38,11 @@ export const TRANSLATION_ERRORS = {
  * 创建翻译错误对象
  */
 function createTranslationError(type, message, originalError = null) {
-  return {
-    type,
-    message,
-    originalError,
-    timestamp: new Date().toISOString()
-  };
+  const error = new Error(message);
+  error.type = type;
+  error.originalError = originalError;
+  error.timestamp = new Date().toISOString();
+  return error;
 }
 
 /**

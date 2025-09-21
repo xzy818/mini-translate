@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       return false;
     }
 
-    // 获取当前设置
+    // 获取当前设置并处理异步操作
     chrome.storage.local.get(['model', 'apiKey', 'apiBaseUrl'], async (settings) => {
       const { model, apiKey, apiBaseUrl } = settings;
       if (!model || !apiKey || !apiBaseUrl) {
@@ -94,6 +94,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
         sendResponse({ ok: true, translation });
       } catch (error) {
+        console.error('重新翻译失败:', error);
         sendResponse({ ok: false, error: error.message || '重新翻译失败' });
       }
     });

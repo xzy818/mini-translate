@@ -36,13 +36,13 @@ export function collectVocabularyElements(root = document) {
   };
 }
 
-function wrapAsync(callback) {
+function wrapAsync(callback, chromeLike = chrome) {
   return new Promise((resolve, reject) => {
     try {
       const maybePromise = callback((result) => {
         // 检查chrome.runtime.lastError
-        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
-          const error = chrome.runtime.lastError;
+        if (typeof chromeLike !== 'undefined' && chromeLike.runtime && chromeLike.runtime.lastError) {
+          const error = chromeLike.runtime.lastError;
           // 忽略常见的连接错误
           if (error.message && (
               error.message.includes('Could not establish connection') ||
@@ -115,7 +115,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
           }
           resolve(items.settings || {});
         });
-      });
+      }, chromeLike);
       if (result.model) modelEl.value = result.model;
       if (result.apiBaseUrl) baseEl.value = result.apiBaseUrl;
       if (result.apiKey) keyEl.value = result.apiKey;
@@ -145,7 +145,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
           }
           resolve();
         });
-      });
+      }, chromeLike);
       if (chromeLike.runtime?.sendMessage) {
         chromeLike.runtime.sendMessage({ type: 'SETTINGS_UPDATED', payload }, () => {
           // ignore callback errors for broadcast message
@@ -200,7 +200,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
             resolve(res);
           }
         );
-      });
+      }, chromeLike);
       if (response?.ok) {
         notify('✅ 测试通过，翻译功能配置正确');
       } else {
