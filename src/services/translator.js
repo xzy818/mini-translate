@@ -61,24 +61,71 @@ function delay(ms) {
 }
 
 /**
+ * 检测是否在Chrome扩展环境中
+ */
+function isChromeExtension() {
+  return typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+}
+
+/**
  * 带超时的 fetch 请求
+ * 针对Chrome扩展环境进行优化
  */
 async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const response = await fetch(url, {
+    // 检测环境并调整请求选项
+    const isExtension = isChromeExtension();
+    console.log('🔍 环境检测:', { isExtension, url });
+    
+    const fetchOptions = {
       ...options,
       signal: controller.signal
-    });
+    };
+    
+    // 在Chrome扩展环境中添加特定选项
+    if (isExtension) {
+      fetchOptions.mode = 'cors';
+      fetchOptions.credentials = 'omit';
+      fetchOptions.cache = 'no-cache';
+    }
+    
+    console.log('🔍 发送fetch请求:', { url, options: fetchOptions });
+    
+    const response = await fetch(url, fetchOptions);
     clearTimeout(timeoutId);
+    
+    console.log('🔍 fetch响应:', { 
+      status: response.status, 
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+    
     return response;
   } catch (error) {
     clearTimeout(timeoutId);
+    console.log('❌ fetch请求失败:', { 
+      name: error.name, 
+      message: error.message, 
+      stack: error.stack 
+    });
+    
     if (error.name === 'AbortError') {
       throw createTranslationError(TRANSLATION_ERRORS.TIMEOUT, `请求超时 (${timeout}ms)`);
     }
+    
+    // 针对Chrome扩展环境的特殊错误处理
+    if (error.message.includes('Failed to fetch')) {
+      const isExtension = isChromeExtension();
+      if (isExtension) {
+        throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `Chrome扩展网络请求失败，请检查扩展权限和网络连接`, error);
+      } else {
+        throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `网络连接失败，请检查网络连接和API配置`, error);
+      }
+    }
+    
     throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `网络错误: ${error.message}`, error);
   }
 }
