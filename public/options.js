@@ -39,7 +39,23 @@ export function collectVocabularyElements(root = document) {
 function wrapAsync(callback) {
   return new Promise((resolve, reject) => {
     try {
-      const maybePromise = callback(resolve, reject);
+      const maybePromise = callback((result) => {
+        // 检查chrome.runtime.lastError
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.lastError) {
+          const error = chrome.runtime.lastError;
+          // 忽略常见的连接错误
+          if (error.message && (
+              error.message.includes('Could not establish connection') ||
+              error.message.includes('Receiving end does not exist') ||
+              error.message.includes('The message port closed'))) {
+            resolve(result);
+            return;
+          }
+          reject(new Error(error.message));
+          return;
+        }
+        resolve(result);
+      }, reject);
       if (maybePromise && typeof maybePromise.then === 'function') {
         maybePromise.then(resolve).catch(reject);
       }
