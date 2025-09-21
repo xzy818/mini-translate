@@ -3,7 +3,7 @@
   "name": "Mini Translate",
   "version": "0.2.3",
   "description": "Translate selected terms and toggle page translation.",
-  "permissions": ["contextMenus","storage","scripting","activeTab","notifications"],
+  "permissions": ["contextMenus","storage","scripting","activeTab","notifications","webRequest"],
   "host_permissions": [
     "https://api.deepseek.com/*",
     "https://api.openai.com/*",
