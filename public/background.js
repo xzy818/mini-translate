@@ -10,16 +10,23 @@ function setup() {
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (!message || !message.type) return;
+  if (!message || !message.type) return false;
 
   if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
+    console.log('🔍 收到测试消息:', message);
     const config = message.payload || {};
+    console.log('🔍 测试配置:', config);
+    
     const validation = validateTranslationConfig(config);
+    console.log('🔍 配置验证结果:', validation);
+    
     if (!validation.isValid) {
+      console.log('❌ 配置验证失败:', validation.errors);
       sendResponse({ ok: false, error: validation.errors.join('、') });
       return false;
     }
 
+    console.log('🔄 开始翻译测试...');
     translateText({
       text: 'diagnostic check',
       model: config.model,
@@ -27,10 +34,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       apiBaseUrl: config.apiBaseUrl,
       timeout: 5000
     })
-      .then(() => {
+      .then((result) => {
+        console.log('✅ 翻译测试成功:', result);
         sendResponse({ ok: true });
       })
       .catch((error) => {
+        console.log('❌ 翻译测试失败:', error);
         sendResponse({ ok: false, error: error.message || '测试失败' });
       });
     return true;
