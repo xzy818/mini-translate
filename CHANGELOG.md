@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2025-01-18
+
+### 🐛 Bug Fixes
+- **修复Qwen API兼容性问题**
+  - 修复API URL路径重复拼接问题（DashScope兼容模式）
+  - 移除Qwen API不支持的system角色
+  - 添加智能URL处理，支持不同API提供商的URL格式
+  - 将system提示合并到user消息中，确保Qwen API兼容性
+  - 解决Chrome配置测试失败的根本原因
+
+### 🔧 Technical Changes
+- 优化API Base URL处理逻辑
+- 统一所有翻译API提供商的URL拼接方式
+- 改进Qwen API的消息格式兼容性
+
+### 📋 Impact
+- **用户影响**: Chrome配置测试现在可以成功通过
+- **开发者影响**: 支持更多API URL格式，提高兼容性
+- **兼容性**: 完全向后兼容，不影响现有用户设置
+
 ## [0.2.2] - 2025-01-18
 
 ### 🐛 Bug Fixes
