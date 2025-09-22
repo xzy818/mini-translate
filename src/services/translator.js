@@ -3,8 +3,6 @@
  * 支持多种翻译模型：DeepSeek V3、Qwen MT Turbo、Qwen MT Plus、gpt-4o-mini
  */
 
-import { handleNetworkError, handleTranslationError, logger } from './error-handler.js';
-
 // 支持的模型类型
 export const SUPPORTED_MODELS = {
   DEEPSEEK_V3: 'deepseek-v3',
@@ -71,28 +69,64 @@ function isChromeExtension() {
 
 /**
  * Chrome扩展专用的网络请求函数
- * 使用Offscreen Document执行fetch请求
+ * 使用XMLHttpRequest来绕过Service Worker的fetch限制
  */
 async function chromeExtensionFetch(url, options) {
-  try {
-    logger.debug('Chrome扩展专用fetch请求', { url, options });
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
     
-    // 导入Offscreen管理器
-    const { sendOffscreenRequest } = await import('./offscreen-manager.js');
+    // 设置请求方法
+    const method = options.method || 'GET';
+    xhr.open(method, url, true);
     
-    // 通过Offscreen Document发送请求
-    const response = await sendOffscreenRequest(url, options);
+    // 设置请求头
+    if (options.headers) {
+      for (const [key, value] of Object.entries(options.headers)) {
+        xhr.setRequestHeader(key, value);
+      }
+    }
     
-    logger.debug('Offscreen fetch请求成功', {
-      status: response.status,
-      ok: response.ok
-    });
+    // 设置响应类型
+    xhr.responseType = 'text';
     
-    return response;
-  } catch (error) {
-    logger.error('Offscreen fetch请求失败', { error: error.message, url, options });
-    throw handleNetworkError(error, { url, options });
-  }
+    // 设置超时
+    if (options.signal) {
+      options.signal.addEventListener('abort', () => {
+        xhr.abort();
+      });
+    }
+    
+    // 处理响应
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve({
+          ok: true,
+          status: xhr.status,
+          statusText: xhr.statusText,
+          json: () => Promise.resolve(JSON.parse(xhr.responseText))
+        });
+      } else {
+        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+      }
+    };
+    
+    // 处理错误
+    xhr.onerror = function() {
+      reject(new Error('Network error'));
+    };
+    
+    // 处理超时
+    xhr.ontimeout = function() {
+      reject(new Error('Request timeout'));
+    };
+    
+    // 发送请求
+    try {
+      xhr.send(options.body || null);
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 /**

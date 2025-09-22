@@ -1,20 +1,10 @@
 import { initializeBackground } from '../src/services/context-menu.js';
 import { translateText, validateTranslationConfig } from '../src/services/translator.js';
-import { ensureOffscreenDocument } from '../src/services/offscreen-manager.js';
 
 let initialized = false;
 
-async function setup() {
+function setup() {
   if (initialized) return;
-  
-  // 确保Offscreen Document存在
-  try {
-    await ensureOffscreenDocument();
-    console.log('✅ Offscreen Document 初始化成功');
-  } catch (error) {
-    console.log('❌ Offscreen Document 初始化失败:', error);
-  }
-  
   initializeBackground(chrome);
   initialized = true;
 }

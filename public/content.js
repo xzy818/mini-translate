@@ -95,7 +95,6 @@ function handleResetPage() {
   applyVocabulary();
 }
 
-
 chrome.runtime.onMessage.addListener((message) => {
   if (!message || !message.type) return;
   switch (message.type) {
