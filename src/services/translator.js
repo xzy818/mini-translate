@@ -69,60 +69,63 @@ function isChromeExtension() {
 
 /**
  * Chrome扩展专用的网络请求函数
- * 使用chrome.runtime.sendMessage来绕过Service Worker的fetch限制
+ * 使用XMLHttpRequest来绕过Service Worker的fetch限制
  */
 async function chromeExtensionFetch(url, options) {
   return new Promise((resolve, reject) => {
-    // 创建一个临时的content script来执行fetch请求
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      if (tabs.length === 0) {
-        reject(new Error('No active tab found'));
-        return;
+    const xhr = new XMLHttpRequest();
+    
+    // 设置请求方法
+    const method = options.method || 'GET';
+    xhr.open(method, url, true);
+    
+    // 设置请求头
+    if (options.headers) {
+      for (const [key, value] of Object.entries(options.headers)) {
+        xhr.setRequestHeader(key, value);
       }
-      
-      const tabId = tabs[0].id;
-      
-      // 注入一个临时的fetch脚本
-      chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        func: async (url, options) => {
-          try {
-            const response = await fetch(url, options);
-            const data = await response.text();
-            return {
-              ok: response.ok,
-              status: response.status,
-              statusText: response.statusText,
-              data: data
-            };
-          } catch (error) {
-            throw error.message;
-          }
-        },
-        args: [url, options]
-      }, (results) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        
-        if (results && results[0] && results[0].result) {
-          const result = results[0].result;
-          if (result.ok) {
-            resolve({
-              ok: true,
-              status: result.status,
-              statusText: result.statusText,
-              json: () => Promise.resolve(JSON.parse(result.data))
-            });
-          } else {
-            reject(new Error(`HTTP ${result.status}: ${result.statusText}`));
-          }
-        } else {
-          reject(new Error('No result from content script'));
-        }
+    }
+    
+    // 设置响应类型
+    xhr.responseType = 'text';
+    
+    // 设置超时
+    if (options.signal) {
+      options.signal.addEventListener('abort', () => {
+        xhr.abort();
       });
-    });
+    }
+    
+    // 处理响应
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve({
+          ok: true,
+          status: xhr.status,
+          statusText: xhr.statusText,
+          json: () => Promise.resolve(JSON.parse(xhr.responseText))
+        });
+      } else {
+        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+      }
+    };
+    
+    // 处理错误
+    xhr.onerror = function() {
+      reject(new Error('Network error'));
+    };
+    
+    // 处理超时
+    xhr.ontimeout = function() {
+      reject(new Error('Request timeout'));
+    };
+    
+    // 发送请求
+    try {
+      xhr.send(options.body || null);
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
