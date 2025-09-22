@@ -69,105 +69,28 @@ function isChromeExtension() {
 
 /**
  * Chrome扩展专用的网络请求函数
- * 使用chrome.scripting.executeScript在普通网页中执行fetch
+ * 使用Offscreen Document执行fetch请求
  */
 async function chromeExtensionFetch(url, options) {
-  return new Promise((resolve, reject) => {
+  try {
     console.log('🔍 Chrome扩展专用fetch请求:', { url, options });
     
-    // 设置超时处理
-    const timeout = setTimeout(() => {
-      reject(new Error('Chrome extension fetch timeout'));
-    }, options.timeout || 30000);
+    // 导入Offscreen管理器
+    const { sendOffscreenRequest } = await import('./offscreen-manager.js');
     
-    // 查找一个可用的标签页（非扩展页面）
-    chrome.tabs.query({}, (tabs) => {
-      // 过滤掉扩展页面，找一个普通的网页
-      const availableTabs = tabs.filter(tab => 
-        tab.url && 
-        !tab.url.startsWith('chrome://') && 
-        !tab.url.startsWith('chrome-extension://') &&
-        !tab.url.startsWith('moz-extension://') &&
-        !tab.url.startsWith('edge://') &&
-        !tab.url.startsWith('about:')
-      );
-      
-      if (availableTabs.length === 0) {
-        clearTimeout(timeout);
-        reject(new Error('No available tab found for script injection'));
-        return;
-      }
-      
-      // 使用第一个可用的标签页
-      const tabId = availableTabs[0].id;
-      console.log('🔍 使用标签页进行脚本注入:', tabId, availableTabs[0].url);
-      
-      // 动态注入脚本执行fetch请求
-      chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        func: async (url, options) => {
-          try {
-            console.log('🔍 注入脚本执行fetch请求:', { url, options });
-            const response = await fetch(url, options);
-            const responseText = await response.text();
-            
-            let responseData;
-            try {
-              responseData = JSON.parse(responseText);
-            } catch {
-              responseData = responseText;
-            }
-            
-            return {
-              success: true,
-              data: {
-                ok: response.ok,
-                status: response.status,
-                statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries()),
-                json: responseData,
-                text: responseText
-              }
-            };
-          } catch (error) {
-            console.log('❌ 注入脚本fetch失败:', error);
-            return {
-              success: false,
-              error: error.message
-            };
-          }
-        },
-        args: [url, options]
-      }, (results) => {
-        clearTimeout(timeout);
-        
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        
-        if (results && results[0] && results[0].result) {
-          const result = results[0].result;
-          if (result.success) {
-            // 创建一个模拟的Response对象
-            const mockResponse = {
-              ok: result.data.ok,
-              status: result.data.status,
-              statusText: result.data.statusText,
-              headers: new Map(Object.entries(result.data.headers || {})),
-              json: () => Promise.resolve(result.data.json),
-              text: () => Promise.resolve(result.data.text)
-            };
-            resolve(mockResponse);
-          } else {
-            reject(new Error(result.error));
-          }
-        } else {
-          reject(new Error('No result from injected script'));
-        }
-      });
+    // 通过Offscreen Document发送请求
+    const response = await sendOffscreenRequest(url, options);
+    
+    console.log('✅ Offscreen fetch请求成功:', {
+      status: response.status,
+      ok: response.ok
     });
-  });
+    
+    return response;
+  } catch (error) {
+    console.log('❌ Offscreen fetch请求失败:', error);
+    throw error;
+  }
 }
 
 /**
