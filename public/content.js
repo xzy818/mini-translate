@@ -95,6 +95,48 @@ function handleResetPage() {
   applyVocabulary();
 }
 
+// 处理来自Service Worker的fetch请求
+async function handleExecuteFetch(message) {
+  try {
+    console.log('🔍 Content script执行fetch请求:', message);
+    
+    const response = await fetch(message.url, message.options);
+    const responseText = await response.text();
+    
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+    } catch {
+      responseData = responseText;
+    }
+    
+    // 发送响应回Service Worker
+    chrome.runtime.sendMessage({
+      type: 'FETCH_RESPONSE',
+      messageId: message.messageId,
+      success: true,
+      data: {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        json: responseData,
+        text: responseText
+      }
+    });
+  } catch (error) {
+    console.log('❌ Content script fetch失败:', error);
+    
+    // 发送错误响应回Service Worker
+    chrome.runtime.sendMessage({
+      type: 'FETCH_RESPONSE',
+      messageId: message.messageId,
+      success: false,
+      error: error.message
+    });
+  }
+}
+
 chrome.runtime.onMessage.addListener((message) => {
   if (!message || !message.type) return;
   switch (message.type) {
@@ -109,6 +151,9 @@ chrome.runtime.onMessage.addListener((message) => {
       break;
     case 'RESET_PAGE':
       handleResetPage();
+      break;
+    case 'EXECUTE_FETCH':
+      handleExecuteFetch(message);
       break;
     default:
       break;

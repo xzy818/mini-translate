@@ -69,26 +69,72 @@ function isChromeExtension() {
 
 /**
  * Chrome扩展专用的网络请求函数
- * 在Service Worker环境中使用fetch API
+ * 使用Chrome扩展消息传递机制绕过Service Worker限制
  */
 async function chromeExtensionFetch(url, options) {
-  try {
+  return new Promise((resolve, reject) => {
     console.log('🔍 Chrome扩展专用fetch请求:', { url, options });
     
-    // 在Service Worker环境中，fetch API是可用的
-    const response = await fetch(url, options);
+    // 创建一个唯一的消息ID
+    const messageId = `fetch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    console.log('🔍 Chrome扩展fetch响应:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok
+    // 设置超时处理
+    const timeout = setTimeout(() => {
+      reject(new Error('Chrome extension fetch timeout'));
+    }, options.timeout || 30000);
+    
+    // 监听响应消息
+    const messageListener = (message, sender, sendResponse) => {
+      if (message.type === 'FETCH_RESPONSE' && message.messageId === messageId) {
+        clearTimeout(timeout);
+        chrome.runtime.onMessage.removeListener(messageListener);
+        
+        if (message.success) {
+          // 创建一个模拟的Response对象
+          const mockResponse = {
+            ok: message.data.ok,
+            status: message.data.status,
+            statusText: message.data.statusText,
+            headers: new Map(Object.entries(message.data.headers || {})),
+            json: () => Promise.resolve(message.data.json),
+            text: () => Promise.resolve(message.data.text)
+          };
+          resolve(mockResponse);
+        } else {
+          reject(new Error(message.error));
+        }
+      }
+    };
+    
+    // 添加消息监听器
+    chrome.runtime.onMessage.addListener(messageListener);
+    
+    // 发送fetch请求消息到content script
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      if (tabs.length === 0) {
+        clearTimeout(timeout);
+        chrome.runtime.onMessage.removeListener(messageListener);
+        reject(new Error('No active tab found'));
+        return;
+      }
+      
+      const tabId = tabs[0].id;
+      
+      // 发送消息到content script执行fetch
+      chrome.tabs.sendMessage(tabId, {
+        type: 'EXECUTE_FETCH',
+        messageId: messageId,
+        url: url,
+        options: options
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          clearTimeout(timeout);
+          chrome.runtime.onMessage.removeListener(messageListener);
+          reject(new Error(chrome.runtime.lastError.message));
+        }
+      });
     });
-    
-    return response;
-  } catch (error) {
-    console.log('❌ Chrome扩展fetch失败:', error);
-    throw error;
-  }
+  });
 }
 
 /**
