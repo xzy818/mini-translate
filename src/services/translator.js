@@ -67,46 +67,7 @@ function isChromeExtension() {
   return typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 }
 
-/**
- * （可选）Chrome扩展专用的XHR实现
- * 注意：MV3 Service Worker环境不提供XMLHttpRequest；若不可用将自动回退到fetch
- */
-async function chromeExtensionFetch(url, options) {
-  if (typeof XMLHttpRequest === 'undefined') {
-    // 环境不支持Xhr，回退到fetch
-    return fetch(url, options);
-  }
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const method = options.method || 'GET';
-    xhr.open(method, url, true);
-    if (options.headers) {
-      for (const [key, value] of Object.entries(options.headers)) {
-        try { xhr.setRequestHeader(key, value); } catch (ignoredError) { /* noop */ }
-      }
-    }
-    xhr.responseType = 'text';
-    if (options.signal) {
-      options.signal.addEventListener('abort', () => { try { xhr.abort(); } catch (ignoredError) { /* noop */ } });
-    }
-    xhr.onload = function() {
-      const ok = xhr.status >= 200 && xhr.status < 300;
-      if (ok) {
-        resolve({
-          ok: true,
-          status: xhr.status,
-          statusText: xhr.statusText,
-          json: () => Promise.resolve(JSON.parse(xhr.responseText || '{}'))
-        });
-      } else {
-        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
-      }
-    };
-    xhr.onerror = function() { reject(new Error('Network error')); };
-    xhr.ontimeout = function() { reject(new Error('Request timeout')); };
-    try { xhr.send(options.body || null); } catch (error) { reject(error); }
-  });
-}
+// 移除XHR：MV3 Service Worker不提供XMLHttpRequest，统一使用fetch
 
 /**
  * 带超时的 fetch 请求
@@ -137,19 +98,9 @@ async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
     
     let response;
     
-    // 在扩展环境优先使用标准fetch；仅在提供XMLHttpRequest且需要时才使用备用方案
+    // 统一使用标准fetch（在MV3中可用）
     console.log('🔍 使用标准fetch');
-    try {
-      response = await fetch(url, fetchOptions);
-    } catch (e) {
-      // 少数环境下fetch失败且提供XMLHttpRequest时，尝试降级
-      if (isExtension && typeof XMLHttpRequest !== 'undefined') {
-        console.log('🔁 fetch失败，尝试XHR降级');
-        response = await chromeExtensionFetch(url, fetchOptions);
-      } else {
-        throw e;
-      }
-    }
+    response = await fetch(url, fetchOptions);
     
     clearTimeout(timeoutId);
     
