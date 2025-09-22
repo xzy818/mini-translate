@@ -68,64 +68,43 @@ function isChromeExtension() {
 }
 
 /**
- * Chrome扩展专用的网络请求函数
- * 使用XMLHttpRequest来绕过Service Worker的fetch限制
+ * （可选）Chrome扩展专用的XHR实现
+ * 注意：MV3 Service Worker环境不提供XMLHttpRequest；若不可用将自动回退到fetch
  */
 async function chromeExtensionFetch(url, options) {
+  if (typeof XMLHttpRequest === 'undefined') {
+    // 环境不支持Xhr，回退到fetch
+    return fetch(url, options);
+  }
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    
-    // 设置请求方法
     const method = options.method || 'GET';
     xhr.open(method, url, true);
-    
-    // 设置请求头
     if (options.headers) {
       for (const [key, value] of Object.entries(options.headers)) {
-        xhr.setRequestHeader(key, value);
+        try { xhr.setRequestHeader(key, value); } catch (ignoredError) { /* noop */ }
       }
     }
-    
-    // 设置响应类型
     xhr.responseType = 'text';
-    
-    // 设置超时
     if (options.signal) {
-      options.signal.addEventListener('abort', () => {
-        xhr.abort();
-      });
+      options.signal.addEventListener('abort', () => { try { xhr.abort(); } catch (ignoredError) { /* noop */ } });
     }
-    
-    // 处理响应
     xhr.onload = function() {
-      if (xhr.status >= 200 && xhr.status < 300) {
+      const ok = xhr.status >= 200 && xhr.status < 300;
+      if (ok) {
         resolve({
           ok: true,
           status: xhr.status,
           statusText: xhr.statusText,
-          json: () => Promise.resolve(JSON.parse(xhr.responseText))
+          json: () => Promise.resolve(JSON.parse(xhr.responseText || '{}'))
         });
       } else {
         reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
       }
     };
-    
-    // 处理错误
-    xhr.onerror = function() {
-      reject(new Error('Network error'));
-    };
-    
-    // 处理超时
-    xhr.ontimeout = function() {
-      reject(new Error('Request timeout'));
-    };
-    
-    // 发送请求
-    try {
-      xhr.send(options.body || null);
-    } catch (error) {
-      reject(error);
-    }
+    xhr.onerror = function() { reject(new Error('Network error')); };
+    xhr.ontimeout = function() { reject(new Error('Request timeout')); };
+    try { xhr.send(options.body || null); } catch (error) { reject(error); }
   });
 }
 
@@ -158,13 +137,18 @@ async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
     
     let response;
     
-    // 在Chrome扩展环境中使用专用fetch函数
-    if (isExtension) {
-      console.log('🔍 使用Chrome扩展专用fetch');
-      response = await chromeExtensionFetch(url, fetchOptions);
-    } else {
-      console.log('🔍 使用标准fetch');
+    // 在扩展环境优先使用标准fetch；仅在提供XMLHttpRequest且需要时才使用备用方案
+    console.log('🔍 使用标准fetch');
+    try {
       response = await fetch(url, fetchOptions);
+    } catch (e) {
+      // 少数环境下fetch失败且提供XMLHttpRequest时，尝试降级
+      if (isExtension && typeof XMLHttpRequest !== 'undefined') {
+        console.log('🔁 fetch失败，尝试XHR降级');
+        response = await chromeExtensionFetch(url, fetchOptions);
+      } else {
+        throw e;
+      }
     }
     
     clearTimeout(timeoutId);
