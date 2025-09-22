@@ -69,64 +69,26 @@ function isChromeExtension() {
 
 /**
  * Chrome扩展专用的网络请求函数
- * 使用XMLHttpRequest来绕过Service Worker的fetch限制
+ * 在Service Worker环境中使用fetch API
  */
 async function chromeExtensionFetch(url, options) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
+  try {
+    console.log('🔍 Chrome扩展专用fetch请求:', { url, options });
     
-    // 设置请求方法
-    const method = options.method || 'GET';
-    xhr.open(method, url, true);
+    // 在Service Worker环境中，fetch API是可用的
+    const response = await fetch(url, options);
     
-    // 设置请求头
-    if (options.headers) {
-      for (const [key, value] of Object.entries(options.headers)) {
-        xhr.setRequestHeader(key, value);
-      }
-    }
+    console.log('🔍 Chrome扩展fetch响应:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok
+    });
     
-    // 设置响应类型
-    xhr.responseType = 'text';
-    
-    // 设置超时
-    if (options.signal) {
-      options.signal.addEventListener('abort', () => {
-        xhr.abort();
-      });
-    }
-    
-    // 处理响应
-    xhr.onload = function() {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve({
-          ok: true,
-          status: xhr.status,
-          statusText: xhr.statusText,
-          json: () => Promise.resolve(JSON.parse(xhr.responseText))
-        });
-      } else {
-        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
-      }
-    };
-    
-    // 处理错误
-    xhr.onerror = function() {
-      reject(new Error('Network error'));
-    };
-    
-    // 处理超时
-    xhr.ontimeout = function() {
-      reject(new Error('Request timeout'));
-    };
-    
-    // 发送请求
-    try {
-      xhr.send(options.body || null);
-    } catch (error) {
-      reject(error);
-    }
-  });
+    return response;
+  } catch (error) {
+    console.log('❌ Chrome扩展fetch失败:', error);
+    throw error;
+  }
 }
 
 /**
