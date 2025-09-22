@@ -69,68 +69,89 @@ function isChromeExtension() {
 
 /**
  * Chrome扩展专用的网络请求函数
- * 使用Chrome扩展消息传递机制绕过Service Worker限制
+ * 使用chrome.scripting.executeScript动态注入脚本执行fetch
  */
 async function chromeExtensionFetch(url, options) {
   return new Promise((resolve, reject) => {
     console.log('🔍 Chrome扩展专用fetch请求:', { url, options });
-    
-    // 创建一个唯一的消息ID
-    const messageId = `fetch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // 设置超时处理
     const timeout = setTimeout(() => {
       reject(new Error('Chrome extension fetch timeout'));
     }, options.timeout || 30000);
     
-    // 监听响应消息
-    const messageListener = (message, sender, sendResponse) => {
-      if (message.type === 'FETCH_RESPONSE' && message.messageId === messageId) {
-        clearTimeout(timeout);
-        chrome.runtime.onMessage.removeListener(messageListener);
-        
-        if (message.success) {
-          // 创建一个模拟的Response对象
-          const mockResponse = {
-            ok: message.data.ok,
-            status: message.data.status,
-            statusText: message.data.statusText,
-            headers: new Map(Object.entries(message.data.headers || {})),
-            json: () => Promise.resolve(message.data.json),
-            text: () => Promise.resolve(message.data.text)
-          };
-          resolve(mockResponse);
-        } else {
-          reject(new Error(message.error));
-        }
-      }
-    };
-    
-    // 添加消息监听器
-    chrome.runtime.onMessage.addListener(messageListener);
-    
-    // 发送fetch请求消息到content script
+    // 获取当前活动标签页
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       if (tabs.length === 0) {
         clearTimeout(timeout);
-        chrome.runtime.onMessage.removeListener(messageListener);
         reject(new Error('No active tab found'));
         return;
       }
       
       const tabId = tabs[0].id;
       
-      // 发送消息到content script执行fetch
-      chrome.tabs.sendMessage(tabId, {
-        type: 'EXECUTE_FETCH',
-        messageId: messageId,
-        url: url,
-        options: options
-      }, (response) => {
+      // 动态注入脚本执行fetch请求
+      chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: async (url, options) => {
+          try {
+            console.log('🔍 注入脚本执行fetch请求:', { url, options });
+            const response = await fetch(url, options);
+            const responseText = await response.text();
+            
+            let responseData;
+            try {
+              responseData = JSON.parse(responseText);
+            } catch {
+              responseData = responseText;
+            }
+            
+            return {
+              success: true,
+              data: {
+                ok: response.ok,
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries()),
+                json: responseData,
+                text: responseText
+              }
+            };
+          } catch (error) {
+            console.log('❌ 注入脚本fetch失败:', error);
+            return {
+              success: false,
+              error: error.message
+            };
+          }
+        },
+        args: [url, options]
+      }, (results) => {
+        clearTimeout(timeout);
+        
         if (chrome.runtime.lastError) {
-          clearTimeout(timeout);
-          chrome.runtime.onMessage.removeListener(messageListener);
           reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        
+        if (results && results[0] && results[0].result) {
+          const result = results[0].result;
+          if (result.success) {
+            // 创建一个模拟的Response对象
+            const mockResponse = {
+              ok: result.data.ok,
+              status: result.data.status,
+              statusText: result.data.statusText,
+              headers: new Map(Object.entries(result.data.headers || {})),
+              json: () => Promise.resolve(result.data.json),
+              text: () => Promise.resolve(result.data.text)
+            };
+            resolve(mockResponse);
+          } else {
+            reject(new Error(result.error));
+          }
+        } else {
+          reject(new Error('No result from injected script'));
         }
       });
     });
