@@ -69,7 +69,7 @@ function isChromeExtension() {
 
 /**
  * Chrome扩展专用的网络请求函数
- * 使用chrome.scripting.executeScript动态注入脚本执行fetch
+ * 使用chrome.scripting.executeScript在普通网页中执行fetch
  */
 async function chromeExtensionFetch(url, options) {
   return new Promise((resolve, reject) => {
@@ -80,15 +80,27 @@ async function chromeExtensionFetch(url, options) {
       reject(new Error('Chrome extension fetch timeout'));
     }, options.timeout || 30000);
     
-    // 获取当前活动标签页
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      if (tabs.length === 0) {
+    // 查找一个可用的标签页（非扩展页面）
+    chrome.tabs.query({}, (tabs) => {
+      // 过滤掉扩展页面，找一个普通的网页
+      const availableTabs = tabs.filter(tab => 
+        tab.url && 
+        !tab.url.startsWith('chrome://') && 
+        !tab.url.startsWith('chrome-extension://') &&
+        !tab.url.startsWith('moz-extension://') &&
+        !tab.url.startsWith('edge://') &&
+        !tab.url.startsWith('about:')
+      );
+      
+      if (availableTabs.length === 0) {
         clearTimeout(timeout);
-        reject(new Error('No active tab found'));
+        reject(new Error('No available tab found for script injection'));
         return;
       }
       
-      const tabId = tabs[0].id;
+      // 使用第一个可用的标签页
+      const tabId = availableTabs[0].id;
+      console.log('🔍 使用标签页进行脚本注入:', tabId, availableTabs[0].url);
       
       // 动态注入脚本执行fetch请求
       chrome.scripting.executeScript({
