@@ -11,7 +11,7 @@
       ]
     },
     "condition": {
-      "resourceTypes": ["main_frame","sub_frame","xmlhttprequest","fetch"],
+      "resourceTypes": ["main_frame","sub_frame","xmlhttprequest","other"],
       "urlFilter": "||dashscope.aliyuncs.com/compatible-mode/v1/"
     }
   }
