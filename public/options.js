@@ -5,6 +5,7 @@ import {
   importFromTxt,
   importFromJson
 } from '../src/services/vocab-io.js';
+import { requestApiPermissions, checkApiPermissions } from '../src/services/permission-manager.js';
 
 const PAGE_SELECTORS = {
   counter: 'vocab-counter',
@@ -179,6 +180,36 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     if (errors.length > 0) {
       notify(`请先完成配置: ${errors.join('、')}`);
       return;
+    }
+    
+    // 检查并请求API权限
+    try {
+      const apiBaseUrl = baseEl.value.trim();
+      let apiType = null;
+      
+      if (apiBaseUrl.includes('api.openai.com')) {
+        apiType = 'openai';
+      } else if (apiBaseUrl.includes('dashscope.aliyuncs.com')) {
+        apiType = 'dashscope';
+      } else if (apiBaseUrl.includes('api.deepseek.com')) {
+        apiType = 'deepseek';
+      }
+      
+      if (apiType) {
+        const hasPermission = await checkApiPermissions(apiType);
+        if (!hasPermission) {
+          notify('🔐 需要请求网络权限，请点击确认...');
+          const granted = await requestApiPermissions(apiType);
+          if (!granted) {
+            notify('❌ 权限请求被拒绝，无法测试连接');
+            return;
+          }
+          notify('✅ 权限已授予，继续测试...');
+        }
+      }
+    } catch (error) {
+      console.log('❌ 权限检查失败:', error);
+      notify('⚠️ 权限检查失败，但继续尝试测试...');
     }
     
     const payload = {

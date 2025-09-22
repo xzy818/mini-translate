@@ -3,6 +3,8 @@
  * 支持多种翻译模型：DeepSeek V3、Qwen MT Turbo、Qwen MT Plus、gpt-4o-mini
  */
 
+import { handleNetworkError, handleTranslationError, logger } from './error-handler.js';
+
 // 支持的模型类型
 export const SUPPORTED_MODELS = {
   DEEPSEEK_V3: 'deepseek-v3',
@@ -73,7 +75,7 @@ function isChromeExtension() {
  */
 async function chromeExtensionFetch(url, options) {
   try {
-    console.log('🔍 Chrome扩展专用fetch请求:', { url, options });
+    logger.debug('Chrome扩展专用fetch请求', { url, options });
     
     // 导入Offscreen管理器
     const { sendOffscreenRequest } = await import('./offscreen-manager.js');
@@ -81,15 +83,15 @@ async function chromeExtensionFetch(url, options) {
     // 通过Offscreen Document发送请求
     const response = await sendOffscreenRequest(url, options);
     
-    console.log('✅ Offscreen fetch请求成功:', {
+    logger.debug('Offscreen fetch请求成功', {
       status: response.status,
       ok: response.ok
     });
     
     return response;
   } catch (error) {
-    console.log('❌ Offscreen fetch请求失败:', error);
-    throw error;
+    logger.error('Offscreen fetch请求失败', { error: error.message, url, options });
+    throw handleNetworkError(error, { url, options });
   }
 }
 
