@@ -3,12 +3,11 @@
   "name": "Mini Translate",
   "version": "0.2.4",
   "description": "Translate selected terms and toggle page translation.",
-  "permissions": ["contextMenus","storage","scripting","activeTab","notifications","webRequest","webRequestBlocking","tabs"],
+  "permissions": ["contextMenus","storage","scripting","activeTab","notifications","webRequest","tabs"],
   "host_permissions": [
     "https://api.deepseek.com/*",
     "https://api.openai.com/*",
-    "https://dashscope.aliyuncs.com/*",
-    "chrome-extension://*/*"
+    "https://dashscope.aliyuncs.com/*"
   ],
   "background": {"service_worker": "background.js", "type": "module"},
   "options_ui": {"page":"options.html","open_in_tab": true},
