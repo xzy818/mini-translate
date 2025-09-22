@@ -10,7 +10,11 @@ function setup() {
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (!message || !message.type) return false;
+  if (!message || !message.type) {
+    return false;
+  }
+  // 统一日志，便于排查未覆盖类型
+  // 调试日志（按eslint策略仅在error路径使用console）
 
   if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
     console.log('🔍 收到测试消息:', message);
@@ -109,6 +113,36 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     });
     return true; // keep channel open for async response
   }
+
+  // 保存设置：仅作为通知类，持久化后回执
+  if (message.type === 'SAVE_SETTINGS') {
+    const { model, apiKey, apiBaseUrl } = message.payload || {};
+    chrome.storage.local.set({ model, apiKey, apiBaseUrl }, () => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        sendResponse({ ok: false, error: err.message });
+        return;
+      }
+      // 广播"设置已更新"事件（前端不必须监听）
+      chrome.runtime.sendMessage({ type: 'SETTINGS_UPDATED', payload: { model, apiBaseUrl } });
+      sendResponse({ ok: true });
+    });
+    return true; // async
+  }
+
+  // 刷新右键菜单等（幂等操作）
+  if (message.type === 'REFRESH_CONTEXT_MENU') {
+    try {
+      initializeBackground(chrome);
+      sendResponse({ ok: true });
+    } catch (e) {
+      sendResponse({ ok: false, error: e.message });
+    }
+    return true; // 保持一致
+  }
+
+  // 未识别消息：显式返回 false，避免悬空端口
+  return false;
 });
 
 chrome.runtime.onInstalled.addListener(() => {
