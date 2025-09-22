@@ -3,12 +3,17 @@
   "name": "Mini Translate",
   "version": "0.2.4",
   "description": "Translate selected terms and toggle page translation.",
-  "permissions": ["contextMenus","storage","scripting","activeTab","notifications","webRequest","tabs"],
+  "permissions": ["contextMenus","storage","scripting","activeTab","notifications","webRequest","tabs","declarativeNetRequest"],
   "host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
   "background": {"service_worker": "background.js", "type": "module"},
+  "declarative_net_request": {
+    "rule_resources": [
+      { "id": "cors", "enabled": true, "path": "dnr-rules.json" }
+    ]
+  },
   "options_ui": {"page":"options.html","open_in_tab": true},
   "action": {
     "default_title": "Mini Translate",
