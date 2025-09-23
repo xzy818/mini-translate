@@ -21,6 +21,10 @@ Settings fields:
 - API Base URL (text)
 - API Key (masked, toggle show/hide)
 
+Notes:
+- From MV3 background, direct fetch to providers is supported with existing host permissions. A separate proxy is not required for typical setups.
+- The optional proxy guide has been archived; use it only if your network policy blocks direct calls.
+
 ## Vocabulary Limit & Import/Export
 
 - Max items: 500（超限时会提示并阻止继续添加/导入）

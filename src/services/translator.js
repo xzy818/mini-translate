@@ -60,80 +60,74 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * 检测是否在Chrome扩展环境中
- */
-function isChromeExtension() {
-  return typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
-}
-
 // 移除XHR：MV3 Service Worker不提供XMLHttpRequest，统一使用fetch
 
 /**
- * 带超时的 fetch 请求
- * 针对Chrome扩展环境进行优化
+ * 带超时的 fetch 请求（极简：统一使用标准 fetch）
  */
 async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    // 检测环境并调整请求选项
-    const isExtension = isChromeExtension();
-    console.log('🔍 环境检测:', { isExtension, url });
-    
-    const fetchOptions = {
-      ...options,
-      signal: controller.signal
-    };
-    
-    // 在Chrome扩展环境中添加特定选项
-    if (isExtension) {
-      fetchOptions.mode = 'cors';
-      fetchOptions.credentials = 'omit';
-      fetchOptions.cache = 'no-cache';
-    }
-    
-    console.log('🔍 发送fetch请求:', { url, options: fetchOptions });
-    
-    let response;
-    
-    // 统一使用标准fetch（在MV3中可用）
-    console.log('🔍 使用标准fetch');
-    response = await fetch(url, fetchOptions);
+    const fetchOptions = { ...options, signal: controller.signal };
+    const response = await fetch(url, fetchOptions);
     
     clearTimeout(timeoutId);
-    
-    console.log('🔍 fetch响应:', { 
-      status: response.status, 
-      statusText: response.statusText
-    });
-    
     return response;
   } catch (error) {
     clearTimeout(timeoutId);
-    console.log('❌ fetch请求失败:', { 
-      name: error.name, 
-      message: error.message, 
-      stack: error.stack 
-    });
-    
     if (error.name === 'AbortError') {
       throw createTranslationError(TRANSLATION_ERRORS.TIMEOUT, `请求超时 (${timeout}ms)`);
     }
-    
-    // 针对Chrome扩展环境的特殊错误处理
-    if (error.message.includes('Failed to fetch')) {
-      const isExtension = isChromeExtension();
-      if (isExtension) {
-        throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `Chrome扩展网络请求失败，请检查扩展权限和网络连接`, error);
-      } else {
-        throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `网络连接失败，请检查网络连接和API配置`, error);
-      }
-    }
-    
-    throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `网络错误: ${error.message}`, error);
+
+    // 统一网络错误
+    const msg = error && error.message ? error.message : '网络错误';
+    throw createTranslationError(TRANSLATION_ERRORS.NETWORK_ERROR, `网络错误: ${msg}`, error);
   }
+}
+
+/**
+ * 辅助：规范化 baseUrl，确保以 /v1 结尾
+ */
+function buildApiBaseUrl(apiBaseUrl) {
+  const base = String(apiBaseUrl || '').trim();
+  return base.endsWith('/v1') ? base : `${base}/v1`;
+}
+
+/**
+ * 辅助：构建标准头
+ */
+function buildHeaders(apiKey) {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`
+  };
+}
+
+/**
+ * 辅助：构建统一 messages（最简：统一 system 提示 + user 文本）
+ */
+function buildMessages(text, withSystem = true) {
+  const messages = [];
+  if (withSystem) {
+    messages.push({
+      role: 'system',
+      content: '你是一个专业的翻译助手。请将用户提供的文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容。'
+    });
+  }
+  messages.push({ role: 'user', content: text });
+  return messages;
+}
+
+/**
+ * 辅助：解析 chat completion 响应
+ */
+function parseChatCompletion(data) {
+  if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+    throw createTranslationError(TRANSLATION_ERRORS.API_ERROR, 'API 响应格式错误');
+  }
+  return String(data.choices[0].message.content || '').trim();
 }
 
 /**
@@ -141,47 +135,35 @@ async function fetchWithTimeout(url, options, timeout = DEFAULT_TIMEOUT) {
  */
 async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
   // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
-  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
-  const url = `${baseUrl}/chat/completions`;
+  const url = `${buildApiBaseUrl(apiBaseUrl)}/chat/completions`;
   const payload = {
     model: SUPPORTED_MODELS.DEEPSEEK_V3,
-    messages: [
-      {
-        role: 'system',
-        content: '你是一个专业的翻译助手。请将用户提供的文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容。'
-      },
-      {
-        role: 'user',
-        content: text
-      }
-    ],
+    messages: buildMessages(text, true),
     temperature: 0.3,
     max_tokens: 1000
   };
 
   const response = await fetchWithTimeout(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
+    headers: buildHeaders(apiKey),
     body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw createTranslationError(
-      TRANSLATION_ERRORS.API_ERROR,
-      `DeepSeek API 错误 (${response.status}): ${errorText}`
-    );
+    const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `DeepSeek API 错误 (${response.status}): ${errorText}`);
+    err.statusCode = response.status;
+    throw err;
   }
 
   const data = await response.json();
-  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    throw createTranslationError(TRANSLATION_ERRORS.API_ERROR, 'DeepSeek API 响应格式错误');
+  try {
+    return parseChatCompletion(data);
+  } catch (e) {
+    // 兼容历史测试文案：DeepSeek API 响应格式错误
+    const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, 'DeepSeek API 响应格式错误', e);
+    throw err;
   }
-
-  return data.choices[0].message.content.trim();
 }
 
 /**
@@ -189,43 +171,29 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
  */
 async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
   // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
-  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
-  const url = `${baseUrl}/chat/completions`;
+  const url = `${buildApiBaseUrl(apiBaseUrl)}/chat/completions`;
   const payload = {
     model,
-    messages: [
-      {
-        role: 'user',
-        content: `请将以下文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容：${text}`
-      }
-    ],
+    messages: buildMessages(text, false),
     temperature: 0.3,
     max_tokens: 1000
   };
 
   const response = await fetchWithTimeout(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
+    headers: buildHeaders(apiKey),
     body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw createTranslationError(
-      TRANSLATION_ERRORS.API_ERROR,
-      `Qwen API 错误 (${response.status}): ${errorText}`
-    );
+    const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `Qwen API 错误 (${response.status}): ${errorText}`);
+    err.statusCode = response.status;
+    throw err;
   }
 
   const data = await response.json();
-  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    throw createTranslationError(TRANSLATION_ERRORS.API_ERROR, 'Qwen API 响应格式错误');
-  }
-
-  return data.choices[0].message.content.trim();
+  return parseChatCompletion(data);
 }
 
 /**
@@ -233,47 +201,29 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
  */
 async function translateWithOpenAI(text, apiKey, apiBaseUrl) {
   // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
-  const baseUrl = apiBaseUrl.endsWith('/v1') ? apiBaseUrl : `${apiBaseUrl}/v1`;
-  const url = `${baseUrl}/chat/completions`;
+  const url = `${buildApiBaseUrl(apiBaseUrl)}/chat/completions`;
   const payload = {
     model: SUPPORTED_MODELS.GPT_4O_MINI,
-    messages: [
-      {
-        role: 'system',
-        content: '你是一个专业的翻译助手。请将用户提供的文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容。'
-      },
-      {
-        role: 'user',
-        content: text
-      }
-    ],
+    messages: buildMessages(text, true),
     temperature: 0.3,
     max_tokens: 1000
   };
 
   const response = await fetchWithTimeout(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
+    headers: buildHeaders(apiKey),
     body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw createTranslationError(
-      TRANSLATION_ERRORS.API_ERROR,
-      `OpenAI API 错误 (${response.status}): ${errorText}`
-    );
+    const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `OpenAI API 错误 (${response.status}): ${errorText}`);
+    err.statusCode = response.status;
+    throw err;
   }
 
   const data = await response.json();
-  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    throw createTranslationError(TRANSLATION_ERRORS.API_ERROR, 'OpenAI API 响应格式错误');
-  }
-
-  return data.choices[0].message.content.trim();
+  return parseChatCompletion(data);
 }
 
 /**
@@ -314,15 +264,18 @@ async function translateWithRetry(translator, text, apiKey, apiBaseUrl, model, a
       throw error;
     }
 
-    // 如果达到最大重试次数，抛出错误
+    // 仅当网络错误或5xx时重试
+    const shouldRetry = error.type === TRANSLATION_ERRORS.NETWORK_ERROR || (typeof error.statusCode === 'number' && error.statusCode >= 500);
+    if (!shouldRetry) {
+      throw error;
+    }
+
     if (attempt >= RETRY_CONFIG.maxRetries) {
       throw error;
     }
 
-    // 计算延迟时间并重试
     const delayMs = calculateDelay(attempt, RETRY_CONFIG.baseDelay, RETRY_CONFIG.maxDelay);
     await delay(delayMs);
-    
     return translateWithRetry(translator, text, apiKey, apiBaseUrl, model, attempt + 1);
   }
 }
