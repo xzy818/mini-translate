@@ -1,6 +1,6 @@
 {
   "name": "mini-translate",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "A mini translation plugin developed for Chrome that does not discrupt the reading experience and only translates a few unfamiliar words.",
   "main": "index.js",
   "directories": {
@@ -11,6 +11,7 @@
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run tests/integration.test.js",
     "test:watch": "vitest",
+    "test:e2e": "playwright test tests/e2e --project=chromium",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "build": "bash scripts/build-zip.sh",
@@ -35,6 +36,7 @@
   },
   "homepage": "https://github.com/xzy818/mini-translate#readme",
   "devDependencies": {
+    "@playwright/test": "^1.48.2",
     "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.35.0",
     "jsdom": "^24.0.0",
