@@ -1,8 +1,8 @@
-# Mini Translate 代理部署指南
+# Mini Translate 代理部署指南（已归档 / 可选方案）
 
 ## 概述
 
-本指南将帮助您部署 Mini Translate 的 API 代理服务，解决 Chrome 扩展 MV3 的 CORS 限制问题。
+本指南已归档。默认推荐在 MV3 背景页直接使用标准 `fetch` 直连供应商 API（项目已具备 `host_permissions` 与 DNR 规则）。仅当企业/网络策略阻拦直连时，才建议启用本代理方案。
 
 ## 问题背景
 

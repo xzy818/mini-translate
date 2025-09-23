@@ -17,7 +17,7 @@ Chrome 插件由三个核心部分组成：
    - 复用词库与配置控制器，展示精简 UI 并支持导入导出。
 
 补充模块：
-- **翻译服务封装（`services/translator.js`）**：统一处理 DeepSeek、Qwen、OpenAI 等模型调用。
+- **翻译服务封装（`services/translator.js`）**：统一处理 DeepSeek、Qwen、OpenAI 等模型调用（极简化：单一通道 + provider 映射 + 通用请求/响应解析，去除重复实现）。
 - **存储访问层（`services/storage.js`）**：对 `chrome.storage.local` 提供 Promise 封装，统一 schema 校验。
 - **打包脚本**：构建 release 压缩包（`scripts/build-release.js`）。
 
@@ -66,9 +66,10 @@ content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
   - 统一导出 `translateText({ text, model, apiKey, apiBaseUrl })`。
   - 内部按模型路由到不同实现：
     - DeepSeek：`POST {baseUrl}/v1/chat/completions`，模型为 `deepseek-v3`。
-    - Qwen：不同端点，Turbo/Plus 保存于配置。
+    - Qwen：统一 `/v1/chat/completions` 兼容路径直连，Turbo/Plus 由 `model` 指定。
     - OpenAI：`gpt-4o-mini`。
   - 支持超时、退避重试（指数退避），错误信息标准化。
+  - 建议在背景页直接使用标准 `fetch` 直连供应商；仅当企业网络限制时再选用代理方案（参见归档文档）。
 - 缓存策略：针对相同 term + model + context 可写入 `chrome.storage.local` 的 LRU（可选优化）。
 
 ## 4. UI 与交互

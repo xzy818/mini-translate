@@ -17,20 +17,21 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   // 调试日志（按eslint策略仅在error路径使用console）
 
   if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
-    console.log('🔍 收到测试消息:', message);
+    console.warn('收到测试消息');
     const config = message.payload || {};
-    console.log('🔍 测试配置:', config);
+    console.warn('测试配置已接收');
     
     const validation = validateTranslationConfig(config);
-    console.log('🔍 配置验证结果:', validation);
+    if (!validation.isValid) {
+      console.error('配置验证失败:', validation.errors);
+    }
     
     if (!validation.isValid) {
-      console.log('❌ 配置验证失败:', validation.errors);
       sendResponse({ ok: false, error: validation.errors.join('、') });
       return false;
     }
 
-    console.log('🔄 开始翻译测试...');
+    console.warn('开始翻译测试');
     translateText({
       text: 'diagnostic check',
       model: config.model,
@@ -39,11 +40,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       timeout: 5000
     })
       .then((result) => {
-        console.log('✅ 翻译测试成功:', result);
+        console.warn('翻译测试成功');
         sendResponse({ ok: true });
       })
       .catch((error) => {
-        console.log('❌ 翻译测试失败:', error);
+        console.error('翻译测试失败:', error);
         sendResponse({ ok: false, error: error.message || '测试失败' });
       });
     return true;
