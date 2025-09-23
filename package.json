@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test tests/e2e --project=chromium",
     "lint": "eslint .",
+    "lint:ci": "eslint . -f json -o eslint-report.json && eslint . -f html -o eslint-report.html && eslint .",
     "lint:fix": "eslint . --fix",
     "build": "bash scripts/build-zip.sh",
     "validate": "npm run lint && npm test",
