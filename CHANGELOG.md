@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.9] - 2025-09-24
+
+### 🐛 Bug Fixes
+- 修复选项页与快捷面板按钮无响应的问题（脚本导入路径导致初始化中断）
+- 对齐快捷面板布局顺序与完整管理页一致
+
+### 🔧 Technical
+- 新增 `public/services/vocab-io.js`、`public/services/vocab-core.js` 以供发布包使用
+- 通过 ESLint 与全部 Vitest 用例；重建发布包
+
+### ✅ Impact
+- 选项页“显示/保存/测试”均可正常工作
+- 快捷面板“打开完整管理页”可用
+
 ## [0.2.3] - 2025-01-18
 
 ### 🐛 Bug Fixes
