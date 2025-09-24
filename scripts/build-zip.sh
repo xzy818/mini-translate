@@ -13,9 +13,6 @@ mkdir -p "$DIST_DIR"
 
 # Copy extension assets
 rsync -a public/ "$DIST_DIR"/
-
-# Copy shared modules needed by background/options/content
-rsync -a src/ "$DIST_DIR"/src/
 (
   cd "$DIST_DIR"
   zip -r "../$ZIP_NAME" . >/dev/null
