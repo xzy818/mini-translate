@@ -9,6 +9,19 @@ dist/metadata/
 coverage/
 *.log
 
+# Env files (do not commit secrets)
+.env
+.env.*
+!.env.example
+
+# Tool caches
+.eslintcache
+.vite/
+.turbo/
+
+# Release/build artifacts
+/*.zip
+
 # Editors
 .vscode/
 .idea/
