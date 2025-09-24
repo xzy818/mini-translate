@@ -1,6 +1,6 @@
 {
   "name": "mini-translate",
-  "version": "0.2.8",
+  "version": "0.2.10",
   "description": "A mini translation plugin developed for Chrome that does not discrupt the reading experience and only translates a few unfamiliar words.",
   "main": "index.js",
   "directories": {
