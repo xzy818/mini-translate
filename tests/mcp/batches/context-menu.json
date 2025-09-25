@@ -1,0 +1,86 @@
+{
+  "metadata": {
+    "name": "mini-translate-context-menu",
+    "description": "Validate add/remove/start-stop context menu scenes"
+  },
+  "setup": {
+    "notes": [
+      "Load dist/ extension and capture its ID; replace <EXTENSION_ID> before execution.",
+      "Navigate to a content page containing the phrases defined in sample data (e.g. https://example.com)."
+    ]
+  },
+  "prerequisites": {
+    "extensionId": "<EXTENSION_ID>",
+    "placeholders": [
+      { "name": "@uid:add-menu", "description": "UID for add menu button in Options (captured via take_snapshot)" },
+      { "name": "@uid:remove-menu", "description": "UID for remove confirmation or control" },
+      { "name": "@uid:toggle-menu", "description": "UID for toggle action output/notification" }
+    ]
+  },
+  "steps": [
+    {
+      "tool": "navigate_page",
+      "params": {
+        "url": "https://example.com"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "window.__mtSelect = () => { const range = document.createRange(); const target = document.querySelector('h1'); if (target) { range.selectNodeContents(target); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range); document.dispatchEvent(new CustomEvent('mt-qa-selection'));; } }; window.__mtSelect();"
+      },
+      "notes": "Select sample text to trigger context menu scene evaluation"
+    },
+    {
+      "tool": "new_page",
+      "params": {
+        "url": "chrome-extension://<EXTENSION_ID>/options.html"
+      }
+    },
+    {
+      "tool": "take_snapshot",
+      "params": {
+        "path": "../../test-artifacts/mcp/context-menu-options-snapshot.json"
+      }
+    },
+    {
+      "tool": "fill",
+      "params": {
+        "uid": "@uid:add-menu",
+        "value": "QA placeholder"
+      },
+      "todo": "Replace with actual control/interaction for add action once UID is known"
+    },
+    {
+      "tool": "navigate_page",
+      "params": {
+        "url": "chrome://extensions/"
+      },
+      "notes": "Manual verification step – confirm add/remove entries via chrome.management logs or storage"
+    },
+    {
+      "tool": "navigate_page",
+      "params": {
+        "url": "https://example.com"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "document.dispatchEvent(new CustomEvent('mt-qa-remove'))"
+      },
+      "todo": "Implement bridged listener inside extension for automated remove test"
+    },
+    {
+      "tool": "take_screenshot",
+      "params": {
+        "path": "../../test-artifacts/mcp/context-menu-scenes.png"
+      }
+    }
+  ],
+  "teardown": {
+    "notes": [
+      "Restore selection and clear QA helpers via evaluate_script if necessary."
+    ]
+  }
+}

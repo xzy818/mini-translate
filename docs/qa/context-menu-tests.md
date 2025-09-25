@@ -32,3 +32,11 @@
 - 对异常场景制定额外用例。
 
 建议将新增用例纳入 `tests/mcp/` 计划，并在 release checklist 中记录执行证据。
+
+## MCP 自动化用例草案
+- `tests/mcp/batches/context-menu.json` — 新增三大场景脚本骨架，含 `<EXTENSION_ID>` 与 `@uid:*` 等占位符；需要在首轮执行时通过 `take_snapshot` 或扩展内 QA Hook（如监听 `mt-qa-selection`/`mt-qa-remove` 事件）替换为真实值。
+- 执行后请将截图（`context-menu-scenes.png`）、DOM 快照等输出写入 `test-artifacts/mcp/` 并在 Release Checklist 的 MCP 条目登记执行人/时间。
+- 待完成事项：
+  - [ ] 补齐 add/remove/start-stop 三个步骤的实际自动化交互实现。
+  - [ ] 扩展 QA Hook，实现从页面注入事件驱动 Service Worker 逻辑。
+  - [ ] 在 `npm run test:mcp` 中串联 context-menu 与 smoke 场景，形成完整发布前冒烟。

@@ -5,6 +5,7 @@
 ## 结构
 
 - `batches/smoke.json` — 核心冒烟流程（扩展加载 → Options 配置 → 导入词库 → 页面验证）。
+- `batches/context-menu.json` — 右键菜单三种场景（添加/移除/启停）测试骨架，需补充实际元素 UID 与桥接脚本。
 - `data/sample-vocab.txt` — TXT 导入样例。
 - `data/sample-vocab.json` — JSON 导入样例，符合 `vocabulary-spec.md`。
 
