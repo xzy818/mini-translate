@@ -23,4 +23,6 @@
 - CI 或手动执行一次示例并附执行说明（若 CI 接入受限，提供手动执行记录）。
 
 ## QA Results
-- Pending — 待实现自动化脚本与示例执行记录。
+- 2025-09-25 — In progress
+  - Artifacts: `tests/mcp/README.md`, `tests/mcp/batches/smoke.json`, `tests/mcp/data/sample-vocab.{txt,json}`
+  - Notes: 批处理脚本包含占位符 `@uid`/`<EXTENSION_ID_PLACEHOLDER>`，需在首次实际执行后替换；README 中列出将脚本封装为 `npm run test:mcp`、接入 CI 的 TODO。

@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "name": "mini-translate-smoke",
+    "description": "Core smoke flow for Mini Translate extension using chrome-devtools-mcp"
+  },
+  "setup": {
+    "notes": [
+      "Ensure Chrome with remote debugging is running on http://127.0.0.1:9222 and the dist/ extension is loaded",
+      "Start MCP server: npx chrome-devtools-mcp --browserUrl http://127.0.0.1:9222"
+    ]
+  },
+  "steps": [
+    {
+      "tool": "navigate_page",
+      "params": {
+        "url": "chrome://extensions/"
+      },
+      "assert": {
+        "wait_for": {
+          "text": "Mini Translate"
+        }
+      }
+    },
+    {
+      "tool": "new_page",
+      "params": {
+        "url": "chrome-extension://<EXTENSION_ID_PLACEHOLDER>/options.html"
+      }
+    },
+    {
+      "tool": "take_snapshot",
+      "params": {
+        "path": "../../test-artifacts/mcp/options-snapshot.json"
+      },
+      "notes": "Capture DOM snapshot for later inspection"
+    },
+    {
+      "tool": "fill",
+      "params": {
+        "uid": "@uid:model-select",
+        "value": "gpt-4o-mini"
+      },
+      "todo": "Replace @uid placeholders after first snapshot run"
+    },
+    {
+      "tool": "upload_file",
+      "params": {
+        "uid": "@uid:import-json",
+        "filePath": "../../tests/mcp/data/sample-vocab.json"
+      }
+    },
+    {
+      "tool": "list_console_messages",
+      "assert": {
+        "includes": "Import completed"
+      }
+    },
+    {
+      "tool": "navigate_page",
+      "params": {
+        "url": "https://example.com"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "window.getSelection().selectAllChildren(document.body);"
+      }
+    },
+    {
+      "tool": "take_screenshot",
+      "params": {
+        "path": "../../test-artifacts/mcp/example-page.png"
+      }
+    }
+  ],
+  "teardown": {
+    "notes": [
+      "Close extra tabs created during the run if necessary"
+    ]
+  }
+}

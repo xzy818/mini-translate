@@ -71,3 +71,10 @@
 
 ---
 此方案作为可测试性需求的依据，应在每次发布前执行并在 Story/Sprint 文档中记录结果。
+
+## 8. TODO 清单
+- [ ] 依据 `tests/mcp/batches/smoke.json` 验证并补全所有 `uid` 占位符。
+- [ ] 为 Options/Popup/翻译链路拆分独立批处理文件，形成完整回归套件。
+- [ ] 编写 `npm run test:mcp` 脚本统一触发批处理。
+- [ ] 将 batch 执行纳入 CI（至少一个 Chrome 稳定渠道冒烟）。
+- [ ] 首次执行后在 `release-checklist.md` 的 MCP 条目记录日期、责任人与产出链接。

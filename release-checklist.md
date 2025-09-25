@@ -67,6 +67,7 @@
 - [x] **质量检查**: 发布前完整验证
 - [x] **回滚计划**: 版本回退机制
 - [ ] **MCP 自动化测试**: 按 `docs/qa/chrome-devtools-mcp-test-plan.md` 执行并记录日志/截图（执行人/时间）
+  - [ ] 2025-09-25 — Pending automation — 参考 `tests/mcp/README.md`（负责人：QA/Release）
 
 ## ⚠️ 已知限制
 
