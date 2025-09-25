@@ -15,4 +15,4 @@
 - 图标在所有尺寸下渲染清晰且符合视觉规范。
 - Release 包含验证通过的 ZIP 安装包及更新的文档说明。
 - QA 检查 Release checklist，确保交付完整。
-
+- 根据 `docs/qa/chrome-devtools-mcp-test-plan.md` 执行并通过自动化测试，产出证据随 Release 存档。
