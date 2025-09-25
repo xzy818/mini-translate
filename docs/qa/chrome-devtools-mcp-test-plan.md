@@ -1,103 +1,160 @@
-# chrome-devtools-mcp 自动化测试方案
+# chrome-devtools-mcp 端到端自动化测试方案（本地执行版）
 
-## 1. 目的
-基于 [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) 自动化操控 Chrome 浏览器，对 mini-translate 插件进行端到端验证，覆盖扩展加载、配置、词库操作、翻译链路与回归检查，保证发布包可用性与可重复测试能力。
-
-## 2. 前置条件
-- Node.js ≥ 22.12（`chrome-devtools-mcp` CLI 运行要求）。
-- 本仓库已执行 `npm install`，并完成 `npm run build` 生成最新的 `dist/` 与 `mini-translate-extension.zip`。
-- 可访问本地 Chrome 稳定版或指定渠道版本。
-- 本地具备 `npx` 与 `@modelcontextprotocol/cli`。
-
-## 3. 环境准备
-1. **启动带远程调试的 Chrome**
-   ```bash
-   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
-     --remote-debugging-port=9222 \
-     --user-data-dir=/tmp/chrome-mcp-profile \
-     --load-extension=/path/to/mini-translate/dist
-   ```
-   - 如需沿用已加载的 Chrome，可手动启用扩展后执行 `chrome --remote-debugging-port=9222`。
-2. **启动 MCP 服务器**
-   ```bash
-   npx chrome-devtools-mcp@latest \
-     --browserUrl http://127.0.0.1:9222 \
-     --headless=false \
-     --isolated=false
-   ```
-   - 可使用 `--channel` 或 `--executablePath` 指定浏览器版本；若在沙箱环境受限，请改用 `--browserUrl` 连接外部已启动的 Chrome。
-3. **连接 MCP 客户端**
-   ```bash
-   npx @modelcontextprotocol/cli@latest \
-     --server-type stdio \
-     --command npx \
-     --arg chrome-devtools-mcp@latest \
-     --arg --browserUrl \
-     --arg http://127.0.0.1:9222
-   ```
-   - 支持将常用命令编入 JSON（batch 模式）以便持续集成执行。
-
-## 4. 核心测试场景
-| 场景 | 目标 | 主要工具调用 |
-| --- | --- | --- |
-| 扩展加载确认 | 验证扩展在 `chrome://extensions/` 处于启用状态并记录扩展 ID | `navigate_page`, `take_snapshot`, `evaluate_script (chrome.management.getAll)` |
-| Options 设置冒烟 | 在 `options.html` 中更改模型、Base URL、API Key，并校验 `chrome.storage.local` 更新 | `new_page`, `take_snapshot`, `fill`, `evaluate_script` |
-| Popup 快捷操作 | 打开 `popup.html`，切换翻译开关并截图留存 | `new_page`, `click`, `take_screenshot`, `list_console_messages` |
-| 词库导入导出 | 上传 TXT/JSON，校验导入提示与条目上限；触发导出并监控网络请求 | `upload_file`, `wait_for`, `evaluate_script`, `list_network_requests` |
-| 翻译链路验证 | 在示例网页选词、触发添加/移除词条，检查页面 DOM 翻译效果与消息日志 | `navigate_page`, `evaluate_script`, `wait_for`, `take_snapshot` |
-| 回归与性能检查 | 记录关键操作的截图/快照；必要时收集性能 Trace | `take_screenshot`, `take_snapshot`, `performance_start_trace`, `performance_stop_trace` |
-
-> 建议将每个场景封装为独立脚本（JSON batch），并在执行后保存产出（截图、网络日志、Trace 文件）作为发布附证。
-
-## 5. 测试流程
-1. 构建产物并运行 `npm run validate`；仅在成功后执行 MCP 测试。
-2. 按“核心测试场景”顺序执行，必要时重复“词库导入/翻译链路”覆盖不同模型或 API 情况。
-3. 测试完成后，收集：
-   - 扩展版本信息 (`dist/manifest.json` 与 ZIP manifest)。
-   - MCP 执行日志与输出截图/快照。
-   - 若有性能 Trace，附在 release 记录中。
-4. 在 `release-checklist.md` 上记录执行人、执行时间与结果，保证可追溯。
-
-## 6. 自动化与维护建议
-- 将 MCP 操作脚本存放于 `tests/mcp/`（建议新增目录），并在 CI 中通过 Matrix 对多个 Chrome Channel 运行冒烟测试。
-- 对关键页面元素（Options/Popup）建立稳定的选择器或运行前快照，降低 DOM 变更导致的定位失败。
-- 定期更新测试数据（词库文件、示例网页），并记录在 README “测试指南”章节。
-- 若扩展权限或路由变更，需同步更新 MCP 脚本中的 URL/命令。
-
-## 7. 风险与应对
-- **沙箱限制**：若 MCP 被安全策略限制无法启动 Chrome，改为预启动带调试端口的浏览器并使用 `--browserUrl` 连接。
-- **DOM 结构改变**：维护 DOM 快照与测试脚本，必要时使用 `evaluate_script` 注入选择器定位。
-- **外部服务依赖**：翻译 API 失效时可在测试脚本中切换到 mock Base URL，或捕获异常后执行降级验证。
+> 目标：在 **本地环境**（非 CI）借助 [chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp) 完成 Mini Translate 插件的端到端验证，覆盖扩展加载、Options/Popup 操作、右键菜单场景、词库导入导出与翻译链路，全程不使用桩或屏蔽逻辑。
 
 ---
-此方案作为可测试性需求的依据，应在每次发布前执行并在 Story/Sprint 文档中记录结果。
 
-## 8. TODO 清单（本地执行）
-- [ ] 依据 `tests/mcp/batches/smoke.json` 验证并补全所有 `uid` 占位符。
-- [ ] 为 Options/Popup/翻译链路拆分独立批处理文件，形成完整回归套件。
-- [ ] 编写 `npm run test:mcp` 脚本统一触发批处理（仅考虑本地执行场景）。
-- [ ] 首次执行后在 `release-checklist.md` 的 MCP 条目记录日期、责任人与产出链接。
+## 1. 测试范围与验收目标
 
-## 9. 执行路线图
-1. **获取扩展 ID 与元素 UID**  
-   - 在本地启动 Chrome 并加载 `dist/` 扩展，记录扩展 ID。  
-   - 运行 `take_snapshot`，提取 Options/Popup 中关键元素 UID，替换 `smoke.json`、`context-menu.json` 中的 `@uid:*`。  
-2. **增加 QA Hook（仅测试环境）**  
-   - 在内容脚本/背景脚本中监听自定义事件（如 `mt-qa-selection`、`mt-qa-remove`），触发现有业务逻辑，确保 MCP 可以通过 `evaluate_script` 调用这些事件。  
-   - 确保 Hook 受 `process.env.MT_QA_HOOKS` 或等价开关控制，避免影响正式构建。  
-3. **完善批处理脚本**  
-   - 更新 `smoke.json`：补足 Options 保存、导入提示的断言与截图。  
-   - 更新 `context-menu.json`：按 `TC-CM-101/102/103` 拆分步骤，验证翻译标记与通知。  
-   - 新增 `popup.json`、`translation.json` 等文件，覆盖 Popup 操作与翻译链路。  
-4. **封装执行命令**  
-   - 在 `package.json` 中添加 `test:mcp` 脚本（指向本地 Chrome，可通过 `CHROME_PATH` 环境变量配置），依次执行上述 batch，并将输出保存至 `test-artifacts/mcp/<timestamp>/`。  
-   - 产出后更新 `release-checklist.md` 与 Story S10 QA 记录。  
-5. **首次执行与结果归档**  
-   - 手动运行 `npm run test:mcp`，收集截图、DOM snapshot、日志、性能 Trace。  
-   - 在 `docs/qa/context-menu-tests.md`、`docs/qa/chrome-devtools-mcp-test-plan.md` 中更新执行结果与经验。  
-6. **本地执行注意事项**  
-   - 启动 Chrome 时使用脚本 `scripts/start-chrome-mcp.sh`，确保端口 9222 可用。  
-   - 若端口被占用，先执行 `scripts/kill-chrome-mcp.sh` 停止残留进程。  
-   - 建议在 README “测试指南”章节补充“本地 MCP 自动化”段落，引导执行者完成所有步骤。  
+| 场景 ID | 说明 | 主要目标 |
+| --- | --- | --- |
+| TC-EXT-001 | 扩展启用与版本校验 | 确认扩展在 `chrome://extensions/` 已启用、版本号正确 |
+| TC-OPT-002 | Options 配置保存 | 修改模型/Base URL/API Key 并验证 `chrome.storage.local` 写入 |
+| TC-OPT-003 | Options 导入（JSON/TXT） | 导入样例数据并检查去重/上限提示 |
+| TC-POP-005/006 | Popup 快捷操作 | 切换翻译开关、核对词库概览、截图留存 |
+| TC-CM-101/102/103 | 右键菜单三场景 | 添加 → 移除 → 启停，验证 DOM/通知/词库同步 |
+| TC-TRN-007/008 | 翻译链路 | 在真实页面选词翻译与回退，确认内容脚本效果 |
+| TC-NET-009 | 异常提示 | 翻译 API 失败/词库超限等告警 |
+| TC-PERF-010 | 性能证据 | 收集执行过程截图、Trace、网络请求日志 |
+| TC-CLI-011 | `npm run validate` | CLI 层静态检查 + 单测（已纳入全流程 prerequisite） |
+| TC-MAN-012 | Release Checklist | 勾选并记录 MCP 执行信息 |
 
-若在本地执行中遇到阻塞（例如系统策略禁止远程调试），需记录解决方案或手动执行的替代流程。
+所有场景必须依赖真实构建 (`dist/`) 与浏览器行为，不允许屏蔽或模拟业务逻辑。
+
+---
+
+## 2. 前置条件
+
+1. Node.js ≥ 22.12，已执行 `npm install`
+2. `npm run build` 生成最新 `dist/`
+3. Chrome 桌面版（建议稳定版）；具备启动参数控制权限
+4. 安装 `chrome-devtools-mcp`（通过 `npx` 自动安装即可）
+5. 本地允许打开端口 `9222`（Chrome 远程调试）
+6. 设置环境变量：
+   ```bash
+   export MT_QA_HOOKS=1       # 启用测试专用 Hook
+   export CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+   ```
+   > `MT_QA_HOOKS` 仅在测试构建生效；正式 Release 需关闭。
+
+---
+
+## 3. 测试资产目录
+
+| 路径 | 内容 |
+| --- | --- |
+| `tests/mcp/data/sample-vocab.{txt,json}` | 词库导入样例 |
+| `tests/mcp/batches/smoke.json` | 扩展加载/Options/导入冒烟流程（含占位符） |
+| `tests/mcp/batches/context-menu.json` | 右键菜单三场景骨架 |
+| `tests/mcp/README.md` | Batch 执行说明与 TODO |
+| `docs/qa/context-menu-tests.md` | 右键菜单测试分析与 MCP 用例清单 |
+| `docs/qa/mcp-local-execution.md` | 本地执行详细手册（Chrome 启停、UID 捕获等） |
+| `test-artifacts/mcp/` | 建议输出截图、DOM snapshot、日志的目录 |
+
+执行前需先补全 batch 文件中的 `<EXTENSION_ID>` 与 `@uid:*` 占位符（见第 5 节）。
+
+---
+
+## 4. 一次完整测试的流程概览
+
+1. **准备构建**：`npm run build` → 验证 `dist/manifest.json` 版本。
+2. **启动 Chrome**：运行脚本 `scripts/start-chrome-mcp.sh`（见第 5.1）。
+3. **启动 MCP Server**：`npx chrome-devtools-mcp --browserUrl http://127.0.0.1:9222`。
+4. **采集扩展 ID 与 UID**：用 Snapshot 脚本写入 batch（见第 5.2）。
+5. **执行批处理**：`npm run test:mcp`（内部串联 smoke、context-menu 等 batch）。
+6. **收集证据**：自动/手动保存截图、DOM snapshot、控制台日志至 `test-artifacts/mcp/<timestamp>/`。
+7. **记录结果**：在 `release-checklist.md` MCP 条目填写执行人、时间、证据路径；更新 Story S10 QA 记录。
+8. **清理环境**：使用 `scripts/kill-chrome-mcp.sh` 关闭调试 Chrome。
+
+---
+
+## 5. 关键操作指南
+
+### 5.1 启动带扩展的 Chrome
+```bash
+bash scripts/start-chrome-mcp.sh
+```
+脚本需完成：
+- 关闭旧进程（如存在）
+- 使用独立 profile（防止账号干扰）
+- 加载 `dist/` 扩展并开启端口 `9222`
+- 将日志写入 `/tmp/mini-translate-mcp.log`
+
+停止命令：`bash scripts/kill-chrome-mcp.sh`
+
+### 5.2 捕获扩展 ID 与 UID
+1. 打开 `chrome://extensions/`，复制扩展 ID（设为 `EXT_ID`）。
+2. 执行 Snapshot 脚本（示例）：
+   ```bash
+   node scripts/mcp-capture-uids.mjs --ext-id "$EXT_ID" \
+     --output tests/mcp/batches/uids.json
+   ```
+   脚本需连接 MCP Server，打开 Options/Popup，取出关键元素的 `uid`。
+3. 将结果写入 batch：
+   - `smoke.json` 中替换 `@uid:model`、`@uid:import-json` 等
+   - `context-menu.json` 中替换选词/移除/启停操作所需的 `uid`
+   - 将 `<EXTENSION_ID>` 替换为实际 ID
+
+> 若暂未实现脚本，可临时使用 `take_snapshot` 命令手工解析 UID。
+
+### 5.3 启用 QA Hook
+- 在开发构建中，`MT_QA_HOOKS=1 npm run build`
+- Hook 作用：允许通过 `evaluate_script` 触发 `mt-qa-selection`、`mt-qa-remove`、`mt-qa-toggle` 等事件，驱动 Service Worker 与 Content Script 协作。
+- Release 构建应确保 Hook 关闭。
+
+### 5.4 执行批处理
+在 `package.json` 中定义：
+```json
+"scripts": {
+  "test:mcp": "node scripts/run-mcp-suite.mjs"
+}
+```
+`run-mcp-suite.mjs` 需实现：
+1. 校验端口 `9222`
+2. 按顺序执行 `tests/mcp/batches/*.json`
+3. 为每个 batch 创建 `test-artifacts/mcp/<timestamp>/...` 目录并保存产物
+4. 汇总执行报告（成功/失败 + 证据路径）
+
+如未完成脚本，可先手工执行 batch，并在完成后补充自动化。
+
+---
+
+## 6. 验证与取证要求
+
+- **截图**：Options 保存、Popup 操作、右键菜单翻译前后、翻译页面效果。
+- **DOM Snapshot**：在添加/移除后保存 `context-menu-options-snapshot.json` 等文件。
+- **Logs**：导出 `list_console_messages`、`chrome.runtime` 通知、网络请求详情。
+- **性能**：需要时使用 `performance_start_trace` / `performance_stop_trace` 生成 Trace。
+- **Release Checklist**：在 MCP 条目下写入 `(<日期>) <执行人> — <证据目录>`。
+
+---
+
+## 7. 维护与扩展
+
+- 批处理脚本更新后同步修改 `tests/mcp/README.md`。
+- 词库样例需与 `docs/vocabulary-spec.md` 保持一致。
+- 元素 UID 可能随 UI 变动，请在 UI 变更后重新执行 Snapshot。
+- 若扩展权限、路由或 Hook 机制调整，务必同步更新 batch 与 README。
+
+---
+
+## 8. 未完成事项追踪
+
+- [ ] 研发 `scripts/start-chrome-mcp.sh`、`scripts/kill-chrome-mcp.sh`
+- [ ] 研发 `scripts/mcp-capture-uids.mjs`、`scripts/run-mcp-suite.mjs`
+- [ ] 在 batch 中替换真实 UID 与扩展 ID
+- [ ] 通过 MCP 自动化完整执行 TC-EXT ~ TC-PERF（生成 `test-artifacts/mcp/` 证据）
+- [ ] 在 `release-checklist.md` 记录一次成功执行
+- [ ] 将执行经验回写至 Story S10 QA Results 和 `docs/qa/context-menu-tests.md`
+
+---
+
+## 9. 参考资料
+
+- `docs/qa/mcp-local-execution.md` — 本地执行详细手册
+- `tests/mcp/README.md` — 批处理与数据说明
+- `docs/qa/context-menu-tests.md` — 右键菜单测试分析
+- `release-checklist.md` — 发布必备事项
+- Story S10：`docs/stories/story-s10-mcp-automation.md`
+
+执行完成后请务必将经验与产出同步到相关文档，确保方案持续有效。
