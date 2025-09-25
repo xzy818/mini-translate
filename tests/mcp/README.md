@@ -40,3 +40,5 @@
 - [ ] 在 CI 中集成最小冒烟场景，支持稳定/ beta 渠道。
 
 执行结果（截图、快照、日志）建议放在 `test-artifacts/mcp/` 下，以便随 release 一同归档。
+
+> 详尽的本地执行步骤请参考 `docs/qa/mcp-local-execution.md`。

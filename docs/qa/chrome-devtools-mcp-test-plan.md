@@ -72,9 +72,32 @@
 ---
 此方案作为可测试性需求的依据，应在每次发布前执行并在 Story/Sprint 文档中记录结果。
 
-## 8. TODO 清单
+## 8. TODO 清单（本地执行）
 - [ ] 依据 `tests/mcp/batches/smoke.json` 验证并补全所有 `uid` 占位符。
 - [ ] 为 Options/Popup/翻译链路拆分独立批处理文件，形成完整回归套件。
-- [ ] 编写 `npm run test:mcp` 脚本统一触发批处理。
-- [ ] 将 batch 执行纳入 CI（至少一个 Chrome 稳定渠道冒烟）。
+- [ ] 编写 `npm run test:mcp` 脚本统一触发批处理（仅考虑本地执行场景）。
 - [ ] 首次执行后在 `release-checklist.md` 的 MCP 条目记录日期、责任人与产出链接。
+
+## 9. 执行路线图
+1. **获取扩展 ID 与元素 UID**  
+   - 在本地启动 Chrome 并加载 `dist/` 扩展，记录扩展 ID。  
+   - 运行 `take_snapshot`，提取 Options/Popup 中关键元素 UID，替换 `smoke.json`、`context-menu.json` 中的 `@uid:*`。  
+2. **增加 QA Hook（仅测试环境）**  
+   - 在内容脚本/背景脚本中监听自定义事件（如 `mt-qa-selection`、`mt-qa-remove`），触发现有业务逻辑，确保 MCP 可以通过 `evaluate_script` 调用这些事件。  
+   - 确保 Hook 受 `process.env.MT_QA_HOOKS` 或等价开关控制，避免影响正式构建。  
+3. **完善批处理脚本**  
+   - 更新 `smoke.json`：补足 Options 保存、导入提示的断言与截图。  
+   - 更新 `context-menu.json`：按 `TC-CM-101/102/103` 拆分步骤，验证翻译标记与通知。  
+   - 新增 `popup.json`、`translation.json` 等文件，覆盖 Popup 操作与翻译链路。  
+4. **封装执行命令**  
+   - 在 `package.json` 中添加 `test:mcp` 脚本（指向本地 Chrome，可通过 `CHROME_PATH` 环境变量配置），依次执行上述 batch，并将输出保存至 `test-artifacts/mcp/<timestamp>/`。  
+   - 产出后更新 `release-checklist.md` 与 Story S10 QA 记录。  
+5. **首次执行与结果归档**  
+   - 手动运行 `npm run test:mcp`，收集截图、DOM snapshot、日志、性能 Trace。  
+   - 在 `docs/qa/context-menu-tests.md`、`docs/qa/chrome-devtools-mcp-test-plan.md` 中更新执行结果与经验。  
+6. **本地执行注意事项**  
+   - 启动 Chrome 时使用脚本 `scripts/start-chrome-mcp.sh`，确保端口 9222 可用。  
+   - 若端口被占用，先执行 `scripts/kill-chrome-mcp.sh` 停止残留进程。  
+   - 建议在 README “测试指南”章节补充“本地 MCP 自动化”段落，引导执行者完成所有步骤。  
+
+若在本地执行中遇到阻塞（例如系统策略禁止远程调试），需记录解决方案或手动执行的替代流程。
