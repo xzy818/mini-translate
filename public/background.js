@@ -31,6 +31,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // 统一日志，便于排查未覆盖类型
   // 调试日志（按eslint策略仅在error路径使用console）
 
+  if (message.type === 'SETTINGS_UPDATED') {
+    sendResponse({ ok: true });
+    return false;
+  }
+
   if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
     console.warn('收到测试消息');
     const config = message.payload || {};
