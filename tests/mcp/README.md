@@ -9,36 +9,34 @@
 - `data/sample-vocab.txt` — TXT 导入样例。
 - `data/sample-vocab.json` — JSON 导入样例，符合 `vocabulary-spec.md`。
 
-## 使用步骤（手动执行）
+## 使用步骤（全自动）
 
-1. 构建插件并确保 dist 存在：
+1. 启动远程调试版 Chrome（默认脚本会自动启动）：
+ ```bash
+ bash scripts/start-chrome-mcp.sh
+ ```
+  > 若首次运行，可先执行 `node scripts/mcp/install-chrome.mjs` 下载 *Chrome for Testing*，脚本会自动检测并使用该二进制，以便允许 `--load-extension`。
+2. 捕获最新元素 UID 并生成批处理：
+ ```bash
+ npm run mcp:capture
+ ```
+  该命令会写入 `tests/mcp/batches/uids.json`，并基于模板生成实际可执行的 `smoke.json`、`context-menu.json` 等批处理文件。若自动探测扩展 ID 失败，可通过设置环境变量 `MCP_EXTENSION_ID=<id>` 或使用 `node scripts/mcp/capture-uids.mjs --ext-id <id>` 显式传入；仓库默认 ID 为 `acfpkkkhehadjlkdnffdkoilmhchefbl`。
+  > 右键菜单场景需要 QA 面板（`options.html?qa=1`）提供的测试按钮，请使用 `MT_QA_HOOKS=1 npm run build` 生成构建。
+3. 执行批处理并收集产物：
    ```bash
-   npm run build
+   npm run test:mcp
    ```
-2. 启动带远程调试端口的 Chrome 并加载 dist 扩展：
+   日志和截图会保存在 `test-artifacts/mcp/<timestamp>/`，并自动生成 `summary.json`。
+4. 整个流程可通过单一命令完成：
    ```bash
-   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
-     --remote-debugging-port=9222 \
-     --user-data-dir=/tmp/chrome-mcp-profile \
-     --load-extension=$(pwd)/dist
+   npm run mcp:auto
    ```
-3. 启动 MCP 服务端：
-   ```bash
-   npx chrome-devtools-mcp --browserUrl http://127.0.0.1:9222
-   ```
-4. 使用 MCP 客户端执行批处理（示例命令，具体 CLI 视环境而定）：
-   ```bash
-   # TODO: 替换为实际可用的 MCP 客户端命令
-   mcp-client run batches/smoke.json
-   ```
+   该命令会构建带 QA Hook 的扩展、启动调试 Chrome、执行 UID 捕获与批处理，并在最后自动清理。
 
-## TODO
+完成后可执行：
+```bash
+bash scripts/kill-chrome-mcp.sh
+```
+以关闭调试浏览器。
 
-- [ ] 将 `@uid` 占位符替换为 `take_snapshot` 生成的真实元素 UID。
-- [ ] 评估可用的 MCP 客户端 CLI，并将命令补充到本 README。
-- [ ] 将 `mcp-client run` 包装为 `npm run test:mcp`。
-- [ ] 在 CI 中集成最小冒烟场景，支持稳定/ beta 渠道。
-
-执行结果（截图、快照、日志）建议放在 `test-artifacts/mcp/` 下，以便随 release 一同归档。
-
-> 详尽的本地执行步骤请参考 `docs/qa/mcp-local-execution.md`。
+> 详尽的手动操作及调试技巧请参考 `docs/qa/mcp-local-execution.md`。

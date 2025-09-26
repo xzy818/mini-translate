@@ -153,3 +153,111 @@ document.addEventListener('selectionchange', scheduleSelectionNotification, {
 });
 
 notifySelectionChange('');
+
+function sendQaMessage(type, payload = {}) {
+  return new Promise((resolve, reject) => {
+    try {
+      chrome.runtime.sendMessage({ type, payload }, (response) => {
+        const error = chrome.runtime.lastError;
+        if (error) {
+          reject(new Error(error.message));
+          return;
+        }
+        resolve(response);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+function extractSelectionFromEvent(event) {
+  if (event?.detail) {
+    if (typeof event.detail === 'string') {
+      return event.detail.trim();
+    }
+    if (typeof event.detail.selectionText === 'string') {
+      return event.detail.selectionText.trim();
+    }
+  }
+  return readCurrentSelection();
+}
+
+document.addEventListener('mt-qa-selection', (event) => {
+  const selection = extractSelectionFromEvent(event);
+  sendQaMessage('QA_CONTEXT_ADD', { selectionText: selection }).catch(() => {});
+});
+
+document.addEventListener('mt-qa-remove', (event) => {
+  const selection = extractSelectionFromEvent(event);
+  sendQaMessage('QA_CONTEXT_REMOVE', { selectionText: selection }).catch(() => {});
+});
+
+document.addEventListener('mt-qa-toggle', () => {
+  sendQaMessage('QA_CONTEXT_TOGGLE', {}).catch(() => {});
+});
+
+window.addEventListener('message', (event) => {
+  if (event.source !== window || !event.data) return;
+  const { qaAction, qaRequestId, payload } = event.data;
+  if (!qaAction || !qaRequestId) return;
+  let messageType = null;
+  if (qaAction === 'add') messageType = 'QA_CONTEXT_ADD';
+  else if (qaAction === 'remove') messageType = 'QA_CONTEXT_REMOVE';
+  else if (qaAction === 'toggle') messageType = 'QA_CONTEXT_TOGGLE';
+  if (!messageType) return;
+  const selectionText = (payload?.selectionText || readCurrentSelection()).trim();
+  const messagePayload = messageType === 'QA_CONTEXT_TOGGLE' ? {} : { selectionText };
+  sendQaMessage(messageType, messagePayload)
+    .then((result) => {
+      window.postMessage({ qaResponse: qaAction, qaRequestId, success: true, result }, '*');
+    })
+    .catch((error) => {
+      window.postMessage({ qaResponse: qaAction, qaRequestId, success: false, error: error.message }, '*');
+    });
+});
+
+const bridgeScript = document.createElement('script');
+bridgeScript.textContent = `(() => {
+  if (window.__miniTranslateQA) {
+    return;
+  }
+  let requestId = 0;
+  const pending = new Map();
+  window.addEventListener('message', (event) => {
+    if (event.source !== window || !event.data) {
+      return;
+    }
+    const { qaResponse, qaRequestId, success, result, error } = event.data;
+    if (!qaResponse || !qaRequestId || !pending.has(qaRequestId)) {
+      return;
+    }
+    const { resolve, reject } = pending.get(qaRequestId);
+    pending.delete(qaRequestId);
+    if (success) {
+      resolve(result);
+    } else {
+      reject(new Error(error || 'QA bridge error'));
+    }
+  });
+  function call(action, payload) {
+    const id = 'qa_' + Date.now() + '_' + (++requestId);
+    return new Promise((resolve, reject) => {
+      pending.set(id, { resolve, reject });
+      window.postMessage({ qaAction: action, qaRequestId: id, payload }, '*');
+    });
+  }
+  window.__miniTranslateQA = {
+    add(selectionText) {
+      return call('add', { selectionText });
+    },
+    remove(selectionText) {
+      return call('remove', { selectionText });
+    },
+    toggle() {
+      return call('toggle', {});
+    }
+  };
+})();`;
+(document.documentElement || document.head || document.body).appendChild(bridgeScript);
+bridgeScript.remove();

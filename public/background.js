@@ -1,4 +1,10 @@
-import { initializeBackground } from '../src/services/context-menu.js';
+import {
+  initializeBackground,
+  handleAddTerm,
+  handleRemoveTerm,
+  handleTogglePage,
+  updateMenuForInfo
+} from '../src/services/context-menu.js';
 import { translateText, validateTranslationConfig } from '../src/services/translator.js';
 
 let initialized = false;
@@ -9,10 +15,19 @@ function setup() {
   initialized = true;
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+self.addEventListener('unhandledrejection', (event) => {
+  console.error('[qa] unhandled rejection', event.reason);
+});
+
+self.addEventListener('error', (event) => {
+  console.error('[qa] worker error', event.message, event.error);
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || !message.type) {
     return false;
   }
+  console.warn('[qa] message received', message.type);
   // 统一日志，便于排查未覆盖类型
   // 调试日志（按eslint策略仅在error路径使用console）
 
@@ -140,6 +155,57 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({ ok: false, error: e.message });
     }
     return true; // 保持一致
+  }
+
+  if (message.type === 'QA_CONTEXT_ADD') {
+    const selectionText = (message.payload?.selectionText || '').trim();
+    const info = { selectionText };
+    const tabId = sender?.tab?.id ?? null;
+    console.warn('[qa] add selection', selectionText, 'tab', tabId);
+    handleAddTerm(chrome, info, tabId)
+      .then(async (result) => {
+        console.warn('[qa] add result', result);
+        if (result.ok) {
+          await updateMenuForInfo(chrome, info, tabId);
+        }
+        sendResponse(result);
+      })
+      .catch((error) => {
+        sendResponse({ ok: false, error: error.message || 'ADD_FAILED' });
+      });
+    return true;
+  }
+
+  if (message.type === 'QA_CONTEXT_REMOVE') {
+    const selectionText = (message.payload?.selectionText || '').trim();
+    const info = { selectionText };
+    const tabId = sender?.tab?.id ?? null;
+    console.warn('[qa] remove selection', selectionText, 'tab', tabId);
+    handleRemoveTerm(chrome, info, tabId)
+      .then(async (result) => {
+        console.warn('[qa] remove result', result);
+        if (result.ok) {
+          await updateMenuForInfo(chrome, info, tabId);
+        }
+        sendResponse(result);
+      })
+      .catch((error) => {
+        sendResponse({ ok: false, error: error.message || 'REMOVE_FAILED' });
+      });
+    return true;
+  }
+
+  if (message.type === 'QA_CONTEXT_TOGGLE') {
+    const tabId = sender?.tab?.id ?? null;
+    console.warn('[qa] toggle request', tabId);
+    handleTogglePage(chrome, tabId ?? 0)
+      .then((result) => {
+        sendResponse(result);
+      })
+      .catch((error) => {
+        sendResponse({ ok: false, error: error.message || 'TOGGLE_FAILED' });
+      });
+    return true;
   }
 
   // 未识别消息：显式返回 false，避免悬空端口

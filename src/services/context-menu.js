@@ -27,7 +27,7 @@ function setMenuContext(chromeLike, tabKey, context) {
   }
 }
 
-async function updateMenuForInfo(chromeLike, info, tabId) {
+export async function updateMenuForInfo(chromeLike, info, tabId) {
   try {
     const context = await resolveMenuContext(chromeLike, info, tabId);
     const key = tabId ?? 'global';
@@ -90,7 +90,7 @@ async function translateTerm(chromeLike, text) {
   });
 }
 
-async function handleAddTerm(chromeLike, info, tabId) {
+export async function handleAddTerm(chromeLike, info, tabId) {
   const selectionText = (info.selectionText || '').trim();
   if (!selectionText) {
     return { ok: false, reason: 'EMPTY_SELECTION' };
@@ -123,7 +123,7 @@ async function handleAddTerm(chromeLike, info, tabId) {
   return { ok: true, payload };
 }
 
-async function handleRemoveTerm(chromeLike, info, tabId) {
+export async function handleRemoveTerm(chromeLike, info, tabId) {
   const term = (info.selectionText || '').trim();
   if (!term) {
     return { ok: false, reason: 'EMPTY_SELECTION' };
@@ -140,7 +140,7 @@ async function handleRemoveTerm(chromeLike, info, tabId) {
   return { ok: true };
 }
 
-async function handleTogglePage(chromeLike, tabId) {
+export async function handleTogglePage(chromeLike, tabId) {
   const enabled = await toggleTabState(chromeLike, tabId);
   const vocabulary = await readVocabulary(chromeLike);
   safeSendMessage(chromeLike, tabId, {

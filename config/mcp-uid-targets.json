@@ -1,0 +1,47 @@
+{
+  "pages": [
+    {
+      "id": "options",
+      "description": "Mini Translate options page core controls",
+      "urlTemplate": "chrome-extension://{EXTENSION_ID}/options.html",
+      "waitFor": "翻译服务配置",
+      "targets": [
+        {
+          "key": "options.model-select",
+          "role": "comboBox",
+          "name": "模型"
+        },
+        {
+          "key": "options.import-json",
+          "role": "button",
+          "name": "导入 JSON"
+        }
+      ]
+    },
+    {
+      "id": "popup",
+      "description": "Popup import + toggle controls",
+      "urlTemplate": "chrome-extension://{EXTENSION_ID}/popup.html",
+      "waitFor": "翻译服务配置",
+      "targets": [
+        {
+          "key": "popup.model-select",
+          "role": "comboBox",
+          "name": "模型"
+        },
+        {
+          "key": "popup.import-json",
+          "role": "button",
+          "name": "导入 JSON"
+        }
+      ]
+    },
+    {
+      "id": "content-menu",
+      "description": "Sample page selection for QA hooks",
+      "urlTemplate": "https://example.com/",
+      "waitFor": "Example Domain",
+      "targets": []
+    }
+  ]
+}
