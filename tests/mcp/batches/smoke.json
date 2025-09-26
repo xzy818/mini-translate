@@ -17,44 +17,157 @@
       }
     },
     {
-      "tool": "take_snapshot",
+      "tool": "evaluate_script",
       "params": {
-        "path": "../../test-artifacts/mcp/options-snapshot.json"
+        "expression": "(() => { const model = document.getElementById('model'); const base = document.getElementById('base'); const key = document.getElementById('key'); model.value = 'gpt-4o-mini'; base.value = 'https://api.example.com'; key.value = 'stub-key'; document.getElementById('save').click(); return 'saved'; })()"
       },
-      "notes": "Capture DOM snapshot for later inspection"
+      "notes": "保存初始配置"
     },
     {
-      "tool": "fill",
+      "tool": "wait_for",
       "params": {
-        "uid": "2_19",
-        "value": "gpt-4o-mini"
+        "text": "已保存"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(() => { return JSON.stringify({ model: document.getElementById('model').value, base: document.getElementById('base').value, keyType: document.getElementById('key').type }); })()",
+        "saveAs": "../../test-artifacts/mcp/options/after-save.json"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(() => { const base = document.getElementById('base'); base.value = 'stub://translator/success?translation=%E6%B5%8B%E8%AF%95%E6%88%90%E5%8A%9F'; document.getElementById('test').click(); return 'testing-success'; })()"
       },
-      "todo": "Replace @uid placeholders after first snapshot run"
+      "notes": "切换到 QA Stub 成功路径并点击测试"
+    },
+    {
+      "tool": "wait_for",
+      "params": {
+        "text": "测试通过"
+      }
+    },
+    {
+      "tool": "list_console_messages",
+      "assert": {
+        "includes": "[qa:test] success"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(() => { const base = document.getElementById('base'); base.value = 'stub://translator/auth-error'; document.getElementById('test').click(); return 'testing-failure'; })()"
+      },
+      "notes": "切换到 QA Stub 认证失败路径"
+    },
+    {
+      "tool": "wait_for",
+      "params": {
+        "text": "测试失败"
+      }
+    },
+    {
+      "tool": "list_console_messages",
+      "assert": {
+        "includes": "[qa:test] error"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(() => { document.getElementById('base').value = 'stub://translator/timeout'; document.getElementById('test').click(); return 'testing-timeout'; })()"
+      },
+      "notes": "验证超时路径"
+    },
+    {
+      "tool": "wait_for",
+      "params": {
+        "text": "测试异常"
+      }
+    },
+    {
+      "tool": "list_console_messages",
+      "assert": {
+        "includes": "[qa:test] timeout"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(() => { document.getElementById('base').value = 'stub://translator/success'; document.getElementById('save').click(); return 'restore-success'; })()"
+      }
+    },
+    {
+      "tool": "wait_for",
+      "params": {
+        "text": "已保存"
+      }
     },
     {
       "tool": "upload_file",
       "params": {
         "uid": "2_37",
         "filePath": "../../tests/mcp/data/sample-vocab.json"
-      }
+      },
+      "notes": "导入合法 JSON 样例"
     },
     {
       "tool": "list_console_messages",
       "assert": {
-        "includes": "Import completed"
+        "includes": "导入完成：成功"
       }
     },
     {
-      "tool": "navigate_page",
+      "tool": "take_snapshot",
       "params": {
-        "url": "https://example.com"
+        "path": "../../test-artifacts/mcp/options/post-import.json"
       }
     },
     {
       "tool": "evaluate_script",
       "params": {
-        "expression": "window.getSelection().selectAllChildren(document.body);"
+        "expression": "(() => { return document.getElementById('vocab-counter').textContent; })()"
+      },
+      "assert": {
+        "includes": "/"
       }
+    },
+    {
+      "tool": "upload_file",
+      "params": {
+        "uid": "2_37",
+        "filePath": "../../tests/mcp/data/invalid-format.json"
+      },
+      "notes": "导入无效 JSON 并验证提示"
+    },
+    {
+      "tool": "list_console_messages",
+      "assert": {
+        "includes": "失败"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(async () => { const response = await new Promise((resolve, reject) => { chrome.runtime.sendMessage({ type: 'QA_GET_STORAGE_STATE' }, (res) => { const err = chrome.runtime.lastError; if (err) { reject(err); return; } resolve(res); }); }); return JSON.stringify(response); })()",
+        "saveAs": "../../test-artifacts/mcp/options/storage-snapshot.json"
+      },
+      "notes": "抓取 storage.local/session 快照"
+    },
+    {
+      "tool": "navigate_page",
+      "params": {
+        "url": "https://example.com/"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(() => { window.dispatchEvent(new CustomEvent('mt-qa-toggle')); return 'toggle-dispatched'; })()"
+      },
+      "notes": "通过 QA Hook 切换翻译状态"
     },
     {
       "tool": "take_screenshot",

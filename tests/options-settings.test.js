@@ -106,4 +106,24 @@ describe('Settings controller', () => {
     expect(chromeStub.runtime.sendMessage).toHaveBeenCalled();
     expect(notify).toHaveBeenCalledWith('测试通过');
   });
+
+  it('notifies error message when runtime returns failure', async () => {
+    chromeStub.runtime.sendMessage.mockImplementation((_message, cb) => {
+      cb({ ok: false, error: '认证失败' });
+    });
+    const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
+    await controller.testConnection();
+    expect(notify).toHaveBeenCalledWith('测试失败: 认证失败');
+  });
+
+  it('handles runtime.lastError gracefully', async () => {
+    chromeStub.runtime.sendMessage.mockImplementation((_message, cb) => {
+      chromeStub.runtime.lastError = { message: '网络错误' };
+      cb(null);
+      chromeStub.runtime.lastError = null;
+    });
+    const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
+    await controller.testConnection();
+    expect(notify).toHaveBeenCalledWith('测试异常');
+  });
 });

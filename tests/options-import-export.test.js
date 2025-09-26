@@ -105,6 +105,50 @@ describe('Import/Export controller', () => {
     const vocab = await storage.getVocabulary();
     expect(vocab.find((item) => item.term === 'valid')).toBeTruthy();
     expect(elements.summary.hidden).toBe(false);
-    expect(elements.summary.textContent).toContain('失败条目');
+    expect(elements.summary.textContent).toContain('失败明细');
+  });
+
+  it('rejects TXT files with unsupported extension', async () => {
+    const file = {
+      name: 'notes.csv',
+      type: 'text/plain',
+      text: () => Promise.resolve('content')
+    };
+    await controller.importTxt(file);
+    expect(notify).toHaveBeenCalledWith('仅支持 TXT 文件导入');
+    expect(elements.summary.textContent).toBe('导入失败：请使用 .txt 文件');
+  });
+
+  it('rejects empty TXT files', async () => {
+    const file = {
+      name: 'empty.txt',
+      type: 'text/plain',
+      text: () => Promise.resolve('   \n  ')
+    };
+    await controller.importTxt(file);
+    expect(notify).toHaveBeenCalledWith('TXT 导入失败：空文件或格式无效');
+    expect(elements.summary.textContent).toBe('未导入任何词条：空文件或格式无效');
+  });
+
+  it('rejects JSON files with wrong extension', async () => {
+    const file = {
+      name: 'data.txt',
+      type: 'application/json',
+      text: () => Promise.resolve('{ "items": [] }')
+    };
+    await controller.importJson(file);
+    expect(notify).toHaveBeenCalledWith('仅支持 JSON 文件导入');
+    expect(elements.summary.textContent).toBe('导入失败：请使用 .json 文件');
+  });
+
+  it('rejects empty JSON files', async () => {
+    const file = {
+      name: 'empty.json',
+      type: 'application/json',
+      text: () => Promise.resolve('   ')
+    };
+    await controller.importJson(file);
+    expect(notify).toHaveBeenCalledWith('JSON 导入失败：空文件或格式无效');
+    expect(elements.summary.textContent).toBe('未导入任何词条：空文件或格式无效');
   });
 });

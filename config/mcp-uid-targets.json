@@ -15,6 +15,46 @@
           "key": "options.import-json",
           "role": "button",
           "name": "导入 JSON"
+        },
+        {
+          "key": "options.import-txt",
+          "role": "button",
+          "name": "导入 TXT"
+        },
+        {
+          "key": "options.export-json",
+          "role": "button",
+          "name": "导出 JSON"
+        },
+        {
+          "key": "options.export-txt",
+          "role": "button",
+          "name": "导出 TXT"
+        },
+        {
+          "key": "options.save",
+          "role": "button",
+          "name": "保存"
+        },
+        {
+          "key": "options.test",
+          "role": "button",
+          "name": "测试"
+        },
+        {
+          "key": "options.qa-add",
+          "role": "button",
+          "name": "QA 添加词条"
+        },
+        {
+          "key": "options.qa-remove",
+          "role": "button",
+          "name": "QA 移除词条"
+        },
+        {
+          "key": "options.qa-toggle",
+          "role": "button",
+          "name": "QA 启停翻译"
         }
       ]
     },

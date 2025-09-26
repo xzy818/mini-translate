@@ -216,6 +216,44 @@ describe('翻译服务 (translator.js)', () => {
       });
     });
 
+    it('QA Stub 成功路径无需真实 API', async () => {
+      const result = await translateText({
+        text: 'stub text',
+        model: SUPPORTED_MODELS.DEEPSEEK_V3,
+        apiKey: '',
+        apiBaseUrl: 'stub://translator/success?translation=模拟结果'
+      });
+
+      expect(result).toBe('模拟结果');
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('QA Stub 认证失败返回 API_ERROR', async () => {
+      await expect(translateText({
+        text: 'stub text',
+        model: SUPPORTED_MODELS.GPT_4O_MINI,
+        apiKey: '',
+        apiBaseUrl: 'stub://translator/auth-error'
+      })).rejects.toMatchObject({
+        type: TRANSLATION_ERRORS.API_ERROR,
+        message: expect.stringContaining('认证失败')
+      });
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('QA Stub 超时返回 TIMEOUT', async () => {
+      await expect(translateText({
+        text: 'stub text',
+        model: SUPPORTED_MODELS.GPT_4O_MINI,
+        apiKey: '',
+        apiBaseUrl: 'stub://translator/timeout'
+      })).rejects.toMatchObject({
+        type: TRANSLATION_ERRORS.TIMEOUT,
+        message: expect.stringContaining('请求超时')
+      });
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
     it('应该支持自定义超时时间', async () => {
       const config = { ...mockConfig, timeout: 5000 };
       const mockResponse = {
@@ -325,6 +363,17 @@ describe('翻译服务 (translator.js)', () => {
       expect(result.errors).toContain('不支持的翻译模型');
       expect(result.errors).toContain('API Key 未配置或无效');
       expect(result.errors).toContain('API Base URL 未配置或无效');
+    });
+
+    it('QA Stub 配置允许空 API Key', () => {
+      const result = validateTranslationConfig({
+        model: SUPPORTED_MODELS.DEEPSEEK_V3,
+        apiKey: '',
+        apiBaseUrl: 'stub://translator/success'
+      });
+
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
     });
   });
 

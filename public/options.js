@@ -1,4 +1,4 @@
-import { createStorageClient, createVocabularyManager } from './vocab-ui.js';
+import { createStorageClient, createVocabularyManager, MAX_VOCABULARY } from './vocab-ui.js';
 import {
   exportToTxt,
   exportToJson,
@@ -232,6 +232,58 @@ export function createImportExportController({
     summaryEl.hidden = !message;
   }
 
+  function resetInput(input) {
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  function isFileType(file, expectedExtensions) {
+    if (!file) return false;
+    const name = typeof file.name === 'string' ? file.name.toLowerCase() : '';
+    return expectedExtensions.some((ext) => name.endsWith(ext));
+  }
+
+  function summarizeFailures(failed = []) {
+    if (!failed.length) return '';
+    const reasonMap = {
+      INVALID_JSON: 'JSON 解析失败',
+      INVALID_TERM: '格式不正确',
+      LIMIT_EXCEEDED: '超过词库上限',
+      EMPTY_FILE: '空文件'
+    };
+    const grouped = failed.reduce((acc, item) => {
+      const reason = reasonMap[item.reason] || item.reason || '未知错误';
+      acc[reason] = (acc[reason] || 0) + 1;
+      return acc;
+    }, {});
+    return Object.entries(grouped)
+      .map(([reason, count]) => `${reason} ×${count}`)
+      .join('，');
+  }
+
+  function reportImportResult({ inserted, failed, hadContent, mode }) {
+    const failedCount = failed?.length || 0;
+
+    if (!hadContent) {
+      notify(`${mode} 导入失败：空文件或格式无效`);
+      showSummary('未导入任何词条：空文件或格式无效');
+      return;
+    }
+
+    const headline = `导入完成：成功 ${inserted} 条${failedCount ? `，失败 ${failedCount} 条` : ''}`;
+    notify(headline);
+
+    if (failedCount) {
+      const detail = summarizeFailures(failed);
+      showSummary(detail ? `失败明细：${detail}` : '存在未导入的条目，请查看日志');
+    } else if (inserted === 0) {
+      showSummary('未导入新的词条（可能已全部存在或被跳过）');
+    } else {
+      showSummary('导入成功');
+    }
+  }
+
   async function exportTxt() {
     const list = await storage.getVocabulary();
     const content = exportToTxt(list);
@@ -250,38 +302,48 @@ export function createImportExportController({
 
   async function importTxt(file) {
     if (!file) return;
+    if (!isFileType(file, ['.txt'])) {
+      notify('仅支持 TXT 文件导入');
+      showSummary('导入失败：请使用 .txt 文件');
+      resetInput(importTxtInput);
+      return;
+    }
     const text = await file.text();
+    const hadContent = Boolean(text?.trim());
+    if (!hadContent) {
+      notify('TXT 导入失败：空文件或格式无效');
+      showSummary('未导入任何词条：空文件或格式无效');
+      resetInput(importTxtInput);
+      return;
+    }
     const current = await storage.getVocabulary();
     const result = importFromTxt(text, current);
     await storage.setVocabulary(result.list);
-    const success = result.inserted || 0;
-    const failed = result.failed?.length || 0;
-    notify(`导入完成：成功 ${success} 条${failed ? `，失败 ${failed} 条` : ''}`);
-    if (failed) {
-      const detail = result.failed.slice(0, 5).map((item) => `${item.line}:${item.reason}`).join('，');
-      showSummary(`失败条目(${failed})：${detail}${result.failed.length > 5 ? '…' : ''}`);
-    } else {
-      showSummary('导入成功');
-    }
-    importTxtInput.value = '';
+    reportImportResult({ ...result, hadContent: true, mode: 'TXT' });
+    resetInput(importTxtInput);
   }
 
   async function importJson(file) {
     if (!file) return;
+    if (!isFileType(file, ['.json'])) {
+      notify('仅支持 JSON 文件导入');
+      showSummary('导入失败：请使用 .json 文件');
+      resetInput(importJsonInput);
+      return;
+    }
     const text = await file.text();
+    const hadContent = Boolean(text?.trim());
+    if (!hadContent) {
+      notify('JSON 导入失败：空文件或格式无效');
+      showSummary('未导入任何词条：空文件或格式无效');
+      resetInput(importJsonInput);
+      return;
+    }
     const current = await storage.getVocabulary();
     const result = importFromJson(text, current);
     await storage.setVocabulary(result.list);
-    const success = result.inserted || 0;
-    const failed = result.failed?.length || 0;
-    notify(`导入完成：成功 ${success} 条${failed ? `，失败 ${failed} 条` : ''}`);
-    if (failed) {
-      const detail = result.failed.slice(0, 5).map((item) => `${item.line}:${item.reason}`).join('，');
-      showSummary(`失败条目(${failed})：${detail}${result.failed.length > 5 ? '…' : ''}`);
-    } else {
-      showSummary('导入成功');
-    }
-    importJsonInput.value = '';
+    reportImportResult({ ...result, hadContent: true, mode: 'JSON' });
+    resetInput(importJsonInput);
   }
 
   function bind() {
@@ -381,6 +443,10 @@ function initQaPanel(chromeLike, storage, notify) {
       try {
         const existing = await storage.getVocabulary();
         const normalized = existing.filter((item) => item.term !== term);
+        if (normalized.length >= MAX_VOCABULARY) {
+          showStatus('词库已满（500 条），请清理后再尝试', 'error');
+          return;
+        }
         const entry = {
           term,
           translation: '',

@@ -5,7 +5,11 @@ import {
   handleTogglePage,
   updateMenuForInfo
 } from '../src/services/context-menu.js';
-import { translateText, validateTranslationConfig } from '../src/services/translator.js';
+import {
+  translateText,
+  validateTranslationConfig,
+  TRANSLATION_ERRORS
+} from '../src/services/translator.js';
 
 let initialized = false;
 
@@ -37,21 +41,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
-    console.warn('收到测试消息');
     const config = message.payload || {};
-    console.warn('测试配置已接收');
-    
     const validation = validateTranslationConfig(config);
     if (!validation.isValid) {
-      console.error('配置验证失败:', validation.errors);
-    }
-    
-    if (!validation.isValid) {
+      console.error('[qa:test] validation failed', validation.errors);
       sendResponse({ ok: false, error: validation.errors.join('、') });
       return false;
     }
 
-    console.warn('开始翻译测试');
+    console.warn('[qa:test] start', { model: config.model, apiBaseUrl: config.apiBaseUrl });
     translateText({
       text: 'diagnostic check',
       model: config.model,
@@ -59,13 +57,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       apiBaseUrl: config.apiBaseUrl,
       timeout: 5000
     })
-      .then((result) => {
-        console.warn('翻译测试成功');
+      .then(() => {
+        console.warn('[qa:test] success');
         sendResponse({ ok: true });
       })
       .catch((error) => {
         const message = error?.message || '测试失败';
-        console.warn('[translator] 测试失败:', message);
+        const label = error?.type === TRANSLATION_ERRORS.TIMEOUT ? '[qa:test] timeout' : '[qa:test] error';
+        console.warn(label, message);
         sendResponse({ ok: false, error: message });
       });
     return true;
@@ -211,6 +210,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((error) => {
         sendResponse({ ok: false, error: error.message || 'TOGGLE_FAILED' });
       });
+    return true;
+  }
+
+  if (message.type === 'QA_GET_STORAGE_STATE') {
+    const includeSession = message.payload?.includeSession !== false;
+    chrome.storage.local.get(null, (localData) => {
+      const localError = chrome.runtime.lastError;
+      if (localError) {
+        sendResponse({ ok: false, error: localError.message || '无法读取 storage.local' });
+        return;
+      }
+      if (!includeSession || !chrome.storage?.session) {
+        sendResponse({ ok: true, local: localData, session: {} });
+        return;
+      }
+      chrome.storage.session.get(null, (sessionData) => {
+        const sessionError = chrome.runtime.lastError;
+        if (sessionError) {
+          sendResponse({ ok: false, error: sessionError.message || '无法读取 storage.session' });
+          return;
+        }
+        sendResponse({ ok: true, local: localData, session: sessionData });
+      });
+    });
     return true;
   }
 

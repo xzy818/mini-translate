@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "name": "mini-translate-storage-snapshot",
+    "description": "Capture chrome.storage local and session state via QA_GET_STORAGE_STATE"
+  },
+  "setup": {
+    "notes": [
+      "Requires QA build with QA_GET_STORAGE_STATE message implemented"
+    ]
+  },
+  "steps": [
+    {
+      "tool": "new_page",
+      "params": {
+        "url": "chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/options.html"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(async () => { const res = await new Promise((resolve, reject) => { chrome.runtime.sendMessage({ type: 'QA_GET_STORAGE_STATE' }, (data) => { const err = chrome.runtime.lastError; if (err) { reject(err); return; } resolve(data); }); }); return JSON.stringify(res); })()",
+        "saveAs": "../../test-artifacts/mcp/storage/storage-options.json"
+      }
+    },
+    {
+      "tool": "navigate_page",
+      "params": {
+        "url": "https://example.com/"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "expression": "(async () => { const res = await new Promise((resolve, reject) => { chrome.runtime.sendMessage({ type: 'QA_GET_STORAGE_STATE' }, (data) => { const err = chrome.runtime.lastError; if (err) { reject(err); return; } resolve(data); }); }); return JSON.stringify(res); })()",
+        "saveAs": "../../test-artifacts/mcp/storage/storage-content.json"
+      }
+    }
+  ]
+}
