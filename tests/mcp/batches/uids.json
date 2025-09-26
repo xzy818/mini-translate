@@ -1,0 +1,56 @@
+{
+  "extensionId": "acfpkkkhehadjlkdnffdkoilmhchefbl",
+  "browserUrl": "http://127.0.0.1:9222",
+  "capturedAt": "2025-09-26T02:45:47.807Z",
+  "pages": {
+    "options": {
+      "url": "chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/options.html",
+      "waitFor": "翻译服务配置",
+      "pageIndex": 2,
+      "snapshot": {
+        "nodeCount": 50
+      },
+      "uids": {
+        "options.model-select": {
+          "uid": "2_19",
+          "role": "combobox",
+          "name": "模型"
+        },
+        "options.import-json": {
+          "uid": "2_37",
+          "role": "button",
+          "name": "导入 JSON"
+        }
+      }
+    },
+    "popup": {
+      "url": "chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/popup.html",
+      "waitFor": "翻译服务配置",
+      "pageIndex": 0,
+      "snapshot": {
+        "nodeCount": 25
+      },
+      "uids": {
+        "popup.model-select": {
+          "uid": "4_3",
+          "role": "combobox",
+          "name": "模型"
+        },
+        "popup.import-json": {
+          "uid": "4_22",
+          "role": "button",
+          "name": "导入 JSON"
+        }
+      }
+    },
+    "content-menu": {
+      "url": "https://example.com/",
+      "waitFor": "Example Domain",
+      "pageIndex": 1,
+      "snapshot": {
+        "nodeCount": 5
+      },
+      "uids": {}
+    }
+  }
+}

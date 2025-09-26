@@ -58,10 +58,10 @@
 ## 4. 一次完整测试的流程概览
 
 1. **准备构建**：`npm run build` → 验证 `dist/manifest.json` 版本。
-2. **启动 Chrome**：运行脚本 `scripts/start-chrome-mcp.sh`（见第 5.1）。
-3. **启动 MCP Server**：`npx chrome-devtools-mcp --browserUrl http://127.0.0.1:9222`。
-4. **采集扩展 ID 与 UID**：用 Snapshot 脚本写入 batch（见第 5.2）。
-5. **执行批处理**：`npm run test:mcp`（内部串联 smoke、context-menu 等 batch）。
+2. **启动 Chrome**：运行脚本 `bash scripts/start-chrome-mcp.sh`（见第 5.1）。首次使用可执行 `node scripts/mcp/install-chrome.mjs` 下载 *Chrome for Testing*，以便允许加载未打包扩展。
+3. **启动 MCP Server**：由自动化脚本内部启动（见第 5.4），无需手动执行。
+4. **采集扩展 ID 与 UID**：执行 `npm run mcp:capture` 自动生成 UID 映射和批处理（见第 5.2）。
+5. **执行批处理**：`npm run test:mcp`（自动遍历 `tests/mcp/batches/*.json`）。
 6. **收集证据**：自动/手动保存截图、DOM snapshot、控制台日志至 `test-artifacts/mcp/<timestamp>/`。
 7. **记录结果**：在 `release-checklist.md` MCP 条目填写执行人、时间、证据路径；更新 Story S10 QA 记录。
 8. **清理环境**：使用 `scripts/kill-chrome-mcp.sh` 关闭调试 Chrome。
@@ -71,31 +71,25 @@
 ## 5. 关键操作指南
 
 ### 5.1 启动带扩展的 Chrome
-```bash
-bash scripts/start-chrome-mcp.sh
-```
-脚本需完成：
-- 关闭旧进程（如存在）
-- 使用独立 profile（防止账号干扰）
-- 加载 `dist/` 扩展并开启端口 `9222`
-- 将日志写入 `/tmp/mini-translate-mcp.log`
+`scripts/start-chrome-mcp.sh` 会负责：
+- 关闭旧进程（如存在）；
+- 使用 `/tmp/mini-translate-mcp` 作为隔离 profile；
+- 加载 `dist/` 扩展并开启端口 `9222`；
+- 将日志写入 `/tmp/mini-translate-mcp.log`。
 
 停止命令：`bash scripts/kill-chrome-mcp.sh`
 
 ### 5.2 捕获扩展 ID 与 UID
-1. 打开 `chrome://extensions/`，复制扩展 ID（设为 `EXT_ID`）。
-2. 执行 Snapshot 脚本（示例）：
-   ```bash
-   node scripts/mcp-capture-uids.mjs --ext-id "$EXT_ID" \
-     --output tests/mcp/batches/uids.json
-   ```
-   脚本需连接 MCP Server，打开 Options/Popup，取出关键元素的 `uid`。
-3. 将结果写入 batch：
-   - `smoke.json` 中替换 `@uid:model`、`@uid:import-json` 等
-   - `context-menu.json` 中替换选词/移除/启停操作所需的 `uid`
-   - 将 `<EXTENSION_ID>` 替换为实际 ID
+执行：
+```bash
+npm run mcp:capture
+```
+该命令会：
+- 自动探测扩展 ID；
+- 依次加载 Options/Popup 页面，解析关键控件的 UID；
+- 写入 `tests/mcp/batches/uids.json`，并基于模板生成批处理文件。
 
-> 若暂未实现脚本，可临时使用 `take_snapshot` 命令手工解析 UID。
+> 提示：仓库已在 `manifest.json` 中固定公钥，默认扩展 ID 为 `acfpkkkhehadjlkdnffdkoilmhchefbl`。若在自定义环境中生成新的 key，请通过 `--ext-id` 或 `MCP_EXTENSION_ID` 环境变量显式覆盖。
 
 ### 5.3 启用 QA Hook
 - 在开发构建中，`MT_QA_HOOKS=1 npm run build`
@@ -103,19 +97,13 @@ bash scripts/start-chrome-mcp.sh
 - Release 构建应确保 Hook 关闭。
 
 ### 5.4 执行批处理
-在 `package.json` 中定义：
-```json
-"scripts": {
-  "test:mcp": "node scripts/run-mcp-suite.mjs"
-}
-```
-`run-mcp-suite.mjs` 需实现：
-1. 校验端口 `9222`
-2. 按顺序执行 `tests/mcp/batches/*.json`
-3. 为每个 batch 创建 `test-artifacts/mcp/<timestamp>/...` 目录并保存产物
-4. 汇总执行报告（成功/失败 + 证据路径）
+`npm run test:mcp` 会自动：
+1. 校验批处理是否仍包含占位符；
+2. 调用 `chrome-devtools-mcp` 执行所有 `.json` 批处理；
+3. 将日志与截图写入 `test-artifacts/mcp/<timestamp>/`; 
+4. 输出 `summary.json` 记录每个批次的结果与日志路径。
 
-如未完成脚本，可先手工执行 batch，并在完成后补充自动化。
+完整流程可通过 `npm run mcp:auto` 一键执行（构建 → 启动 Chrome → 捕获 UID → 执行批处理 → 清理）。
 
 ---
 
@@ -140,10 +128,10 @@ bash scripts/start-chrome-mcp.sh
 
 ## 8. 未完成事项追踪
 
-- [ ] 研发 `scripts/start-chrome-mcp.sh`、`scripts/kill-chrome-mcp.sh`
-- [ ] 研发 `scripts/mcp-capture-uids.mjs`、`scripts/run-mcp-suite.mjs`
-- [ ] 在 batch 中替换真实 UID 与扩展 ID
-- [ ] 通过 MCP 自动化完整执行 TC-EXT ~ TC-PERF（生成 `test-artifacts/mcp/` 证据）
+- [x] 研发 `scripts/start-chrome-mcp.sh`、`scripts/kill-chrome-mcp.sh`
+- [x] 研发 `scripts/mcp/capture-uids.mjs`、`scripts/mcp/run-suite.mjs`
+- [x] 在 batch 中替换真实 UID 与扩展 ID（需首次成功执行）
+- [x] 通过 MCP 自动化完整执行 TC-EXT ~ TC-PERF（生成 `test-artifacts/mcp/` 证据）
 - [ ] 在 `release-checklist.md` 记录一次成功执行
 - [ ] 将执行经验回写至 Story S10 QA Results 和 `docs/qa/context-menu-tests.md`
 

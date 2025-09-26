@@ -23,6 +23,6 @@
 - CI 或手动执行一次示例并附执行说明（若 CI 接入受限，提供手动执行记录）。
 
 ## QA Results
-- 2025-09-25 — In progress
-  - Artifacts: `tests/mcp/README.md`, `tests/mcp/batches/smoke.json`, `tests/mcp/data/sample-vocab.{txt,json}`
-  - Notes: 批处理脚本包含占位符 `@uid`/`<EXTENSION_ID_PLACEHOLDER>`，需在首次实际执行后替换；README 中列出将脚本封装为 `npm run test:mcp`、接入 CI 的 TODO。
+- 2025-09-26 — Passed
+  - Artifacts: `test-artifacts/mcp/2025-09-26T02-30-29-106Z/summary.json`, `tests/mcp/batches/context-menu.json`, `tests/mcp/batches/smoke.json`
+  - Notes: 通过 `node scripts/mcp/capture-uids.mjs --update --write-batches` + `npm run test:mcp` 完成端到端执行（包含 Options/Popup/QA 面板 3 大场景），Chrome for Testing 环境由 `scripts/mcp/install-chrome.mjs` 提供；后续需在 release checklist 补充执行记录。

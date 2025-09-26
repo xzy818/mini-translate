@@ -13,7 +13,7 @@
     {
       "tool": "new_page",
       "params": {
-        "url": "chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/options.html"
+        "url": "chrome-extension://<EXTENSION_ID_PLACEHOLDER>/options.html"
       }
     },
     {
@@ -26,7 +26,7 @@
     {
       "tool": "fill",
       "params": {
-        "uid": "2_19",
+        "uid": "@uid:options.model-select",
         "value": "gpt-4o-mini"
       },
       "todo": "Replace @uid placeholders after first snapshot run"
@@ -34,7 +34,7 @@
     {
       "tool": "upload_file",
       "params": {
-        "uid": "2_37",
+        "uid": "@uid:options.import-json",
         "filePath": "../../tests/mcp/data/sample-vocab.json"
       }
     },

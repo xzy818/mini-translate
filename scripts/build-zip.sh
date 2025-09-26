@@ -11,8 +11,9 @@ rm -rf "$DIST_DIR" "$ZIP_NAME"
 
 mkdir -p "$DIST_DIR"
 
-# Copy extension assets
+# Copy extension assets and source modules required by MV3 service worker/options
 rsync -a public/ "$DIST_DIR"/
+rsync -a src/ "$DIST_DIR"/src/
 (
   cd "$DIST_DIR"
   zip -r "../$ZIP_NAME" . >/dev/null

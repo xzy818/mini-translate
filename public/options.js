@@ -342,6 +342,127 @@ function initImportExport(storage, notify) {
   return controller;
 }
 
+function initQaPanel(chromeLike, storage, notify) {
+  if (!chromeLike || !chromeLike.runtime) {
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('qa') !== '1') {
+    return;
+  }
+  const panel = document.getElementById('qa-panel');
+  if (!panel) {
+    return;
+  }
+  panel.hidden = false;
+
+  const termInput = document.getElementById('qa-term-input');
+  const statusEl = document.getElementById('qa-status');
+  const addBtn = document.getElementById('qa-add');
+  const removeBtn = document.getElementById('qa-remove');
+  const toggleBtn = document.getElementById('qa-toggle');
+
+  const showStatus = (message, tone = 'info') => {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.hidden = !message;
+    statusEl.dataset.tone = tone;
+  };
+
+  const getTerm = () => (termInput?.value || '').trim();
+
+  if (addBtn) {
+    addBtn.addEventListener('click', async () => {
+      const term = getTerm();
+      if (!term) {
+        showStatus('请输入测试词条', 'error');
+        return;
+      }
+      try {
+        const existing = await storage.getVocabulary();
+        const normalized = existing.filter((item) => item.term !== term);
+        const entry = {
+          term,
+          translation: '',
+          type: term.split(/\s+/).length > 1 ? 'phrase' : 'word',
+          length: term.length,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: null
+        };
+        normalized.push(entry);
+        await storage.setVocabulary(normalized);
+        showStatus(`已添加词条：${term}`, 'success');
+      } catch (error) {
+        showStatus(`添加失败：${error.message}`, 'error');
+      }
+    });
+  }
+
+  if (removeBtn) {
+    removeBtn.addEventListener('click', async () => {
+      const term = getTerm();
+      if (!term) {
+        showStatus('请输入测试词条', 'error');
+        return;
+      }
+      try {
+        const result = await storage.removeTerm(term);
+        if (result.removed) {
+          showStatus(`已移除词条：${term}`, 'success');
+        } else {
+          showStatus('词条不存在或已被移除', 'info');
+        }
+      } catch (error) {
+        showStatus(`移除失败：${error.message}`, 'error');
+      }
+    });
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', async () => {
+      try {
+        const stateKey = 'miniTranslateTabState';
+        const current = await new Promise((resolve, reject) => {
+          chromeLike.storage.session.get({ [stateKey]: {} }, (items) => {
+            const error = chromeLike.runtime?.lastError;
+            if (error) {
+              reject(new Error(error.message));
+              return;
+            }
+            resolve(items[stateKey] || {});
+          });
+        });
+        const key = 'qa-global';
+        const nextEnabled = !current[key]?.enabled;
+        const nextState = {
+          ...current,
+          [key]: { enabled: nextEnabled, updatedAt: Date.now() }
+        };
+        await new Promise((resolve, reject) => {
+          chromeLike.storage.session.set({ [stateKey]: nextState }, () => {
+            const error = chromeLike.runtime?.lastError;
+            if (error) {
+              reject(new Error(error.message));
+              return;
+            }
+            resolve();
+          });
+        });
+        showStatus(nextEnabled ? '已开启页面翻译 (QA)' : '已关闭页面翻译 (QA)', 'info');
+      } catch (error) {
+        showStatus(`切换失败：${error.message}`, 'error');
+      }
+    });
+  }
+
+  if (storage && typeof storage.subscribe === 'function') {
+    storage.subscribe(() => {
+      showStatus('', 'info');
+    });
+  }
+}
+
 function initVocabulary(chromeLike) {
   const elements = collectVocabularyElements();
   const fallbackData = window.__MINI_TRANSLATE_VOCAB__ || [];
@@ -359,6 +480,7 @@ if (typeof document !== 'undefined') {
     const { storage } = initVocabulary(chromeLike);
     initSettings(chromeLike, notify);
     initImportExport(storage, notify);
+    initQaPanel(chromeLike, storage, notify);
   });
 }
 
@@ -368,5 +490,6 @@ export const __controllers = {
   initSettings,
   initImportExport,
   initVocabulary,
+  initQaPanel,
   createToastNotifier
 };
