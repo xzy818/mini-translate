@@ -113,7 +113,7 @@ export async function handleAddTerm(chromeLike, info, tabId) {
   if (upserted.error === 'LIMIT_EXCEEDED') {
     return { ok: false, reason: 'LIMIT_EXCEEDED', count: MAX_VOCAB };
   }
-  if (translationResult.ok) {
+  if (translationResult.ok && Number.isInteger(tabId)) {
     safeSendMessage(chromeLike, tabId, {
       type: 'APPLY_TRANSLATION',
       payload
@@ -132,10 +132,12 @@ export async function handleRemoveTerm(chromeLike, info, tabId) {
   if (!removed.removed) {
     return { ok: false, reason: 'NOT_FOUND' };
   }
-  safeSendMessage(chromeLike, tabId, {
-    type: 'REMOVE_TRANSLATION',
-    payload: { term }
-  });
+  if (Number.isInteger(tabId)) {
+    safeSendMessage(chromeLike, tabId, {
+      type: 'REMOVE_TRANSLATION',
+      payload: { term }
+    });
+  }
   chromeLike.runtime.sendMessage({ type: 'VOCAB_UPDATED', payload: { removed: term } });
   return { ok: true };
 }
@@ -143,10 +145,12 @@ export async function handleRemoveTerm(chromeLike, info, tabId) {
 export async function handleTogglePage(chromeLike, tabId) {
   const enabled = await toggleTabState(chromeLike, tabId);
   const vocabulary = await readVocabulary(chromeLike);
-  safeSendMessage(chromeLike, tabId, {
-    type: enabled ? 'TRANSLATE_ALL' : 'RESET_PAGE',
-    payload: { vocabulary }
-  });
+  if (Number.isInteger(tabId)) {
+    safeSendMessage(chromeLike, tabId, {
+      type: enabled ? 'TRANSLATE_ALL' : 'RESET_PAGE',
+      payload: { vocabulary }
+    });
+  }
   return { ok: true, enabled };
 }
 
