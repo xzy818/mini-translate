@@ -59,8 +59,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ ok: true });
       })
       .catch((error) => {
-        console.error('翻译测试失败:', error);
-        sendResponse({ ok: false, error: error.message || '测试失败' });
+        const message = error?.message || '测试失败';
+        console.warn('[translator] 测试失败:', message);
+        sendResponse({ ok: false, error: message });
       });
     return true;
   }
