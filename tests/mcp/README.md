@@ -4,10 +4,13 @@
 
 ## 结构
 
-- `batches/smoke.json` — 核心冒烟流程（扩展加载 → Options 配置 → 导入词库 → 页面验证）。
-- `batches/context-menu.json` — 右键菜单三种场景（添加/移除/启停）测试骨架，需补充实际元素 UID 与桥接脚本。
+- `batches/smoke.json` — 核心冒烟流程（扩展加载 → Options 保存/测试 → QA Stub → 导入导出 → 存储快照 → 页面 toggle）。
+- `batches/context-menu.json` — 右键菜单场景（添加/移除/启停/词库满/错误重试），需补充最新 UID。
+- `batches/storage.json` — 读取 `chrome.storage` 快照的附加批次（可选）。
 - `data/sample-vocab.txt` — TXT 导入样例。
 - `data/sample-vocab.json` — JSON 导入样例，符合 `vocabulary-spec.md`。
+- `data/invalid-empty.txt` — 空文件异常场景。
+- `data/invalid-format.json` — 非法 JSON 结构，用于异常断言。
 
 ## 使用步骤（全自动）
 

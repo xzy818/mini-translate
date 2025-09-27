@@ -25,3 +25,4 @@
 - Gate: PASS — 设置表单支持保存/测试/遮挡切换，背景翻译调用读取最新配置。
 - Tests: `npm run validate`
 - Notes: jsdom 单测覆盖加载、保存、测试与遮挡交互；真实环境需确认通知权限与 API 回调行为，测试按钮会实际发起一次小规模翻译调用。
+- MCP: 2025-09-27 — 自动化验证保存/重载，证据见 `test-artifacts/mcp/2025-09-27T10-24-40-280Z/smoke/options/options-before.dom.json`、`.../options/options-after-import.dom.json`、`.../storage/options/storage-after-save.json`。

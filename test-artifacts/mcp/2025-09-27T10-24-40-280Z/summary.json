@@ -1,0 +1,26 @@
+{
+  "completedAt": "2025-09-27T10:24:50.188Z",
+  "result": "passed",
+  "batches": [
+    {
+      "batch": "context-menu.json",
+      "status": "passed",
+      "log": "test-artifacts/mcp/2025-09-27T10-24-40-280Z/context-menu/context-menu.json.log"
+    },
+    {
+      "batch": "smoke.json",
+      "status": "passed",
+      "log": "test-artifacts/mcp/2025-09-27T10-24-40-280Z/smoke/smoke.json.log"
+    },
+    {
+      "batch": "storage.json",
+      "status": "passed",
+      "log": "test-artifacts/mcp/2025-09-27T10-24-40-280Z/storage/storage.json.log"
+    },
+    {
+      "batch": "uids.json",
+      "status": "passed",
+      "log": "test-artifacts/mcp/2025-09-27T10-24-40-280Z/uids/uids.json.log"
+    }
+  ]
+}

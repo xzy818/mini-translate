@@ -14,6 +14,8 @@ export const SUPPORTED_MODELS = {
 // 默认超时时间（毫秒）
 const DEFAULT_TIMEOUT = 10000;
 
+const QA_STUB_PREFIX = 'stub://translator';
+
 // 重试配置
 const RETRY_CONFIG = {
   maxRetries: 2,
@@ -280,6 +282,75 @@ async function translateWithRetry(translator, text, apiKey, apiBaseUrl, model, a
   }
 }
 
+function isQaStubBase(apiBaseUrl) {
+  return typeof apiBaseUrl === 'string' && apiBaseUrl.startsWith(QA_STUB_PREFIX);
+}
+
+function parseQaStub(apiBaseUrl) {
+  if (!isQaStubBase(apiBaseUrl)) {
+    return null;
+  }
+  const normalized = apiBaseUrl
+    .replace(QA_STUB_PREFIX, 'http://qa-stub')
+    .replace(/([^:])\/\//g, '$1/');
+  try {
+    const url = new URL(normalized);
+    const rawScenario = url.pathname.replace(/^\/+|\/+$/g, '') || 'success';
+    const params = Object.fromEntries(url.searchParams.entries());
+    return { scenario: rawScenario, params };
+  } catch (error) {
+    throw createTranslationError(
+      TRANSLATION_ERRORS.INVALID_CONFIG,
+      `QA Stub 解析失败: ${error.message}`,
+      error
+    );
+  }
+}
+
+function runQaStub(stubConfig, { text, model }) {
+  const params = stubConfig?.params || {};
+  const scenario = stubConfig?.scenario || 'success';
+
+  switch (scenario) {
+    case 'success':
+    case 'ok': {
+      const translation = params.translation || `[stub:${model}] ${text}`;
+      return translation;
+    }
+    case 'auth-error':
+    case 'unauthorized': {
+      throw createTranslationError(
+        TRANSLATION_ERRORS.API_ERROR,
+        params.message || '认证失败 (QA Stub)'
+      );
+    }
+    case 'timeout': {
+      throw createTranslationError(
+        TRANSLATION_ERRORS.TIMEOUT,
+        params.message || '请求超时 (QA Stub)'
+      );
+    }
+    case 'network-error': {
+      throw createTranslationError(
+        TRANSLATION_ERRORS.NETWORK_ERROR,
+        params.message || '网络错误 (QA Stub)'
+      );
+    }
+    case 'rate-limit': {
+      throw createTranslationError(
+        TRANSLATION_ERRORS.RATE_LIMIT,
+        params.message || '命中频率限制 (QA Stub)'
+      );
+    }
+    default: {
+      throw createTranslationError(
+        TRANSLATION_ERRORS.UNKNOWN,
+        params.message || `未识别的 QA Stub 场景: ${scenario}`
+      );
+    }
+  }
+}
+
 /**
  * 统一翻译接口
  * @param {Object} params - 翻译参数
@@ -300,19 +371,31 @@ export async function translateText({ text, model, apiKey, apiBaseUrl, timeout =
     throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, '不支持的翻译模型');
   }
 
-  if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
-    throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, 'API Key 未配置或无效');
+  const stubActive = isQaStubBase(apiBaseUrl);
+
+  if (!stubActive) {
+    if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
+      throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, 'API Key 未配置或无效');
+    }
+
+    if (!apiBaseUrl || typeof apiBaseUrl !== 'string' || !apiBaseUrl.trim()) {
+      throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, 'API Base URL 未配置或无效');
+    }
+  } else if (!apiBaseUrl || typeof apiBaseUrl !== 'string' || !apiBaseUrl.trim()) {
+    throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, 'QA Stub Base URL 无效');
   }
 
-  if (!apiBaseUrl || typeof apiBaseUrl !== 'string' || !apiBaseUrl.trim()) {
-    throw createTranslationError(TRANSLATION_ERRORS.INVALID_CONFIG, 'API Base URL 未配置或无效');
+  const trimmedText = text.trim();
+
+  if (stubActive) {
+    const stubConfig = parseQaStub(apiBaseUrl.trim());
+    return runQaStub(stubConfig, { text: trimmedText, model });
   }
 
   // 获取对应的翻译器
   const translator = getTranslator(model);
 
-  // 执行翻译（带重试）
-  return translateWithRetry(translator, text.trim(), apiKey.trim(), apiBaseUrl.trim(), model);
+  return translateWithRetry(translator, trimmedText, apiKey.trim(), apiBaseUrl.trim(), model);
 }
 
 /**
@@ -323,16 +406,22 @@ export async function translateText({ text, model, apiKey, apiBaseUrl, timeout =
 export function validateTranslationConfig(config) {
   const errors = [];
 
+  const stubActive = isQaStubBase(config?.apiBaseUrl);
+
   if (!config.model || !Object.values(SUPPORTED_MODELS).includes(config.model)) {
     errors.push('不支持的翻译模型');
   }
 
-  if (!config.apiKey || typeof config.apiKey !== 'string' || !config.apiKey.trim()) {
-    errors.push('API Key 未配置或无效');
-  }
+  if (!stubActive) {
+    if (!config.apiKey || typeof config.apiKey !== 'string' || !config.apiKey.trim()) {
+      errors.push('API Key 未配置或无效');
+    }
 
-  if (!config.apiBaseUrl || typeof config.apiBaseUrl !== 'string' || !config.apiBaseUrl.trim()) {
-    errors.push('API Base URL 未配置或无效');
+    if (!config.apiBaseUrl || typeof config.apiBaseUrl !== 'string' || !config.apiBaseUrl.trim()) {
+      errors.push('API Base URL 未配置或无效');
+    }
+  } else if (!config.apiBaseUrl || typeof config.apiBaseUrl !== 'string' || !config.apiBaseUrl.trim()) {
+    errors.push('QA Stub Base URL 无效');
   }
 
   return {

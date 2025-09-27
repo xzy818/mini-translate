@@ -21,6 +21,9 @@
 - QA 覆盖正常调用、错误、超时与重复请求场景。
 
 ## QA Results
+- Gate: PASS — 统一翻译服务与错误处理已通过单测与代码审查。
+- Tests: `npm run validate`
+- MCP: 2025-09-27 — options 流程通过 stub 模型验证保存/测试，参考 `test-artifacts/mcp/2025-09-27T10-24-40-280Z/smoke/smoke.json.log` 与 `.../storage/options/storage-after-save.json`。
 
 ### Review Date: 2025-09-18
 
@@ -50,4 +53,3 @@ NFR assessment: docs/qa/assessments/e1.s3-nfr-20250918.md
 Risk profile: docs/qa/assessments/e1.s3-risk-20250918.md
 Trace matrix: docs/qa/assessments/e1.s3-trace-20250918.md
 Test design matrix: docs/qa/assessments/e1.s3-test-design-20250918.md
-
