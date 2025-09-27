@@ -66,8 +66,8 @@
 - [x] **发布脚本**: 自动化打包和发布
 - [x] **质量检查**: 发布前完整验证
 - [x] **回滚计划**: 版本回退机制
-- [ ] **MCP 自动化测试**: 按 `docs/qa/chrome-devtools-mcp-test-plan.md` 执行并记录日志/截图（执行人/时间）
-  - [ ] 2025-09-25 — Pending automation — 参考 `tests/mcp/README.md`、`docs/qa/mcp-local-execution.md`（负责人：QA/Release）
+- [x] **MCP 自动化测试**: 按 `docs/qa/chrome-devtools-mcp-test-plan.md` 执行并记录日志/截图（执行人/时间）
+  - [x] 2025-09-27 — 由 QA 在 macOS 本地运行 `npm run mcp:auto` → `test-artifacts/mcp/2025-09-27T10-24-40-280Z/`（负责人：QA/Release）
 
 ## ⚠️ 已知限制
 

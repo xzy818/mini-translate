@@ -5,7 +5,7 @@
   },
   "setup": {
     "notes": [
-      "Load dist/ extension and capture its ID; replace <EXTENSION_ID> before execution.",
+      "Load dist/ extension and capture its ID automatically via npm run mcp:capture.",
       "Navigate to a content page containing the phrases defined in sample data (e.g. https://example.com)."
     ]
   },
@@ -13,13 +13,13 @@
     {
       "tool": "new_page",
       "params": {
-        "url": "chrome-extension://<EXTENSION_ID>/options.html?qa=1"
+        "url": "chrome-extension://<EXTENSION_ID_PLACEHOLDER>/options.html?qa=1"
       }
     },
     {
       "tool": "evaluate_script",
       "params": {
-        "expression": "(async () => { const input = document.getElementById('qa-term-input'); input.value = 'Example Domain'; document.getElementById('qa-add').click(); await new Promise(r => setTimeout(r, 300)); })()"
+        "function": "async () => { const input = document.getElementById('qa-term-input'); input.value = 'Example Domain'; document.getElementById('qa-add').click(); await new Promise(r => setTimeout(r, 300)); }"
       },
       "notes": "通过 QA 面板添加词条"
     },
@@ -32,7 +32,7 @@
     {
       "tool": "evaluate_script",
       "params": {
-        "expression": "(async () => { document.getElementById('qa-toggle').click(); await new Promise(r => setTimeout(r, 200)); })()"
+        "function": "async () => { document.getElementById('qa-toggle').click(); await new Promise(r => setTimeout(r, 200)); }"
       },
       "notes": "切换翻译状态"
     },
@@ -45,7 +45,7 @@
     {
       "tool": "evaluate_script",
       "params": {
-        "expression": "(async () => { document.getElementById('qa-term-input').value = 'Example Domain'; document.getElementById('qa-remove').click(); await new Promise(r => setTimeout(r, 300)); })()"
+        "function": "async () => { document.getElementById('qa-term-input').value = 'Example Domain'; document.getElementById('qa-remove').click(); await new Promise(r => setTimeout(r, 300)); }"
       },
       "notes": "通过 QA 面板移除词条"
     },
@@ -58,7 +58,7 @@
     {
       "tool": "navigate_page",
       "params": {
-        "url": "chrome-extension://<EXTENSION_ID>/options.html?qa=1"
+        "url": "chrome-extension://<EXTENSION_ID_PLACEHOLDER>/options.html?qa=1"
       }
     },
     {
@@ -70,7 +70,7 @@
     {
       "tool": "take_screenshot",
       "params": {
-        "path": "../../test-artifacts/mcp/context-menu-scenes.png"
+        "path": "@artifact/context-menu/context-menu-scenes.png"
       }
     }
   ],

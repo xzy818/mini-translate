@@ -12,6 +12,16 @@
           "name": "模型"
         },
         {
+          "key": "options.api-base",
+          "role": "textBox",
+          "name": "API Base URL"
+        },
+        {
+          "key": "options.api-key",
+          "role": "textBox",
+          "name": "API Key"
+        },
+        {
           "key": "options.import-json",
           "role": "button",
           "name": "导入 JSON"

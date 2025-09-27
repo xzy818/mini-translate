@@ -12,7 +12,7 @@
     {
       "tool": "new_page",
       "params": {
-        "url": "chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/options.html?qa=1"
+        "url": "chrome-extension://<EXTENSION_ID_PLACEHOLDER>/options.html?qa=1"
       }
     },
     {
@@ -37,7 +37,7 @@
     {
       "tool": "navigate_page",
       "params": {
-        "url": "chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/options.html?qa=1"
+        "url": "chrome-extension://<EXTENSION_ID_PLACEHOLDER>/options.html?qa=1"
       }
     },
     {

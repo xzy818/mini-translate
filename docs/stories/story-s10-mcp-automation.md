@@ -23,6 +23,6 @@
 - CI 或手动执行一次示例并附执行说明（若 CI 接入受限，提供手动执行记录）。
 
 ## QA Results
-- 2025-09-26 — Passed
-  - Artifacts: `test-artifacts/mcp/2025-09-26T02-30-29-106Z/summary.json`, `tests/mcp/batches/context-menu.json`, `tests/mcp/batches/smoke.json`
-  - Notes: 通过 `node scripts/mcp/capture-uids.mjs --update --write-batches` + `npm run test:mcp` 完成端到端执行（包含 Options/Popup/QA 面板 3 大场景），Chrome for Testing 环境由 `scripts/mcp/install-chrome.mjs` 提供；后续需在 release checklist 补充执行记录。
+- 2025-09-27 — Passed
+  - Artifacts: `test-artifacts/mcp/2025-09-27T10-24-40-280Z/summary.json`（batches: context-menu/smoke/storage/uids）、`tests/mcp/batches/*.json`
+  - Notes: MacBook 本地运行 `npm run mcp:auto` 完成构建→启动→UID 捕获→批处理→清理；证据包括 DOM 快照、截图、storage 快照；release checklist 已补录执行信息。

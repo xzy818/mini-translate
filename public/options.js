@@ -132,7 +132,10 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       });
       if (chromeLike.runtime?.sendMessage) {
         chromeLike.runtime.sendMessage({ type: 'SETTINGS_UPDATED', payload }, () => {
-          // ignore callback errors for broadcast message
+          const broadcastError = chromeLike.runtime?.lastError;
+          if (broadcastError) {
+            // Access lastError to avoid unchecked runtime warnings in devtools.
+          }
         });
       }
       notify('已保存');

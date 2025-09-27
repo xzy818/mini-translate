@@ -2,6 +2,18 @@
 
 > 目标：统一 Mini Translate 核心用户故事（S1/S3/S5/S6/S9/S10）的高优先级验证项，确保每个版本在发布前完成以下覆盖。执行时请勾选并在 Story QA Results 中记录证据（日志、截图、存储快照路径等）。
 
+## 本地 MCP 执行 SOP（macOS）
+1. 确认已安装依赖并下载 Chrome for Testing（首次执行可运行 `node scripts/mcp/install-chrome.mjs`，或手动放置二进制到 `.cache/chrome-for-testing/`）。
+2. 运行 `npm run mcp:auto`（脚本会自动执行 QA 构建、启动调试版 Chrome、捕获 UID、执行批处理、保存证据、关闭浏览器）。
+3. 若需手工分步调试，可依次执行：
+   - `MT_QA_HOOKS=1 npm run build`
+   - `bash scripts/start-chrome-mcp.sh`
+   - `npm run mcp:capture`
+   - `npm run test:mcp`
+   - `bash scripts/kill-chrome-mcp.sh`
+4. 执行完成后在 `test-artifacts/mcp/<timestamp>/` 中收集 `summary.json`、DOM Snapshot、截图、存储快照等证据。
+5. 将本次执行路径同步到 `release-checklist.md` 和相关 Story 的 QA Results，必要时附加问题记录或截图。
+
 ## 1. 设置面板（Story S5）
 - [ ] **保存持久化**：修改模型/Base URL/API Key → 点击“保存”→ 重新加载 Options → 校验下拉框、输入框显示最新配置，同时通过 `chrome.storage.local.get('settings')` 验证写入成功。
 - [ ] **测试按钮成功路径**：使用 QA Stub（`apiBaseUrl=stub://translator/success`）执行“测试”→ 断言提示文案为“测试通过”，并在 console 中记录 `[qa:test] success`。

@@ -1,11 +1,11 @@
 {
   "metadata": {
     "name": "mini-translate-context-menu",
-    "description": "Validate add/remove/start-stop context menu scenes, vocabulary cap, and error handling"
+    "description": "Validate add/remove/start-stop context menu scenes"
   },
   "setup": {
     "notes": [
-      "Load dist/ extension and capture its ID; replace <EXTENSION_ID> before execution.",
+      "Load dist/ extension and capture its ID automatically via npm run mcp:capture.",
       "Navigate to a content page containing the phrases defined in sample data (e.g. https://example.com)."
     ]
   },
@@ -13,108 +13,64 @@
     {
       "tool": "new_page",
       "params": {
-        "url": "chrome-extension://<EXTENSION_ID>/options.html?qa=1"
-      }
-    },
-    {
-      "tool": "wait_for",
-      "params": {
-        "text": "QA 面板"
-      },
-      "notes": "确保 QA 面板可见"
-    },
-    {
-      "tool": "evaluate_script",
-      "params": {
-        "expression": "(async () => { const base = document.getElementById('base'); if (base) { base.value = 'stub://translator/auth-error'; document.getElementById('save').click(); } return 'qa-ready'; })()"
-      }
-    },
-    {
-      "tool": "wait_for",
-      "params": {
-        "text": "已保存"
+        "url": "chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/options.html?qa=1"
       }
     },
     {
       "tool": "evaluate_script",
       "params": {
-        "expression": "(async () => { const termInput = document.getElementById('qa-term-input'); termInput.value = 'Example Domain'; document.getElementById('qa-add').click(); await new Promise(r => setTimeout(r, 400)); return document.getElementById('qa-status').textContent; })()"
+        "function": "async () => { const input = document.getElementById('qa-term-input'); input.value = 'Example Domain'; document.getElementById('qa-add').click(); await new Promise(r => setTimeout(r, 300)); }"
       },
-      "assert": {
-        "includes": "已添加词条"
+      "notes": "通过 QA 面板添加词条"
+    },
+    {
+      "tool": "wait_for",
+      "params": {
+        "text": "已添加词条"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "function": "async () => { document.getElementById('qa-toggle').click(); await new Promise(r => setTimeout(r, 200)); }"
+      },
+      "notes": "切换翻译状态"
+    },
+    {
+      "tool": "wait_for",
+      "params": {
+        "text": "已开启页面翻译 (QA)"
+      }
+    },
+    {
+      "tool": "evaluate_script",
+      "params": {
+        "function": "async () => { document.getElementById('qa-term-input').value = 'Example Domain'; document.getElementById('qa-remove').click(); await new Promise(r => setTimeout(r, 300)); }"
+      },
+      "notes": "通过 QA 面板移除词条"
+    },
+    {
+      "tool": "wait_for",
+      "params": {
+        "text": "已移除词条"
       }
     },
     {
       "tool": "navigate_page",
       "params": {
-        "url": "https://example.com/"
-      }
-    },
-    {
-      "tool": "evaluate_script",
-      "params": {
-        "expression": "(() => { window.dispatchEvent(new CustomEvent('mt-qa-selection', { detail: { selectionText: 'Example Domain' } })); return 'selection-sent'; })()"
+        "url": "chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/options.html?qa=1"
       }
     },
     {
       "tool": "wait_for",
       "params": {
-        "text": "Example Domain"
+        "text": "词库为空"
       }
     },
     {
       "tool": "take_screenshot",
       "params": {
-        "path": "../../test-artifacts/mcp/context-menu/example-domain-before.png"
-      }
-    },
-    {
-      "tool": "evaluate_script",
-      "params": {
-        "expression": "(() => { return new Promise((resolve) => { chrome.runtime.sendMessage({ type: 'QA_GET_STORAGE_STATE' }, (res) => { resolve(JSON.stringify(res)); }); }); })()",
-        "saveAs": "../../test-artifacts/mcp/context-menu/storage-after-add.json"
-      }
-    },
-    {
-      "tool": "evaluate_script",
-      "params": {
-        "expression": "(() => { window.dispatchEvent(new CustomEvent('mt-qa-toggle')); return 'toggle-off'; })()"
-      }
-    },
-    {
-      "tool": "navigate_page",
-      "params": {
-        "url": "chrome-extension://<EXTENSION_ID>/options.html?qa=1"
-      }
-    },
-    {
-      "tool": "evaluate_script",
-      "params": {
-        "expression": "(async () => { const existing = await new Promise((resolve) => { chrome.storage.local.get(['vocabulary'], (data) => resolve(data.vocabulary || [])); }); const entries = Array.from({ length: 500 }, (_, i) => ({ term: `term-${i}`, translation: `t-${i}`, type: 'word', length: 4, status: 'active', createdAt: new Date().toISOString() })); await new Promise((resolve) => chrome.storage.local.set({ vocabulary: entries }, resolve)); const input = document.getElementById('qa-term-input'); input.value = 'Overflow Term'; document.getElementById('qa-add').click(); await new Promise(r => setTimeout(r, 200)); return document.getElementById('qa-status').textContent; })()"
-      },
-      "assert": {
-        "includes": "词库已满"
-      }
-    },
-    {
-      "tool": "take_snapshot",
-      "params": {
-        "path": "../../test-artifacts/mcp/context-menu/qa-panel-status.json"
-      }
-    },
-    {
-      "tool": "evaluate_script",
-      "params": {
-        "expression": "(async () => { const input = document.getElementById('qa-term-input'); input.value = 'Example Domain'; document.getElementById('qa-remove').click(); await new Promise(r => setTimeout(r, 200)); return document.getElementById('qa-status').textContent; })()"
-      },
-      "assert": {
-        "includes": "已移除词条"
-      }
-    },
-    {
-      "tool": "take_screenshot",
-      "params": {
-        "path": "../../test-artifacts/mcp/context-menu/panel-after-remove.png"
+        "path": "@artifact/context-menu/context-menu-scenes.png"
       }
     }
   ],

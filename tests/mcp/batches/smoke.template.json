@@ -19,30 +19,62 @@
     {
       "tool": "take_snapshot",
       "params": {
-        "path": "../../test-artifacts/mcp/options-snapshot.json"
+        "path": "@artifact/options/options-before.dom.json"
       },
-      "notes": "Capture DOM snapshot for later inspection"
+      "notes": "Capture DOM snapshot for baseline"
     },
     {
       "tool": "fill",
       "params": {
         "uid": "@uid:options.model-select",
         "value": "gpt-4o-mini"
-      },
-      "todo": "Replace @uid placeholders after first snapshot run"
+      }
+    },
+    {
+      "tool": "fill",
+      "params": {
+        "uid": "@uid:options.api-base",
+        "value": "stub://translator/success"
+      }
+    },
+    {
+      "tool": "fill",
+      "params": {
+        "uid": "@uid:options.api-key",
+        "value": "qa-local-key"
+      }
+    },
+    {
+      "tool": "click",
+      "params": {
+        "uid": "@uid:options.save"
+      }
+    },
+    {
+      "tool": "wait_for",
+      "params": {
+        "text": "已保存"
+      }
     },
     {
       "tool": "upload_file",
       "params": {
         "uid": "@uid:options.import-json",
-        "filePath": "../../tests/mcp/data/sample-vocab.json"
+        "filePath": "@project/tests/mcp/data/sample-vocab.json"
       }
     },
     {
-      "tool": "list_console_messages",
-      "assert": {
-        "includes": "Import completed"
+      "tool": "wait_for",
+      "params": {
+        "text": "导入完成"
       }
+    },
+    {
+      "tool": "take_snapshot",
+      "params": {
+        "path": "@artifact/options/options-after-import.dom.json"
+      },
+      "notes": "Verify table updates and pagination"
     },
     {
       "tool": "navigate_page",
@@ -53,13 +85,13 @@
     {
       "tool": "evaluate_script",
       "params": {
-        "expression": "window.getSelection().selectAllChildren(document.body);"
+        "function": "() => { window.getSelection().selectAllChildren(document.body); }"
       }
     },
     {
       "tool": "take_screenshot",
       "params": {
-        "path": "../../test-artifacts/mcp/example-page.png"
+        "path": "@artifact/context-menu/example-domain-after.png"
       }
     }
   ],
