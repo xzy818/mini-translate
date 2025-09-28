@@ -1,7 +1,10 @@
 // AI 配置页面逻辑
 // 实现两级选择：提供商 -> 模型，自动匹配 URL
 
-import { aiApiFrontend } from './services/ai-api-frontend.js';
+import { aiApiFrontend } from '../src/services/ai-api-frontend.js';
+import { configManager } from '../src/services/config-manager.js';
+import { configValidator } from '../src/services/config-validator.js';
+import { monitorService } from '../src/services/monitor-service.js';
 
 class AIConfigManager {
   constructor() {
@@ -31,9 +34,17 @@ class AIConfigManager {
 
   async loadProviders() {
     try {
-      this.providers = await aiApiFrontend.getProviders();
+      // 初始化配置管理器
+      await configManager.loadProviderConfigs();
+      
+      // 获取提供商列表
+      this.providers = configManager.getAllProvidersList();
       this.populateProviderSelect();
+      
+      // 记录加载成功
+      monitorService.logRequest('system', 'providers', Date.now(), true, 0, null, null, this.providers.length);
     } catch (error) {
+      monitorService.logRequest('system', 'providers', 'failure', Date.now(), error.constructor.name, error.message, null);
       this.showStatus('加载服务商列表失败: ' + error.message, 'error');
     }
   }
@@ -51,11 +62,22 @@ class AIConfigManager {
 
   async loadModels(providerKey) {
     try {
-      const models = await aiApiFrontend.getProviderModels(providerKey);
-      this.populateModelSelect(models);
+      // 使用配置管理器获取模型列表
+      const models = configManager.getModelsListForProvider(providerKey);
+      const modelList = models.map(model => ({
+        key: model.key,
+        name: model.name,
+        model: model.key
+      }));
+      
+      this.populateModelSelect(modelList);
       this.currentProvider = this.providers.find(p => p.key === providerKey);
       this.updateProviderInfo();
+      
+      // 记录模型加载
+      monitorService.logRequest(providerKey, 'models', Date.now(), true, 0, null, null, models.length);
     } catch (error) {
+      monitorService.logRequest(providerKey, 'models', 'failure', Date.now(), error.constructor.name, error.message, null);
       this.showStatus('加载模型列表失败: ' + error.message, 'error');
     }
   }
@@ -175,6 +197,8 @@ class AIConfigManager {
     this.setLoading(true);
     this.showStatus('正在测试连接...', 'info');
     
+    const startTime = Date.now();
+    
     try {
       const result = await aiApiFrontend.callAPI({
         provider: this.providerSelect.value,
@@ -186,8 +210,34 @@ class AIConfigManager {
         options: { maxTokens: 10 }
       });
       
+      const duration = Date.now() - startTime;
+      
+      // 记录成功的测试
+      monitorService.logRequest(
+        this.providerSelect.value,
+        this.modelSelect.value,
+        'success',
+        duration,
+        null,
+        null,
+        result.tokens || 0
+      );
+      
       this.showStatus('✅ 连接测试成功！模型响应正常。', 'success');
     } catch (error) {
+      const duration = Date.now() - startTime;
+      
+      // 记录失败的测试
+      monitorService.logRequest(
+        this.providerSelect.value,
+        this.modelSelect.value,
+        'failure',
+        duration,
+        error.constructor.name,
+        error.message,
+        null
+      );
+      
       this.showStatus('❌ 连接测试失败: ' + error.message, 'error');
     } finally {
       this.setLoading(false);
@@ -210,7 +260,12 @@ class AIConfigManager {
         timestamp: Date.now()
       };
       
-      await chrome.storage.local.set({ aiConfig: config });
+      // 使用配置管理器保存配置
+      await configManager.saveUserConfig(config);
+      
+      // 记录配置保存
+      monitorService.logRequest('system', 'config_save', 'success', Date.now(), null, null, null);
+      
       this.showStatus('✅ 配置保存成功！', 'success');
       
       // 延迟跳转回主页面
@@ -218,6 +273,7 @@ class AIConfigManager {
         window.close();
       }, 1500);
     } catch (error) {
+      monitorService.logRequest('system', 'config_save', 'failure', Date.now(), error.constructor.name, error.message, null);
       this.showStatus('❌ 保存配置失败: ' + error.message, 'error');
     } finally {
       this.setLoading(false);
@@ -240,15 +296,27 @@ class AIConfigManager {
       return false;
     }
     
-    return true;
+    // 使用配置验证器进行验证
+    try {
+      const config = {
+        provider: this.providerSelect.value,
+        model: this.modelSelect.value,
+        apiKey: this.apiKeyInput.value.trim()
+      };
+      
+      configValidator.validateUserConfig(config);
+      return true;
+    } catch (error) {
+      this.showStatus('配置验证失败: ' + error.message, 'error');
+      return false;
+    }
   }
 
   async loadSavedConfig() {
     try {
-      const result = await chrome.storage.local.get(['aiConfig']);
-      if (result.aiConfig) {
-        const config = result.aiConfig;
-        
+      // 使用配置管理器加载保存的配置
+      const config = await configManager.loadUserConfig();
+      if (config) {
         // 恢复提供商选择
         this.providerSelect.value = config.provider;
         if (config.provider) {
@@ -273,6 +341,7 @@ class AIConfigManager {
         this.showStatus('已加载保存的配置', 'info');
       }
     } catch (error) {
+      monitorService.logRequest('system', 'config_load', 'failure', Date.now(), error.constructor.name, error.message, null);
       console.error('加载配置失败:', error);
     }
   }
