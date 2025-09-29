@@ -48,7 +48,7 @@ export class ConfigValidator {
       return { isValid: false, error: `提供商配置不存在: ${provider}` };
     }
     
-    if (!providerConfig.models || !providerConfig.models.hasOwnProperty(model)) {
+    if (!providerConfig.models || !Object.prototype.hasOwnProperty.call(providerConfig.models, model)) {
       const availableModels = Object.keys(providerConfig.models || {});
       return { 
         isValid: false, 

@@ -176,7 +176,7 @@ class AIConfigManager {
     this.showStatus('正在测试连接...', 'info');
     
     try {
-      const result = await aiApiFrontend.callAPI({
+      await aiApiFrontend.callAPI({
         provider: this.providerSelect.value,
         model: this.modelSelect.value,
         messages: [

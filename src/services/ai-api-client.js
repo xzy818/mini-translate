@@ -16,7 +16,7 @@ export class AIApiClient {
       throw new Error(`Unsupported provider/model: ${provider}/${model}`);
     }
 
-    const requestId = this.generateRequestId();
+    this.generateRequestId();
     const url = this.buildUrl(config);
     const headers = this.buildHeaders(config, apiKey);
     const body = this.buildRequestBody(config, messages, options);

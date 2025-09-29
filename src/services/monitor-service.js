@@ -13,7 +13,7 @@ export class MonitorService {
       type: 'request'
     };
     
-    console.log('[AI Monitor] Request:', logEntry);
+    console.warn('[AI Monitor] Request:', logEntry);
     this.storeLogEntry(logEntry);
     
     // 更新使用量统计
@@ -45,7 +45,7 @@ export class MonitorService {
       type: 'info'
     };
     
-    console.log('[AI Monitor] Info:', logEntry);
+    console.warn('[AI Monitor] Info:', logEntry);
     this.storeLogEntry(logEntry);
   }
 
