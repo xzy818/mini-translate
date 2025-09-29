@@ -74,7 +74,8 @@ describe('Settings controller', () => {
     controller.bind();
     await controller.load();
     expect(elements.model.value).toBe('gpt-4o-mini');
-    expect(elements.base.value).toBe('https://api.example.com');
+    // base 字段已不再由 UI 控件承载，此断言移除
+    expect(elements.key.value).toBe('secret');
     expect(elements.key.value).toBe('secret');
   });
 
@@ -82,7 +83,7 @@ describe('Settings controller', () => {
     const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
     controller.bind();
     elements.model.value = 'deepseek-v3';
-    elements.base.value = 'https://deepseek.example';
+    // base 不再由用户输入
     elements.key.value = 'new-secret';
     await controller.save();
     expect(notify).toHaveBeenCalledWith('已保存');

@@ -12,6 +12,21 @@ import {
 } from '../src/services/translator.js';
 
 let initialized = false;
+ 
+// 根据模型映射 Base URL（内部使用）
+function mapBaseUrlByModel(model) {
+  switch (model) {
+    case 'deepseek-v3':
+      return 'https://api.deepseek.com';
+    case 'qwen-mt-turbo':
+    case 'qwen-mt-plus':
+      return 'https://dashscope.aliyuncs.com/compatible-mode';
+    case 'gpt-4o-mini':
+      return 'https://api.openai.com';
+    default:
+      return '';
+  }
+}
 
 function setup() {
   if (initialized) return;
@@ -42,19 +57,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
     const config = message.payload || {};
-    const validation = validateTranslationConfig(config);
+    const computedBase = mapBaseUrlByModel(config.model);
+    const validation = validateTranslationConfig({ ...config, apiBaseUrl: computedBase });
     if (!validation.isValid) {
       console.error('[qa:test] validation failed', validation.errors);
       sendResponse({ ok: false, error: validation.errors.join('、') });
       return false;
     }
 
-    console.warn('[qa:test] start', { model: config.model, apiBaseUrl: config.apiBaseUrl });
+    console.warn('[qa:test] start', { model: config.model, apiBaseUrl: computedBase });
     translateText({
       text: 'diagnostic check',
       model: config.model,
       apiKey: config.apiKey,
-      apiBaseUrl: config.apiBaseUrl,
+      apiBaseUrl: computedBase,
       timeout: 5000
     })
       .then(() => {
@@ -89,8 +105,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     // 获取当前设置并处理异步操作
-    chrome.storage.local.get(['model', 'apiKey', 'apiBaseUrl'], async (settings) => {
-      const { model, apiKey, apiBaseUrl } = settings;
+    chrome.storage.local.get(['model', 'apiKey'], async (settings) => {
+      const { model, apiKey } = settings;
+      const apiBaseUrl = mapBaseUrlByModel(model);
       if (!model || !apiKey || !apiBaseUrl) {
         sendResponse({ ok: false, error: '翻译配置不完整' });
         return;
@@ -135,17 +152,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // keep channel open for async response
   }
 
-  // 保存设置：仅作为通知类，持久化后回执
+  // 保存设置：仅作为通知类，持久化后回执（不再保存 apiBaseUrl）
   if (message.type === 'SAVE_SETTINGS') {
-    const { model, apiKey, apiBaseUrl } = message.payload || {};
-    chrome.storage.local.set({ model, apiKey, apiBaseUrl }, () => {
+    const { model, apiKey } = message.payload || {};
+    chrome.storage.local.set({ model, apiKey }, () => {
       const err = chrome.runtime.lastError;
       if (err) {
         sendResponse({ ok: false, error: err.message });
         return;
       }
       // 广播"设置已更新"事件（前端不必须监听）
-      chrome.runtime.sendMessage({ type: 'SETTINGS_UPDATED', payload: { model, apiBaseUrl } });
+      chrome.runtime.sendMessage({ type: 'SETTINGS_UPDATED', payload: { model } });
       sendResponse({ ok: true });
     });
     return true; // async

@@ -349,8 +349,8 @@
             <strong>💡 配置说明：</strong>
             <ul style="margin: 8px 0 0 0; padding-left: 20px;">
               <li><strong>模型</strong>：选择要使用的翻译模型</li>
-              <li><strong>API Base URL</strong>：填写 API 服务地址（将随“模型”自动填充建议值，可手动修改；例如：https://dashscope.aliyuncs.com/compatible-mode/v1）</li>
               <li><strong>API Key</strong>：填写您的API密钥</li>
+              <li><strong>说明</strong>：API Base URL 由系统根据“模型”自动映射，无需手动填写。</li>
             </ul>
           </div>
         </div>
@@ -360,16 +360,9 @@
           <label for="model">模型</label>
           <select id="model">
             <option value="">请选择翻译模型</option>
-            <option value="deepseek-v3">DeepSeek V3</option>
-            <option value="qwen-mt-turbo">Qwen MT Turbo</option>
-            <option value="qwen-mt-plus">Qwen MT Plus</option>
-            <option value="gpt-4o-mini">gpt-4o-mini</option>
           </select>
         </div>
-        <div class="settings-row">
-          <label for="base">API Base URL</label>
-          <input id="base" type="text" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" />
-        </div>
+        
         <div class="settings-row">
           <label for="key">API Key</label>
           <div style="display:flex; gap:8px; width:100%;">

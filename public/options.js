@@ -79,7 +79,6 @@ export function createToastNotifier(root = document) {
 
 export function createSettingsController({ chromeLike, notify, elements }) {
   const modelEl = elements.model;
-  const baseEl = elements.base;
   const keyEl = elements.key;
   const toggleKeyEl = elements.toggle;
   const saveEl = elements.save;
@@ -117,11 +116,6 @@ export function createSettingsController({ chromeLike, notify, elements }) {
         });
       });
       if (result.model) modelEl.value = result.model;
-      if (result.apiBaseUrl) {
-        baseEl.value = result.apiBaseUrl;
-      } else if (result.model) {
-        baseEl.value = getDefaultBaseUrlByModel(result.model);
-      }
       if (result.apiKey) keyEl.value = result.apiKey;
     } catch (error) {
       console.error('读取设置失败', error);
@@ -136,7 +130,6 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     }
     const payload = {
       model: modelEl.value,
-      apiBaseUrl: baseEl.value.trim(),
       apiKey: keyEl.value.trim()
     };
     try {
@@ -172,7 +165,6 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     }
     const payload = {
       model: modelEl.value,
-      apiBaseUrl: baseEl.value.trim(),
       apiKey: keyEl.value.trim()
     };
     try {
@@ -213,15 +205,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   function bind() {
     toggleKeyEl.addEventListener('click', toggleKeyVisibility);
-    if (modelEl) {
-      modelEl.addEventListener('change', () => {
-        const model = modelEl.value;
-        const suggested = getDefaultBaseUrlByModel(model);
-        if (suggested) {
-          baseEl.value = suggested;
-        }
-      });
-    }
+    // base URL 已由后台映射，无需在前端变更
     saveEl.addEventListener('click', () => {
       save();
     });
@@ -409,7 +393,6 @@ export function createImportExportController({
 function initSettings(chromeLike, notify) {
   const settingsElements = {
     model: query('model'),
-    base: query('base'),
     key: query('key'),
     toggle: query('toggleKey'),
     save: query('save'),
