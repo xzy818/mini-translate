@@ -401,6 +401,47 @@ function initSettings(chromeLike, notify) {
   const controller = createSettingsController({ chromeLike, notify, elements: settingsElements });
   controller.bind();
   controller.load();
+  // 动态构建模型下拉（按提供商分组；当总数>10时使用optgroup）
+  try {
+    const build = async () => {
+      const { getAllSupportedModels, MODEL_PROVIDERS } = await import('../src/config/model-providers.js');
+      const select = settingsElements.model;
+      if (!select) return;
+      // 清理除第一个占位项以外的所有项
+      while (select.options.length > 1) select.remove(1);
+      const providerKeys = Object.keys(MODEL_PROVIDERS);
+      const totalModels = providerKeys.reduce((acc, key) => acc + Object.keys(MODEL_PROVIDERS[key].models).length, 0);
+      const useGrouping = totalModels > 10;
+      if (useGrouping) {
+        providerKeys.forEach((pkey) => {
+          const provider = MODEL_PROVIDERS[pkey];
+          const group = document.createElement('optgroup');
+          group.label = provider.name;
+          Object.keys(provider.models).forEach((modelKey) => {
+            const opt = document.createElement('option');
+            opt.value = provider.models[modelKey];
+            opt.textContent = `${modelKey}`;
+            group.appendChild(opt);
+          });
+          select.appendChild(group);
+        });
+      } else {
+        providerKeys.forEach((pkey) => {
+          const provider = MODEL_PROVIDERS[pkey];
+          Object.keys(provider.models).forEach((modelKey) => {
+            const opt = document.createElement('option');
+            opt.value = provider.models[modelKey];
+            opt.textContent = `${modelKey}`;
+            select.appendChild(opt);
+          });
+        });
+      }
+    };
+    build();
+  } catch (err) {
+    // 忽略下拉动态构建失败，不影响核心功能
+    console.error('构建模型下拉失败', err);
+  }
   return controller;
 }
 
