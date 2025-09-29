@@ -87,6 +87,22 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   const hasChrome = Boolean(chromeLike?.storage?.local);
 
+  // 根据模型自动匹配默认 Base URL（用户可自行修改）
+  function getDefaultBaseUrlByModel(model) {
+    switch (model) {
+      case 'deepseek-v3':
+        return 'https://api.deepseek.com';
+      case 'qwen-mt-turbo':
+      case 'qwen-mt-plus':
+        // 兼容 OpenAI 风格路径，内部会在请求时补齐 /v1/chat/completions
+        return 'https://dashscope.aliyuncs.com/compatible-mode';
+      case 'gpt-4o-mini':
+        return 'https://api.openai.com';
+      default:
+        return '';
+    }
+  }
+
   async function load() {
     if (!hasChrome) return;
     try {
@@ -101,7 +117,11 @@ export function createSettingsController({ chromeLike, notify, elements }) {
         });
       });
       if (result.model) modelEl.value = result.model;
-      if (result.apiBaseUrl) baseEl.value = result.apiBaseUrl;
+      if (result.apiBaseUrl) {
+        baseEl.value = result.apiBaseUrl;
+      } else if (result.model) {
+        baseEl.value = getDefaultBaseUrlByModel(result.model);
+      }
       if (result.apiKey) keyEl.value = result.apiKey;
     } catch (error) {
       console.error('读取设置失败', error);
@@ -193,6 +213,15 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   function bind() {
     toggleKeyEl.addEventListener('click', toggleKeyVisibility);
+    if (modelEl) {
+      modelEl.addEventListener('change', () => {
+        const model = modelEl.value;
+        const suggested = getDefaultBaseUrlByModel(model);
+        if (suggested) {
+          baseEl.value = suggested;
+        }
+      });
+    }
     saveEl.addEventListener('click', () => {
       save();
     });
