@@ -86,6 +86,22 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   const hasChrome = Boolean(chromeLike?.storage?.local);
 
+  // 根据模型自动匹配默认 Base URL（用户可自行修改）
+  function getDefaultBaseUrlByModel(model) {
+    switch (model) {
+      case 'deepseek-v3':
+        return 'https://api.deepseek.com';
+      case 'qwen-mt-turbo':
+      case 'qwen-mt-plus':
+        // 兼容 OpenAI 风格路径，内部会在请求时补齐 /v1/chat/completions
+        return 'https://dashscope.aliyuncs.com/compatible-mode';
+      case 'gpt-4o-mini':
+        return 'https://api.openai.com';
+      default:
+        return '';
+    }
+  }
+
   async function load() {
     if (!hasChrome) return;
     try {
@@ -189,6 +205,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   function bind() {
     toggleKeyEl.addEventListener('click', toggleKeyVisibility);
+    // base URL 已由后台映射，无需在前端变更
     saveEl.addEventListener('click', () => {
       save();
     });
