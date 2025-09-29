@@ -79,7 +79,6 @@ export function createToastNotifier(root = document) {
 
 export function createSettingsController({ chromeLike, notify, elements }) {
   const modelEl = elements.model;
-  const baseEl = elements.base;
   const keyEl = elements.key;
   const toggleKeyEl = elements.toggle;
   const saveEl = elements.save;
@@ -101,7 +100,6 @@ export function createSettingsController({ chromeLike, notify, elements }) {
         });
       });
       if (result.model) modelEl.value = result.model;
-      if (result.apiBaseUrl) baseEl.value = result.apiBaseUrl;
       if (result.apiKey) keyEl.value = result.apiKey;
     } catch (error) {
       console.error('读取设置失败', error);
@@ -116,7 +114,6 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     }
     const payload = {
       model: modelEl.value,
-      apiBaseUrl: baseEl.value.trim(),
       apiKey: keyEl.value.trim()
     };
     try {
@@ -152,7 +149,6 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     }
     const payload = {
       model: modelEl.value,
-      apiBaseUrl: baseEl.value.trim(),
       apiKey: keyEl.value.trim()
     };
     try {
@@ -380,7 +376,6 @@ export function createImportExportController({
 function initSettings(chromeLike, notify) {
   const settingsElements = {
     model: query('model'),
-    base: query('base'),
     key: query('key'),
     toggle: query('toggleKey'),
     save: query('save'),
