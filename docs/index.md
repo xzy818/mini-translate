@@ -57,6 +57,9 @@
 - [故障排除指南](./TROUBLESHOOTING.md)
 - [词汇表规范](./vocabulary-spec.md)
 
+## 🗄️ Archived（历史文档，仅在企业网络受限时参考）
+- [代理部署指南（Archived）](./archived/PROXY_DEPLOYMENT.md)
+
 ## 📊 分析和报告
 - [QA 测试分析](./QA_TEST_ANALYSIS.md)
 - [实现计划](./IMPLEMENTATION_PLAN.md)
