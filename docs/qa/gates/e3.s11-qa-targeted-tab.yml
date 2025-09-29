@@ -1,0 +1,63 @@
+schema: 1
+story: 'E3.S11'
+story_title: 'Story S11 — QA 扩展消息增强'
+gate: PASS
+status_reason: '所有验收标准达成，QA验证通过，功能稳定'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-09-29T04:03:41Z'
+
+top_issues: []
+waiver: { active: false }
+
+quality_score: 95
+expires: '2025-10-13T04:03:41Z'
+
+evidence:
+  tests_reviewed: 8
+  risks_identified: 0
+  trace:
+    ac_covered: [1, 2, 3, 4]
+    ac_gaps: []
+
+nfr_validation:
+  _assessed: [security, performance, reliability, maintainability]
+  security:
+    status: PASS
+    notes: 'QA Hooks仅在QA build中注册，无安全风险'
+  performance:
+    status: PASS
+    notes: '消息处理效率良好，无性能瓶颈'
+  reliability:
+    status: PASS
+    notes: '错误处理完善，消息传递稳定'
+  maintainability:
+    status: PASS
+    notes: '代码结构清晰，测试覆盖完整'
+
+test_design:
+  scenarios_total: 8
+  by_level:
+    unit: 4
+    integration: 2
+    e2e: 2
+  by_priority:
+    p0: 4
+    p1: 3
+    p2: 1
+  coverage_gaps: []
+
+trace:
+  totals:
+    requirements: 4
+    full: 4
+    partial: 0
+    none: 0
+  planning_ref: 'docs/qa/assessments/e3.s11-test-design-20250929.md'
+  uncovered: []
+  notes: '所有需求完全覆盖'
+
+recommendations:
+  immediate: []
+  future:
+    - action: '考虑在CI中集成MCP自动化测试'
+      refs: ['docs/qa/chrome-devtools-mcp-test-plan.md']
