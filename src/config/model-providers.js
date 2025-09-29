@@ -88,10 +88,13 @@ export const MODEL_PROVIDERS = {
       'qwen-plus': 'qwen-plus',
       'qwen-max': 'qwen-max',
       'qwen-long': 'qwen-long',
+      // 机器翻译（MT）特例：走兼容模式 Chat Completions 协议
+      'qwen-mt-turbo': 'qwen-mt-turbo',
       'qwen-2.5-72b-instruct': 'qwen-2.5-72b-instruct',
       'qwen-2.5-32b-instruct': 'qwen-2.5-32b-instruct'
     },
     endpoints: {
+      // 对于常规模型（非 MT）：使用 AIGC 文本生成端点
       chat: '/api/v1/services/aigc/text-generation/generation'
     },
     headers: {
