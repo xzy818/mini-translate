@@ -237,6 +237,65 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  // QA 消息处理 (仅在 QA build 中启用)
+  if (process.env.MT_QA_HOOKS === '1') {
+    const tabId = Number.isInteger(message.payload?.tabId) 
+      ? message.payload.tabId 
+      : sender?.tab?.id ?? null;
+
+    switch (message.type) {
+      case 'QA_APPLY_TERM':
+        console.warn('[qa:msg] QA_APPLY_TERM', { tabId, term: message.payload?.term });
+        handleAddTerm(chrome, message.payload, tabId)
+          .then((result) => {
+            sendResponse({ ok: true, ...result });
+          })
+          .catch((error) => {
+            sendResponse({ ok: false, error: error.message });
+          });
+        return true;
+
+      case 'QA_REMOVE_TERM':
+        console.warn('[qa:msg] QA_REMOVE_TERM', { tabId, term: message.payload?.term });
+        handleRemoveTerm(chrome, message.payload, tabId)
+          .then(() => {
+            sendResponse({ ok: true });
+          })
+          .catch((error) => {
+            sendResponse({ ok: false, error: error.message });
+          });
+        return true;
+
+      case 'QA_QUERY_TERM':
+        console.warn('[qa:msg] QA_QUERY_TERM', { tabId, term: message.payload?.term });
+        resolveTermState(tabId, message.payload.term)
+          .then((state) => {
+            sendResponse({ ok: true, state });
+          })
+          .catch((error) => {
+            sendResponse({ ok: false, error: error.message });
+          });
+        return true;
+
+      case 'QA_RESET_WORKER':
+        console.warn('[qa:msg] QA_RESET_WORKER');
+        chrome.runtime.reload();
+        waitForInitialization()
+          .then(() => {
+            sendResponse({ ok: true, reloaded: true });
+          })
+          .catch((error) => {
+            sendResponse({ ok: false, error: error.message });
+          });
+        return true;
+
+      case 'QA_WHOAMI':
+        console.warn('[qa:msg] QA_WHOAMI', { tabId });
+        sendResponse({ ok: true, tabId });
+        return true;
+    }
+  }
+
   // 未识别消息：显式返回 false，避免悬空端口
   return false;
 });
@@ -248,5 +307,47 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onStartup.addListener(() => {
   setup();
 });
+
+// QA 辅助函数
+async function resolveTermState(tabId, term) {
+  try {
+    // 从 storage 中查询词条状态
+    const result = await chrome.storage.local.get(['vocabulary']);
+    const vocabulary = result.vocabulary || [];
+    
+    const termEntry = vocabulary.find(item => item.term === term);
+    if (!termEntry) {
+      return { applied: false, lastAction: null };
+    }
+    
+    return {
+      applied: termEntry.status === 'active',
+      lastAction: termEntry.updatedAt || termEntry.createdAt,
+      translation: termEntry.translation
+    };
+  } catch (error) {
+    throw new Error(`查询词条状态失败: ${error.message}`);
+  }
+}
+
+function waitForInitialization() {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error('Service Worker 重启超时'));
+    }, 5000);
+    
+    // 等待初始化完成
+    const checkInitialized = () => {
+      if (initialized) {
+        clearTimeout(timeout);
+        resolve();
+      } else {
+        setTimeout(checkInitialized, 100);
+      }
+    };
+    
+    checkInitialized();
+  });
+}
 
 setup();
