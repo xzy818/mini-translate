@@ -135,7 +135,7 @@ function parseChatCompletion(data) {
 /**
  * DeepSeek V3 翻译实现
  */
-async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
+async function translateWithDeepSeek(text, apiKey, apiBaseUrl, timeout = DEFAULT_TIMEOUT) {
   // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
   const url = `${buildApiBaseUrl(apiBaseUrl)}/chat/completions`;
   const payload = {
@@ -149,12 +149,12 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
     method: 'POST',
     headers: buildHeaders(apiKey),
     body: JSON.stringify(payload)
-  });
+  }, timeout);
 
   if (!response.ok) {
     const errorText = await response.text();
     // 记录模型与请求 URL 便于排查
-    try { console.error('[Translator] API error', { model: SUPPORTED_MODELS.DEEPSEEK_V3, url }); } catch (_) {}
+    console.error('[Translator] API error', { model: SUPPORTED_MODELS.DEEPSEEK_V3, url });
     const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `DeepSeek API 错误 (${response.status}): ${errorText}`);
     err.statusCode = response.status;
     err.meta = { model: SUPPORTED_MODELS.DEEPSEEK_V3, url };
@@ -174,7 +174,7 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
 /**
  * Qwen MT 翻译实现
  */
-async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
+async function translateWithQwen(text, apiKey, apiBaseUrl, model, timeout = DEFAULT_TIMEOUT) {
   // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
   const url = `${buildApiBaseUrl(apiBaseUrl)}/chat/completions`;
   const payload = {
@@ -188,12 +188,12 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
     method: 'POST',
     headers: buildHeaders(apiKey),
     body: JSON.stringify(payload)
-  });
+  }, timeout);
 
   if (!response.ok) {
     const errorText = await response.text();
     // 记录模型与请求 URL 便于排查
-    try { console.error('[Translator] API error', { model, url }); } catch (_) {}
+    console.error('[Translator] API error', { model, url });
     const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `Qwen API 错误 (${response.status}): ${errorText}`);
     err.statusCode = response.status;
     err.meta = { model, url };
@@ -207,7 +207,7 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
 /**
  * OpenAI GPT-4o-mini 翻译实现
  */
-async function translateWithOpenAI(text, apiKey, apiBaseUrl) {
+async function translateWithOpenAI(text, apiKey, apiBaseUrl, timeout = DEFAULT_TIMEOUT) {
   // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
   const url = `${buildApiBaseUrl(apiBaseUrl)}/chat/completions`;
   const payload = {
@@ -221,12 +221,12 @@ async function translateWithOpenAI(text, apiKey, apiBaseUrl) {
     method: 'POST',
     headers: buildHeaders(apiKey),
     body: JSON.stringify(payload)
-  });
+  }, timeout);
 
   if (!response.ok) {
     const errorText = await response.text();
     // 记录模型与请求 URL 便于排查
-    try { console.error('[Translator] API error', { model: SUPPORTED_MODELS.GPT_4O_MINI, url }); } catch (_) {}
+    console.error('[Translator] API error', { model: SUPPORTED_MODELS.GPT_4O_MINI, url });
     const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `OpenAI API 错误 (${response.status}): ${errorText}`);
     err.statusCode = response.status;
     err.meta = { model: SUPPORTED_MODELS.GPT_4O_MINI, url };
@@ -260,22 +260,20 @@ function getTranslator(model) {
 /**
  * 带重试的翻译函数
  */
-async function translateWithRetry(translator, text, apiKey, apiBaseUrl, model, attempt = 0) {
+async function translateWithRetry(translator, text, apiKey, apiBaseUrl, model, timeout, attempt = 0) {
   try {
     if (model === SUPPORTED_MODELS.QWEN_MT_TURBO || model === SUPPORTED_MODELS.QWEN_MT_PLUS) {
-      return await translator(text, apiKey, apiBaseUrl, model);
+      return await translator(text, apiKey, apiBaseUrl, model, timeout);
     } else {
-      return await translator(text, apiKey, apiBaseUrl);
+      return await translator(text, apiKey, apiBaseUrl, timeout);
     }
   } catch (error) {
     // 在发生错误时记录模型与基础 URL（便于快速定位问题）
-    try { console.error('[Translator] Translate failed', { model, url: buildApiBaseUrl(apiBaseUrl) }, error); } catch (_) {}
+    console.error('[Translator] Translate failed', { model, url: buildApiBaseUrl(apiBaseUrl) }, error);
     // 统一补充错误元数据，便于上层 UI 捕获展示
-    try {
-      if (!error.meta) {
-        error.meta = { model, url: buildApiBaseUrl(apiBaseUrl) };
-      }
-    } catch (_) {}
+    if (!error.meta) {
+      error.meta = { model, url: buildApiBaseUrl(apiBaseUrl) };
+    }
     // 如果是配置错误或认证错误，不重试
     if (error.type === TRANSLATION_ERRORS.INVALID_CONFIG || 
         error.message.includes('401') || 
@@ -295,7 +293,7 @@ async function translateWithRetry(translator, text, apiKey, apiBaseUrl, model, a
 
     const delayMs = calculateDelay(attempt, RETRY_CONFIG.baseDelay, RETRY_CONFIG.maxDelay);
     await delay(delayMs);
-    return translateWithRetry(translator, text, apiKey, apiBaseUrl, model, attempt + 1);
+    return translateWithRetry(translator, text, apiKey, apiBaseUrl, model, timeout, attempt + 1);
   }
 }
 
@@ -412,7 +410,7 @@ export async function translateText({ text, model, apiKey, apiBaseUrl, timeout =
   // 获取对应的翻译器
   const translator = getTranslator(model);
 
-  return translateWithRetry(translator, trimmedText, apiKey.trim(), apiBaseUrl.trim(), model);
+  return translateWithRetry(translator, trimmedText, apiKey.trim(), apiBaseUrl.trim(), model, timeout);
 }
 
 /**

@@ -30,11 +30,11 @@ const mockBackgroundMessageHandler = () => {
       console.log(`[qa] message received ${message.type}`);
       
       switch (type) {
-        case 'SETTINGS_UPDATED':
+        case 'SETTINGS_UPDATED': {
           sendResponse({ ok: true });
           return false;
-          
-        case 'TEST_TRANSLATOR_SETTINGS':
+        }
+        case 'TEST_TRANSLATOR_SETTINGS': {
           const config = message.payload || {};
           // 模拟验证配置
           if (!config.model || !config.apiKey) {
@@ -46,41 +46,42 @@ const mockBackgroundMessageHandler = () => {
             sendResponse({ ok: true });
           }, 100);
           return true;
-          
-        case 'TRANSLATE_TERM':
+        }
+        case 'TRANSLATE_TERM': {
           // 模拟翻译
           setTimeout(() => {
             sendResponse({ ok: true, translation: '翻译结果' });
           }, 200);
           return true;
-          
-        case 'SAVE_SETTINGS':
+        }
+        case 'SAVE_SETTINGS': {
           // 模拟保存设置
           setTimeout(() => {
             sendResponse({ ok: true });
           }, 50);
           return true;
-          
-        case 'AI_API_CALL':
+        }
+        case 'AI_API_CALL': {
           // 模拟AI API调用
           setTimeout(() => {
             sendResponse({ ok: true, result: { text: 'AI response' }, requestId: message.payload?.requestId });
           }, 100);
           return true;
-          
-        case 'GET_AI_PROVIDERS':
+        }
+        case 'GET_AI_PROVIDERS': {
           // 模拟获取AI提供商
           sendResponse({ ok: true, providers: [{ key: 'openai', name: 'OpenAI', baseUrl: 'https://api.openai.com' }] });
           return true;
-          
-        case 'GET_PROVIDER_MODELS':
+        }
+        case 'GET_PROVIDER_MODELS': {
           // 模拟获取提供商模型
           sendResponse({ ok: true, models: [{ key: 'gpt-4o-mini', name: 'gpt-4o-mini', model: 'gpt-4o-mini' }] });
           return true;
-          
-        default:
+        }
+        default: {
           sendResponse({ ok: false, error: '未知消息类型' });
           return false;
+        }
       }
     });
   };

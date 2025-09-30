@@ -11,7 +11,7 @@ import {
   TRANSLATION_ERRORS
 } from '../src/services/translator.js';
 import { AIApiClient } from '../src/services/ai-api-client.js';
-import { MODEL_PROVIDERS, getProviderConfig } from '../src/config/model-providers.js';
+import { MODEL_PROVIDERS } from '../src/config/model-providers.js';
 
 let initialized = false;
 let aiApiClient = null;
@@ -150,7 +150,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         const message = error?.message || '测试失败';
         const label = error?.type === TRANSLATION_ERRORS.TIMEOUT ? '[qa:test] timeout' : '[qa:test] error';
         // 将模型与URL也输出，方便在前端控制台直接看到
-        try { console.error(label, { model: config.model, apiBaseUrl: computedBase }, error); } catch (_) {}
+        console.error(label, { model: config.model, apiBaseUrl: computedBase }, error);
         console.warn(label, message);
         sendResponse({ ok: false, error: message });
       });

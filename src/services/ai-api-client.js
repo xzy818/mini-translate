@@ -16,7 +16,6 @@ export class AIApiClient {
       throw new Error(`Unsupported provider/model: ${provider}/${model}`);
     }
 
-    const requestId = this.generateRequestId();
     const url = this.buildUrl(config);
     const headers = this.buildHeaders(config, apiKey);
     const body = this.buildRequestBody(config, messages, options);
@@ -46,7 +45,7 @@ export class AIApiClient {
       return result;
     } catch (error) {
       // 打印模型与 URL，便于快速定位问题
-      try { console.error('[AI API] Request failed', { provider, model, url }, error); } catch (_) {}
+      console.error('[AI API] Request failed', { provider, model, url }, error);
       throw error;
     }
   }
