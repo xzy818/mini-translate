@@ -45,22 +45,22 @@ describe('Configuration Flow E2E Tests', () => {
     mockBackgroundHandler = {
       handleMessage: vi.fn((message, sender, sendResponse) => {
         switch (message.type) {
-          case 'GET_AI_PROVIDERS':
+          case 'GET_AI_PROVIDERS': {
             sendResponse({ 
               ok: true, 
               providers: mockAIConfigManager.providers 
             });
             return false;
-            
-          case 'GET_PROVIDER_MODELS':
+          }
+          case 'GET_PROVIDER_MODELS': {
             const models = [
               { key: 'gpt-4o-mini', name: 'GPT-4o Mini', model: 'gpt-4o-mini' },
               { key: 'deepseek-v3', name: 'DeepSeek V3', model: 'deepseek-v3' }
             ];
             sendResponse({ ok: true, models });
             return false;
-            
-          case 'AI_API_CALL':
+          }
+          case 'AI_API_CALL': {
             // 模拟AI API调用
             setTimeout(() => {
               sendResponse({ 
@@ -69,17 +69,18 @@ describe('Configuration Flow E2E Tests', () => {
               });
             }, 100);
             return true;
-            
-          case 'TEST_TRANSLATOR_SETTINGS':
+          }
+          case 'TEST_TRANSLATOR_SETTINGS': {
             // 模拟翻译测试
             setTimeout(() => {
               sendResponse({ ok: true });
             }, 200);
             return true;
-            
-          default:
+          }
+          default: {
             sendResponse({ ok: false, error: 'Unknown message type' });
             return false;
+          }
         }
       })
     };

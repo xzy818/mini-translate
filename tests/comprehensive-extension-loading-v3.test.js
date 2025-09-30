@@ -175,7 +175,7 @@ async function getExtensionId() {
   const extensions = await getChromeExtensions();
   if (extensions.length > 0) {
     const extensionUrl = extensions[0].url;
-    const match = extensionUrl.match(/chrome-extension:\/\/([^\/]+)/);
+    const match = extensionUrl.match(/chrome-extension:\/\/([^/]+)/);
     if (match) {
       testResults.extensionId = match[1];
       return match[1];
