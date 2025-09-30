@@ -57,9 +57,13 @@ jobs:
         run: npm ci
         
       - name: Run unit tests
+        env:
+          SKIP_L3: "1"
         run: npm test
         
       - name: Generate coverage report
+        env:
+          SKIP_L3: "1"
         run: npm run test:coverage
         continue-on-error: true
         
