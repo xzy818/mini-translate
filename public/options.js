@@ -436,6 +436,12 @@ function initSettings(chromeLike, notify) {
           });
         });
       }
+      // 构建完成后，将默认选择设置为 qwen-mt-turbo（若存在）
+      const defaultModel = 'qwen-mt-turbo';
+      const hasDefault = Array.from(select.options).some((o) => o.value === defaultModel);
+      if (hasDefault && !select.value) {
+        select.value = defaultModel;
+      }
     };
     build();
   } catch (err) {

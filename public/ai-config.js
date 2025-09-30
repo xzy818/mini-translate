@@ -34,6 +34,26 @@ class AIConfigManager {
     try {
       this.providers = await aiApiFrontend.getProviders();
       this.populateProviderSelect();
+      // 默认预选 Qwen 提供商与 qwen-mt-turbo 模型，方便用户只需填写 Key
+      const defaultProviderKey = 'qwen';
+      const defaultModelKey = 'qwen-mt-turbo';
+      const hasQwen = this.providers.some(p => p.key === defaultProviderKey);
+      if (hasQwen) {
+        this.providerSelect.value = defaultProviderKey;
+        await this.loadModels(defaultProviderKey);
+        // 若模型列表包含默认模型，则预选
+        const hasDefaultModel = Array.from(this.modelSelect.options).some(opt => opt.value === defaultModelKey);
+        if (hasDefaultModel) {
+          this.modelSelect.value = defaultModelKey;
+          this.currentModel = {
+            key: defaultModelKey,
+            name: Array.from(this.modelSelect.options).find(opt => opt.value === defaultModelKey)?.textContent || defaultModelKey,
+            model: defaultModelKey
+          };
+          this.updateModelInfo();
+        }
+        this.checkFormValidity();
+      }
     } catch (error) {
       this.showStatus('加载服务商列表失败: ' + error.message, 'error');
     }
