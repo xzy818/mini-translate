@@ -46,7 +46,7 @@ self.addEventListener('error', (event) => {
   console.error('[qa] worker error', event.message, event.error);
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (!message || !message.type) {
     return false;
   }
