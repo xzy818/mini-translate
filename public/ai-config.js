@@ -19,6 +19,7 @@ class AIConfigManager {
     this.providerSelect = document.getElementById('provider');
     this.modelSelect = document.getElementById('model');
     this.apiKeyInput = document.getElementById('apiKey');
+    this.toggleApiKeyButton = document.getElementById('toggleApiKey');
     this.testButton = document.getElementById('testConnection');
     this.saveButton = document.getElementById('saveConfig');
     this.statusDiv = document.getElementById('status');
@@ -115,6 +116,16 @@ class AIConfigManager {
     this.apiKeyHelpLink.textContent = helpTexts[this.currentProvider.key] || '获取 API Key';
   }
 
+  toggleApiKeyVisibility() {
+    if (this.apiKeyInput.type === 'password') {
+      this.apiKeyInput.type = 'text';
+      this.toggleApiKeyButton.textContent = '隐藏';
+    } else {
+      this.apiKeyInput.type = 'password';
+      this.toggleApiKeyButton.textContent = '显示';
+    }
+  }
+
   bindEvents() {
     this.providerSelect.addEventListener('change', (e) => {
       const providerKey = e.target.value;
@@ -148,6 +159,10 @@ class AIConfigManager {
 
     this.apiKeyInput.addEventListener('input', () => {
       this.checkFormValidity();
+    });
+
+    this.toggleApiKeyButton.addEventListener('click', () => {
+      this.toggleApiKeyVisibility();
     });
 
     this.testButton.addEventListener('click', () => {

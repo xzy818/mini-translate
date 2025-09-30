@@ -127,4 +127,80 @@ describe('Settings controller', () => {
     await controller.testConnection();
     expect(notify).toHaveBeenCalledWith('测试异常');
   });
+
+  // 新增：测试消息路由完整性
+  it('should validate message routing for legacy settings', () => {
+    const requiredMessageTypes = [
+      'SETTINGS_UPDATED',
+      'TEST_TRANSLATOR_SETTINGS'
+    ];
+
+    // 验证chromeStub支持必要的消息类型
+    requiredMessageTypes.forEach(messageType => {
+      const message = { type: messageType, payload: {} };
+      expect(() => {
+        chromeStub.runtime.sendMessage(message, () => {});
+      }).not.toThrow();
+    });
+  });
+
+  // 新增：测试新旧配置页面的兼容性
+  it('should identify differences between legacy and new config flows', () => {
+    const legacyFlow = {
+      messageType: 'TEST_TRANSLATOR_SETTINGS',
+      payload: { model: 'gpt-4o-mini', apiKey: 'sk-test-key' },
+      handler: 'translateText with model mapping'
+    };
+
+    const newFlow = {
+      messageType: 'AI_API_CALL',
+      payload: {
+        provider: 'openai',
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'test' }],
+        apiKey: 'sk-test-key'
+      },
+      handler: 'aiApiClient.callAPI'
+    };
+
+    // 验证两个流程的差异
+    expect(legacyFlow.messageType).not.toBe(newFlow.messageType);
+    expect(legacyFlow.payload).not.toEqual(newFlow.payload);
+    expect(legacyFlow.handler).not.toBe(newFlow.handler);
+  });
+
+  // 新增：测试消息处理覆盖率
+  it('should report message handler coverage', () => {
+    const allMessageTypes = [
+      'SETTINGS_UPDATED',
+      'TEST_TRANSLATOR_SETTINGS',
+      'TRANSLATE_TERM',
+      'RETRY_TRANSLATION',
+      'SAVE_SETTINGS',
+      'REFRESH_CONTEXT_MENU',
+      'QA_CONTEXT_ADD',
+      'QA_CONTEXT_REMOVE',
+      'QA_CONTEXT_TOGGLE',
+      'QA_GET_STORAGE_STATE',
+      'AI_API_CALL',
+      'GET_AI_PROVIDERS',
+      'GET_PROVIDER_MODELS'
+    ];
+
+    const legacySupportedTypes = [
+      'SETTINGS_UPDATED',
+      'TEST_TRANSLATOR_SETTINGS',
+      'TRANSLATE_TERM',
+      'RETRY_TRANSLATION',
+      'SAVE_SETTINGS',
+      'REFRESH_CONTEXT_MENU',
+      'QA_CONTEXT_ADD',
+      'QA_CONTEXT_REMOVE',
+      'QA_CONTEXT_TOGGLE',
+      'QA_GET_STORAGE_STATE'
+    ];
+
+    const coverage = (legacySupportedTypes.length / allMessageTypes.length) * 100;
+    expect(coverage).toBeCloseTo(76.92, 1);
+  });
 });

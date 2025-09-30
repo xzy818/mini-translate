@@ -16,7 +16,7 @@ export class AIApiClient {
       throw new Error(`Unsupported provider/model: ${provider}/${model}`);
     }
 
-    this.generateRequestId();
+    const requestId = this.generateRequestId();
     const url = this.buildUrl(config);
     const headers = this.buildHeaders(config, apiKey);
     const body = this.buildRequestBody(config, messages, options);
@@ -201,7 +201,7 @@ export class AIApiClient {
 
   // 生成请求 ID
   generateRequestId() {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   // 获取支持的提供商列表

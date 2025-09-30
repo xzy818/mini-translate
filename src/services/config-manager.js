@@ -241,3 +241,5 @@ export class ProviderNotFoundError extends ConfigError {
 
 // 导出单例实例
 export const configManager = new ConfigManager();
+
+

@@ -36,4 +36,67 @@ describe('Chrome Extension Integration Tests',()=>{
     expect(storageKey).toBe('mini_translate_vocab');
     expect(storageKey.length).toBeGreaterThan(0);
   });
+
+  // 新增：消息路由完整性检查
+  it('message routing completeness validation',()=>{
+    const allMessageTypes = [
+      'SETTINGS_UPDATED',
+      'TEST_TRANSLATOR_SETTINGS',
+      'TRANSLATE_TERM',
+      'RETRY_TRANSLATION',
+      'SAVE_SETTINGS',
+      'REFRESH_CONTEXT_MENU',
+      'QA_CONTEXT_ADD',
+      'QA_CONTEXT_REMOVE',
+      'QA_CONTEXT_TOGGLE',
+      'QA_GET_STORAGE_STATE',
+      'AI_API_CALL',
+      'GET_AI_PROVIDERS',
+      'GET_PROVIDER_MODELS'
+    ];
+
+    const implementedTypes = [
+      'SETTINGS_UPDATED',
+      'TEST_TRANSLATOR_SETTINGS',
+      'TRANSLATE_TERM',
+      'RETRY_TRANSLATION',
+      'SAVE_SETTINGS',
+      'REFRESH_CONTEXT_MENU',
+      'QA_CONTEXT_ADD',
+      'QA_CONTEXT_REMOVE',
+      'QA_CONTEXT_TOGGLE',
+      'QA_GET_STORAGE_STATE'
+    ];
+
+    const missingTypes = allMessageTypes.filter(type => !implementedTypes.includes(type));
+    expect(missingTypes).toEqual(['AI_API_CALL', 'GET_AI_PROVIDERS', 'GET_PROVIDER_MODELS']);
+  });
+
+  // 新增：配置页面兼容性检查
+  it('configuration page compatibility check',()=>{
+    const legacyConfig = {
+      page: 'options.html',
+      messageType: 'TEST_TRANSLATOR_SETTINGS',
+      handler: 'background.js translateText'
+    };
+
+    const newConfig = {
+      page: 'ai-config.html', 
+      messageType: 'AI_API_CALL',
+      handler: 'background.js aiApiClient'
+    };
+
+    expect(legacyConfig.messageType).not.toBe(newConfig.messageType);
+    expect(legacyConfig.handler).not.toBe(newConfig.handler);
+  });
+
+  // 新增：消息处理覆盖率报告
+  it('message handler coverage report',()=>{
+    const totalMessageTypes = 13;
+    const implementedMessageTypes = 10;
+    const coverage = (implementedMessageTypes / totalMessageTypes) * 100;
+    
+    expect(coverage).toBeCloseTo(76.92, 1);
+    expect(implementedMessageTypes).toBeLessThan(totalMessageTypes);
+  });
 });

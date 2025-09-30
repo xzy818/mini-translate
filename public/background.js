@@ -10,8 +10,11 @@ import {
   validateTranslationConfig,
   TRANSLATION_ERRORS
 } from '../src/services/translator.js';
+import { AIApiClient } from '../src/services/ai-api-client.js';
+import { MODEL_PROVIDERS, getProviderConfig } from '../src/config/model-providers.js';
 
 let initialized = false;
+let aiApiClient = null;
  
 // 根据模型映射 Base URL（内部使用）
 function mapBaseUrlByModel(model) {
@@ -31,6 +34,7 @@ function mapBaseUrlByModel(model) {
 function setup() {
   if (initialized) return;
   initializeBackground(chrome);
+  aiApiClient = new AIApiClient();
   initialized = true;
 }
 
@@ -49,6 +53,71 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.warn('[qa] message received', message.type);
   // 统一日志，便于排查未覆盖类型
   // 调试日志（按eslint策略仅在error路径使用console）
+
+  // AI API 相关消息处理
+  if (message.type === 'AI_API_CALL') {
+    const { provider, model, messages, apiKey, options, requestId } = message.payload || {};
+    
+    if (!aiApiClient) {
+      sendResponse({ ok: false, error: 'AI API client not initialized', requestId });
+      return false;
+    }
+
+    try {
+      const result = await aiApiClient.callAPI({
+        provider,
+        model,
+        messages,
+        apiKey,
+        options
+      });
+      
+      sendResponse({ ok: true, result, requestId });
+    } catch (error) {
+      console.error('[AI API] Call failed:', error);
+      sendResponse({ ok: false, error: error.message, requestId });
+    }
+    return true;
+  }
+
+  if (message.type === 'GET_AI_PROVIDERS') {
+    try {
+      const providers = Object.entries(MODEL_PROVIDERS).map(([key, provider]) => ({
+        key,
+        name: provider.name,
+        baseUrl: provider.baseUrl
+      }));
+      sendResponse({ ok: true, providers });
+    } catch (error) {
+      console.error('[AI API] Get providers failed:', error);
+      sendResponse({ ok: false, error: error.message });
+    }
+    return true;
+  }
+
+  if (message.type === 'GET_PROVIDER_MODELS') {
+    const { provider } = message.payload || {};
+    
+    try {
+      const providerConfig = MODEL_PROVIDERS[provider];
+      if (!providerConfig) {
+        sendResponse({ ok: false, error: `Unsupported provider: ${provider}` });
+        return false;
+      }
+
+      const models = Object.entries(providerConfig.models).map(([key, model]) => ({
+        key,
+        name: key,
+        model: model
+      }));
+      
+      sendResponse({ ok: true, models });
+    } catch (error) {
+      console.error('[AI API] Get provider models failed:', error);
+      sendResponse({ ok: false, error: error.message });
+    }
+    return true;
+  }
 
   if (message.type === 'SETTINGS_UPDATED') {
     sendResponse({ ok: true });

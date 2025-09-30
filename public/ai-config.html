@@ -102,7 +102,10 @@
                 
                 <div class="form-group">
                     <label for="apiKey">API Key</label>
-                    <input type="password" id="apiKey" name="apiKey" placeholder="请输入您的 API Key" required>
+                    <div style="display:flex; gap:8px; width:100%;">
+                        <input type="password" id="apiKey" name="apiKey" placeholder="请输入您的 API Key" required style="flex:1;">
+                        <button type="button" id="toggleApiKey" class="btn btn--secondary">显示</button>
+                    </div>
                     <div class="api-key-help">
                         获取 API Key：
                         <a href="#" id="apiKeyHelpLink" target="_blank">查看获取方法</a>

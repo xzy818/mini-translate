@@ -9,7 +9,6 @@ import { createStorageClient, createVocabularyManager } from './vocab-ui.js';
 function getSettingsElements(root = document) {
   return {
     model: root.getElementById('model'),
-    base: root.getElementById('base'),
     key: root.getElementById('key'),
     toggle: root.getElementById('toggleKey'),
     save: root.getElementById('save'),
