@@ -323,6 +323,64 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  // AI API 消息处理
+  if (message.type === 'AI_API_CALL') {
+    const { provider, model, messages, apiKey, options, requestId } = message.payload;
+    
+    // 模拟AI API调用（实际实现需要导入aiApiClient）
+    setTimeout(() => {
+      sendResponse({ 
+        ok: true, 
+        result: { 
+          text: 'AI API response', 
+          usage: { total_tokens: 10 },
+          model: model 
+        },
+        requestId: requestId
+      });
+    }, 100);
+    return true;
+  }
+
+  if (message.type === 'GET_AI_PROVIDERS') {
+    const providers = [
+      { key: 'openai', name: 'OpenAI', baseUrl: 'https://api.openai.com' },
+      { key: 'deepseek', name: 'DeepSeek', baseUrl: 'https://api.deepseek.com' },
+      { key: 'qwen', name: 'Qwen (通义千问)', baseUrl: 'https://dashscope.aliyuncs.com' }
+    ];
+    sendResponse({ ok: true, providers });
+    return false;
+  }
+
+  if (message.type === 'GET_PROVIDER_MODELS') {
+    const { provider } = message.payload;
+    let models = [];
+    
+    switch (provider) {
+      case 'openai':
+        models = [
+          { key: 'gpt-4o-mini', name: 'GPT-4o Mini', model: 'gpt-4o-mini' }
+        ];
+        break;
+      case 'deepseek':
+        models = [
+          { key: 'deepseek-v3', name: 'DeepSeek V3', model: 'deepseek-v3' }
+        ];
+        break;
+      case 'qwen':
+        models = [
+          { key: 'qwen-mt-turbo', name: 'Qwen MT Turbo', model: 'qwen-mt-turbo' },
+          { key: 'qwen-mt-plus', name: 'Qwen MT Plus', model: 'qwen-mt-plus' }
+        ];
+        break;
+      default:
+        models = [];
+    }
+    
+    sendResponse({ ok: true, models });
+    return false;
+  }
+
   // QA 消息处理 (仅在 QA build 中启用)
   if (process.env.MT_QA_HOOKS === '1') {
     const tabId = Number.isInteger(message.payload?.tabId) 

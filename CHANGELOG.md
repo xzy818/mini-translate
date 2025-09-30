@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.10] - 2025-01-12
+
+### 🐛 Bug Fixes
+- 修复AI配置页面"测试"按钮"Failed to fetch"错误
+- 在background.js中添加缺失的AI API消息处理器：`AI_API_CALL`, `GET_AI_PROVIDERS`, `GET_PROVIDER_MODELS`
+- 修复测试用例中的逻辑错误和异步处理问题
+
+### 🧪 Testing
+- 新增AI配置页面测试 (ai-config.test.js)
+- 新增Background消息路由测试 (background-message-routing.test.js)
+- 新增端到端配置流程测试 (e2e-config-flow.test.js)
+- 新增消息覆盖率测试 (message-coverage.test.js)
+- 更新现有集成测试以包含消息路由完整性检查
+- 建立全面的测试策略文档 (QA_TEST_STRATEGY.md)
+
+### 🔧 Technical
+- 完善消息路由完整性检查机制
+- 改进异步测试处理逻辑
+- 增强测试覆盖率和质量保证
+- 所有182个测试用例通过验证
+
+### ✅ Impact
+- AI配置页面功能完全正常
+- 测试策略全面覆盖关键功能
+- 代码质量和稳定性显著提升
+
 ## [0.2.9] - 2025-09-24
 
 ### 🐛 Bug Fixes
