@@ -324,7 +324,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 
   // QA 消息处理 (仅在 QA build 中启用)
-  if (process.env.MT_QA_HOOKS === '1') {
+  // 注意：MV3 Service Worker 环境没有 Node 的 process 对象，需要安全判断
+  if (typeof process !== 'undefined' && process.env && process.env.MT_QA_HOOKS === '1') {
     const tabId = Number.isInteger(message.payload?.tabId) 
       ? message.payload.tabId 
       : sender?.tab?.id ?? null;
