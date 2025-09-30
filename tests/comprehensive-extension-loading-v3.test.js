@@ -367,8 +367,9 @@ process.on('SIGTERM', async () => {
 
 // 执行测试
 import { describe, it, expect } from 'vitest';
+const DESCRIBE = process.env.SKIP_L3 === '1' ? describe.skip : describe;
 
-describe('Comprehensive Extension Loading V3', () => {
+DESCRIBE('Comprehensive Extension Loading V3', () => {
   it('should run comprehensive checks', async () => {
     await runComprehensiveExtensionLoadingTestsV3();
     expect(true).toBe(true);

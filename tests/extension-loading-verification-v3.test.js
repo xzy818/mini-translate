@@ -371,8 +371,9 @@ process.on('SIGTERM', async () => {
 
 // 执行测试
 import { describe, it, expect } from 'vitest';
+const DESCRIBE = process.env.SKIP_L3 === '1' ? describe.skip : describe;
 
-describe('Extension Loading Verification V3', () => {
+DESCRIBE('Extension Loading Verification V3', () => {
   it('should verify extension loading', async () => {
     await runExtensionLoadingVerificationTestsV3();
     expect(true).toBe(true);
