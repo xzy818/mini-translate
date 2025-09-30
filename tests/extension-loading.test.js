@@ -346,15 +346,15 @@ async function runExtensionLoadingTests() {
   
   if (allTestsPassed) {
     console.log('\n🎉 All extension loading tests passed!');
-    process.exit(0);
+    // 移除process.exit，让vitest处理
   } else {
     console.log('\n💥 Some tests failed. Please fix the issues before proceeding.');
-    process.exit(1);
+    // 移除process.exit，让vitest处理
   }
 }
 
 // 执行测试
 runExtensionLoadingTests().catch(error => {
   console.error('❌ Test execution failed:', error);
-  process.exit(1);
+  // 移除process.exit，让vitest处理
 });

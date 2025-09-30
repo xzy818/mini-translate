@@ -349,10 +349,10 @@ async function runExtensionLoadingVerificationTestsV3() {
   
   if (allTestsPassed) {
     console.log('\n🎉 All L3 extension loading verification tests V3.0 passed!');
-    process.exit(0);
+    // 移除process.exit，让vitest处理
   } else {
     console.log('\n💥 Some L3 tests failed. Extension loading verification failed.');
-    process.exit(1);
+    // 移除process.exit，让vitest处理
   }
 }
 
@@ -373,5 +373,5 @@ process.on('SIGTERM', async () => {
 runExtensionLoadingVerificationTestsV3().catch(async (error) => {
   console.error('❌ L3 test execution failed:', error);
   await stopChrome();
-  process.exit(1);
+  // 移除process.exit，让vitest处理
 });

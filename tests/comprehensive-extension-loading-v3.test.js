@@ -345,10 +345,10 @@ async function runComprehensiveExtensionLoadingTestsV3() {
   
   if (allTestsPassed) {
     console.log('\n🎉 All comprehensive extension loading tests V3.0 passed!');
-    process.exit(0);
+    // 移除process.exit，让vitest处理
   } else {
     console.log('\n💥 Some tests failed. Please fix the issues before proceeding.');
-    process.exit(1);
+    // 移除process.exit，让vitest处理
   }
 }
 
@@ -369,5 +369,5 @@ process.on('SIGTERM', async () => {
 runComprehensiveExtensionLoadingTestsV3().catch(async (error) => {
   console.error('❌ Comprehensive test execution failed:', error);
   await stopChrome();
-  process.exit(1);
+  // 移除process.exit，让vitest处理
 });

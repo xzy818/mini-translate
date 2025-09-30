@@ -384,10 +384,10 @@ async function runExtensionLoadingTestsV2() {
   
   if (allTestsPassed) {
     console.log('\n🎉 All extension loading tests V2.0 passed!');
-    process.exit(0);
+    // 移除process.exit，让vitest处理
   } else {
     console.log('\n💥 Some tests failed. Please fix the issues before proceeding.');
-    process.exit(1);
+    // 移除process.exit，让vitest处理
   }
 }
 
@@ -408,5 +408,5 @@ process.on('SIGTERM', async () => {
 runExtensionLoadingTestsV2().catch(async (error) => {
   console.error('❌ Test execution failed:', error);
   await stopChrome();
-  process.exit(1);
+  // 移除process.exit，让vitest处理
 });
