@@ -15,10 +15,25 @@ mkdir -p "$DIST_DIR"
 rsync -a public/ "$DIST_DIR"/
 rsync -a src/ "$DIST_DIR"/src/
 
-# Fix import paths in background.js
-echo "🔧 Fixing import paths in background.js..."
-sed -i '' 's|from '\''../src/|from '\''./src/|g' "$DIST_DIR/background.js"
-sed -i '' 's|from "../src/|from "./src/|g' "$DIST_DIR/background.js"
+# Fix import paths in background.js (portable sed)
+echo "🔧 Fixing import paths in background.js (portable sed)..."
+# Determine sed in-place syntax across environments
+if command -v gsed >/dev/null 2>&1; then
+  SED_INPLACE=(gsed -i)
+elif sed --version >/dev/null 2>&1; then
+  # GNU sed
+  SED_INPLACE=(sed -i)
+else
+  # BSD sed (macOS)
+  SED_INPLACE=(sed -i '')
+fi
+
+if [ -f "$DIST_DIR/background.js" ]; then
+  "${SED_INPLACE[@]}" $'s|from '\''../src/|from '\''./src/|g' "$DIST_DIR/background.js" || true
+  "${SED_INPLACE[@]}" $'s|from "../src/|from "./src/|g' "$DIST_DIR/background.js" || true
+else
+  echo "(info) $DIST_DIR/background.js not found; skip path fix"
+fi
 
 (
   cd "$DIST_DIR"
