@@ -153,8 +153,11 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    // 记录模型与请求 URL 便于排查
+    try { console.error('[Translator] API error', { model: SUPPORTED_MODELS.DEEPSEEK_V3, url }); } catch (_) {}
     const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `DeepSeek API 错误 (${response.status}): ${errorText}`);
     err.statusCode = response.status;
+    err.meta = { model: SUPPORTED_MODELS.DEEPSEEK_V3, url };
     throw err;
   }
 
@@ -189,8 +192,11 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    // 记录模型与请求 URL 便于排查
+    try { console.error('[Translator] API error', { model, url }); } catch (_) {}
     const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `Qwen API 错误 (${response.status}): ${errorText}`);
     err.statusCode = response.status;
+    err.meta = { model, url };
     throw err;
   }
 
@@ -219,8 +225,11 @@ async function translateWithOpenAI(text, apiKey, apiBaseUrl) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    // 记录模型与请求 URL 便于排查
+    try { console.error('[Translator] API error', { model: SUPPORTED_MODELS.GPT_4O_MINI, url }); } catch (_) {}
     const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `OpenAI API 错误 (${response.status}): ${errorText}`);
     err.statusCode = response.status;
+    err.meta = { model: SUPPORTED_MODELS.GPT_4O_MINI, url };
     throw err;
   }
 
@@ -259,6 +268,14 @@ async function translateWithRetry(translator, text, apiKey, apiBaseUrl, model, a
       return await translator(text, apiKey, apiBaseUrl);
     }
   } catch (error) {
+    // 在发生错误时记录模型与基础 URL（便于快速定位问题）
+    try { console.error('[Translator] Translate failed', { model, url: buildApiBaseUrl(apiBaseUrl) }, error); } catch (_) {}
+    // 统一补充错误元数据，便于上层 UI 捕获展示
+    try {
+      if (!error.meta) {
+        error.meta = { model, url: buildApiBaseUrl(apiBaseUrl) };
+      }
+    } catch (_) {}
     // 如果是配置错误或认证错误，不重试
     if (error.type === TRANSLATION_ERRORS.INVALID_CONFIG || 
         error.message.includes('401') || 

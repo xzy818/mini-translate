@@ -45,7 +45,8 @@ export class AIApiClient {
       
       return result;
     } catch (error) {
-      console.error(`[AI API] Request failed for ${provider}/${model}:`, error);
+      // 打印模型与 URL，便于快速定位问题
+      try { console.error('[AI API] Request failed', { provider, model, url }, error); } catch (_) {}
       throw error;
     }
   }

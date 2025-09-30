@@ -149,6 +149,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       .catch((error) => {
         const message = error?.message || '测试失败';
         const label = error?.type === TRANSLATION_ERRORS.TIMEOUT ? '[qa:test] timeout' : '[qa:test] error';
+        // 将模型与URL也输出，方便在前端控制台直接看到
+        try { console.error(label, { model: config.model, apiBaseUrl: computedBase }, error); } catch (_) {}
         console.warn(label, message);
         sendResponse({ ok: false, error: message });
       });
@@ -161,7 +163,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         sendResponse({ ok: true, translation });
       })
       .catch((error) => {
-        sendResponse({ ok: false, error: error.message || '翻译失败' });
+        const meta = error?.meta || {};
+        // 将模型/URL 透传给前端，便于控制台和UI显示
+        sendResponse({ ok: false, error: error.message || '翻译失败', meta });
       });
     return true; // keep channel open for async response
   }
