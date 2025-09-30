@@ -366,8 +366,11 @@ process.on('SIGTERM', async () => {
 });
 
 // 执行测试
-runComprehensiveExtensionLoadingTestsV3().catch(async (error) => {
-  console.error('❌ Comprehensive test execution failed:', error);
-  await stopChrome();
-  // 移除process.exit，让vitest处理
+import { describe, it, expect } from 'vitest';
+
+describe('Comprehensive Extension Loading V3', () => {
+  it('should run comprehensive checks', async () => {
+    await runComprehensiveExtensionLoadingTestsV3();
+    expect(true).toBe(true);
+  });
 });

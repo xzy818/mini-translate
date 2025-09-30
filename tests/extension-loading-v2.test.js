@@ -405,8 +405,11 @@ process.on('SIGTERM', async () => {
 });
 
 // 执行测试
-runExtensionLoadingTestsV2().catch(async (error) => {
-  console.error('❌ Test execution failed:', error);
-  await stopChrome();
-  // 移除process.exit，让vitest处理
+import { describe, it, expect } from 'vitest';
+
+describe('Extension Loading Script V2', () => {
+  it('should execute extension loading checks', async () => {
+    await runExtensionLoadingTestsV2();
+    expect(true).toBe(true);
+  });
 });

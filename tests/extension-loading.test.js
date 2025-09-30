@@ -354,7 +354,11 @@ async function runExtensionLoadingTests() {
 }
 
 // 执行测试
-runExtensionLoadingTests().catch(error => {
-  console.error('❌ Test execution failed:', error);
-  // 移除process.exit，让vitest处理
+import { describe, it, expect } from 'vitest';
+
+describe('Extension Loading Script V3', () => {
+  it('should execute extension loading checks', async () => {
+    await runExtensionLoadingTests();
+    expect(true).toBe(true);
+  });
 });

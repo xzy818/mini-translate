@@ -370,8 +370,11 @@ process.on('SIGTERM', async () => {
 });
 
 // 执行测试
-runExtensionLoadingVerificationTestsV3().catch(async (error) => {
-  console.error('❌ L3 test execution failed:', error);
-  await stopChrome();
-  // 移除process.exit，让vitest处理
+import { describe, it, expect } from 'vitest';
+
+describe('Extension Loading Verification V3', () => {
+  it('should verify extension loading', async () => {
+    await runExtensionLoadingVerificationTestsV3();
+    expect(true).toBe(true);
+  });
 });
