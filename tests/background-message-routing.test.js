@@ -34,7 +34,7 @@ const mockBackgroundMessageHandler = () => {
           sendResponse({ ok: true });
           return false;
           
-        case 'TEST_TRANSLATOR_SETTINGS':
+        case 'TEST_TRANSLATOR_SETTINGS': {
           const config = message.payload || {};
           // 模拟验证配置
           if (!config.model || !config.apiKey) {
@@ -46,6 +46,7 @@ const mockBackgroundMessageHandler = () => {
             sendResponse({ ok: true });
           }, 100);
           return true;
+        }
           
         case 'TRANSLATE_TERM':
           // 模拟翻译
@@ -61,12 +62,13 @@ const mockBackgroundMessageHandler = () => {
           }, 50);
           return true;
           
-        case 'AI_API_CALL':
+        case 'AI_API_CALL': {
           // 模拟AI API调用
           setTimeout(() => {
             sendResponse({ ok: true, result: { text: 'AI response' }, requestId: message.payload?.requestId });
           }, 100);
           return true;
+        }
           
         case 'GET_AI_PROVIDERS':
           // 模拟获取AI提供商
