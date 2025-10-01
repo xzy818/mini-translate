@@ -12,7 +12,7 @@ export const SUPPORTED_MODELS = {
 };
 
 // 默认超时时间（毫秒）
-const DEFAULT_TIMEOUT = 10000;
+const DEFAULT_TIMEOUT = 20000;
 
 const QA_STUB_PREFIX = 'stub://translator';
 

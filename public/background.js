@@ -39,7 +39,17 @@ function setup() {
 }
 
 self.addEventListener('unhandledrejection', (event) => {
-  console.error('[qa] unhandled rejection', event.reason);
+  try {
+    const reason = event?.reason;
+    const msg = typeof reason?.message === 'string' ? reason.message : String(reason || '');
+    if (msg.includes('Could not establish connection') || msg.includes('The message port closed')) {
+      console.warn('[qa] unhandled rejection (ignored)', msg);
+      return;
+    }
+    console.error('[qa] unhandled rejection', reason);
+  } catch (e) {
+    console.error('[qa] unhandled rejection');
+  }
 });
 
 self.addEventListener('error', (event) => {
@@ -120,8 +130,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 
   if (message.type === 'SETTINGS_UPDATED') {
+    // 尽管为同步响应，这里统一返回 true，避免某些环境下端口提前关闭告警
     sendResponse({ ok: true });
-    return false;
+    return true;
   }
 
   if (message.type === 'TEST_TRANSLATOR_SETTINGS') {
@@ -140,7 +151,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       model: config.model,
       apiKey: config.apiKey,
       apiBaseUrl: computedBase,
-      timeout: 5000
+      timeout: 15000
     })
       .then(() => {
         console.warn('[qa:test] success');
