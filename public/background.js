@@ -169,7 +169,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 
   if (message.type === 'TRANSLATE_TERM') {
-    translateText(message.payload)
+    // 统一在后台根据模型映射 Base URL，避免前端缺失 apiBaseUrl 导致配置无效
+    const payload = message.payload || {};
+    const mappedBase = mapBaseUrlByModel(payload.model);
+    const finalPayload = { ...payload, apiBaseUrl: mappedBase };
+    translateText(finalPayload)
       .then((translation) => {
         sendResponse({ ok: true, translation });
       })
@@ -188,9 +192,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       return false;
     }
 
-    // 获取当前设置并处理异步操作
-    chrome.storage.local.get(['model', 'apiKey'], async (settings) => {
-      const { model, apiKey } = settings;
+    // 获取当前设置并处理异步操作（统一从 settings 对象读取）
+    chrome.storage.local.get(['settings'], async (bag) => {
+      const model = bag?.settings?.model;
+      const apiKey = bag?.settings?.apiKey;
       const apiBaseUrl = mapBaseUrlByModel(model);
       if (!model || !apiKey || !apiBaseUrl) {
         sendResponse({ ok: false, error: '翻译配置不完整' });
@@ -199,12 +204,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
       try {
         // 重新翻译
-        const translation = await translateText({
-          text: term,
-          model,
-          apiKey,
-          apiBaseUrl
-        });
+        const translation = await translateText({ text: term, model, apiKey, apiBaseUrl });
 
         // 更新词库中的翻译结果
         const vocabData = await chrome.storage.local.get(['vocabulary']);

@@ -123,10 +123,33 @@ function notifySelectionChange(nextText) {
     return;
   }
   lastSelectionText = nextText;
-  chrome.runtime.sendMessage({
-    type: 'SELECTION_CHANGED',
-    payload: { selectionText: nextText }
-  });
+  try {
+    // 当扩展被重载/卸载或不可注入页时，可能触发以下错误：
+    // - Extension context invalidated
+    // - Could not establish connection / Receiving end does not exist
+    if (!chrome || !chrome.runtime || !chrome.runtime.id) {
+      return;
+    }
+    chrome.runtime.sendMessage({
+      type: 'SELECTION_CHANGED',
+      payload: { selectionText: nextText }
+    }, () => {
+      const err = chrome.runtime.lastError;
+      if (err) {
+        const msg = String(err.message || '');
+        if (
+          msg.includes('Could not establish connection') ||
+          msg.includes('Receiving end does not exist') ||
+          msg.includes('Extension context invalidated') ||
+          msg.includes('The message port closed')
+        ) {
+          return; // 忽略噪音
+        }
+      }
+    });
+  } catch (e) {
+    // 忽略在上下文无效期间的异常
+  }
 }
 
 function readCurrentSelection() {

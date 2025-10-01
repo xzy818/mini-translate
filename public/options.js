@@ -168,19 +168,36 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       apiKey: keyEl.value.trim()
     };
     try {
-      const response = await wrapAsync((resolve, reject) => {
-        chromeLike.runtime.sendMessage(
-          { type: 'TEST_TRANSLATOR_SETTINGS', payload },
-          (res) => {
-            const error = chromeLike.runtime?.lastError;
-            if (error) {
-              reject(new Error(error.message));
-              return;
+      const tryOnce = () =>
+        new Promise((resolve, reject) => {
+          chromeLike.runtime.sendMessage(
+            { type: 'TEST_TRANSLATOR_SETTINGS', payload },
+            (res) => {
+              const error = chromeLike.runtime?.lastError;
+              if (error) {
+                const msg = String(error.message || '');
+                // SW 回收或通道关闭，短暂重试一次
+                if (
+                  msg.includes('The message port closed') ||
+                  msg.includes('Receiving end does not exist')
+                ) {
+                  resolve({ ok: false, _transient: true, error: msg });
+                  return;
+                }
+                reject(new Error(msg));
+                return;
+              }
+              resolve(res);
             }
-            resolve(res);
-          }
-        );
-      });
+          );
+        });
+
+      let response = await tryOnce();
+      if (response?._transient) {
+        // 100ms 后重试一次
+        await new Promise((r) => setTimeout(r, 100));
+        response = await tryOnce();
+      }
       if (response?.ok) {
         notify('测试通过');
       } else {
