@@ -4,46 +4,72 @@
 export class AIApiFrontend {
   constructor() {
     this.requestId = 0;
+    this.DEFAULT_TIMEOUT = 30000;
   }
 
-  // 调用 AI API
+  // 调用 AI API（通过后台 Service Worker 代理发起）
   async callAPI({ provider, model, messages, apiKey, options = {} }) {
     return new Promise((resolve, reject) => {
       const requestId = ++this.requestId;
-      
-      // 设置超时
-      const timeout = setTimeout(() => {
-        reject(new Error('AI API request timeout'));
-      }, 30000); // 30秒超时
+      const timeoutMs = options.timeoutMs || this.DEFAULT_TIMEOUT;
+      let settled = false;
 
-      // 监听响应
-      const handleResponse = (response) => {
-        if (response.requestId === requestId) {
-          clearTimeout(timeout);
-          chrome.runtime.onMessage.removeListener(handleResponse);
-          
-          if (response.ok) {
-            resolve(response.result);
-          } else {
-            reject(new Error(response.error));
+      const timeoutId = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          reject(new Error('AI API request timeout'));
+        }
+      }, timeoutMs);
+
+      try {
+        chrome.runtime.sendMessage(
+          {
+            type: 'AI_API_CALL',
+            payload: {
+              provider,
+              model,
+              messages,
+              apiKey,
+              options,
+              requestId
+            }
+          },
+          (response) => {
+            if (settled) {
+              return;
+            }
+
+            clearTimeout(timeoutId);
+
+            const lastError = chrome.runtime?.lastError;
+            if (lastError) {
+              settled = true;
+              reject(new Error(lastError.message || 'AI API request failed'));
+              return;
+            }
+
+            if (!response) {
+              settled = true;
+              reject(new Error('AI API response is empty'));
+              return;
+            }
+
+            if (response.ok) {
+              settled = true;
+              resolve(response.result);
+            } else {
+              settled = true;
+              reject(new Error(response.error || 'AI API request failed'));
+            }
           }
+        );
+      } catch (error) {
+        if (!settled) {
+          clearTimeout(timeoutId);
+          settled = true;
+          reject(error);
         }
-      };
-
-      chrome.runtime.onMessage.addListener(handleResponse);
-
-      // 发送请求
-      chrome.runtime.sendMessage({
-        type: 'AI_API_CALL',
-        payload: {
-          provider,
-          model,
-          messages,
-          apiKey,
-          options,
-          requestId
-        }
-      });
+      }
     });
   }
 
@@ -143,5 +169,4 @@ export class AIApiFrontend {
 
 // 导出单例实例
 export const aiApiFrontend = new AIApiFrontend();
-
 
