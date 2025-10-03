@@ -14,6 +14,10 @@ export const MENU_ID = 'mini-translate-action';
 
 const menuState = new Map();
 
+function buildTabKey(tabId) {
+  return Number.isInteger(tabId) ? tabId : 'global';
+}
+
 function setMenuContext(chromeLike, tabKey, context) {
   if (context) {
     chromeLike.contextMenus.update(MENU_ID, {
@@ -30,7 +34,7 @@ function setMenuContext(chromeLike, tabKey, context) {
 export async function updateMenuForInfo(chromeLike, info, tabId) {
   try {
     const context = await resolveMenuContext(chromeLike, info, tabId);
-    const key = tabId ?? 'global';
+    const key = buildTabKey(tabId);
     setMenuContext(chromeLike, key, context);
   } catch (error) {
     console.warn('Failed to resolve menu context', error);
@@ -69,15 +73,15 @@ function inferType(term) {
 
 async function translateTerm(chromeLike, text) {
   const settings = await readSettings(chromeLike);
-  const { model, apiKey, apiBaseUrl } = settings;
-  if (!model || !apiKey || !apiBaseUrl) {
+  const { model, apiKey } = settings;
+  if (!model || !apiKey) {
     return { ok: false, reason: 'INVALID_SETTINGS' };
   }
   return new Promise((resolve) => {
     chromeLike.runtime.sendMessage(
       {
         type: 'TRANSLATE_TERM',
-        payload: { text, model, apiKey, apiBaseUrl }
+        payload: { text, model, apiKey }
       },
       (response) => {
         if (chromeLike.runtime.lastError) {
@@ -100,6 +104,10 @@ export async function handleAddTerm(chromeLike, info, tabId) {
     return { ok: false, reason: validity.error };
   }
   const translationResult = await translateTerm(chromeLike, selectionText);
+  if (!translationResult.ok && translationResult.reason === 'INVALID_SETTINGS') {
+    notify(chromeLike, '请先在扩展设置中配置模型和 API Key。');
+    return { ok: false, reason: 'INVALID_SETTINGS' };
+  }
   const translation = translationResult.ok ? translationResult.translation : '';
 
   const payload = {
@@ -113,11 +121,17 @@ export async function handleAddTerm(chromeLike, info, tabId) {
   if (upserted.error === 'LIMIT_EXCEEDED') {
     return { ok: false, reason: 'LIMIT_EXCEEDED', count: MAX_VOCAB };
   }
-  if (translationResult.ok && Number.isInteger(tabId)) {
-    safeSendMessage(chromeLike, tabId, {
-      type: 'APPLY_TRANSLATION',
-      payload
-    });
+  if (translationResult.ok) {
+    if (Number.isInteger(tabId)) {
+      safeSendMessage(chromeLike, tabId, {
+        type: 'APPLY_TRANSLATION',
+        payload
+      });
+    }
+    notify(chromeLike, `已添加词条：${selectionText}`);
+  } else {
+    const reason = translationResult.reason || '翻译失败，请稍后重试。';
+    notify(chromeLike, reason);
   }
   chromeLike.runtime.sendMessage({ type: 'VOCAB_UPDATED', payload: { added: payload } });
   return { ok: true, payload };
@@ -139,6 +153,7 @@ export async function handleRemoveTerm(chromeLike, info, tabId) {
     });
   }
   chromeLike.runtime.sendMessage({ type: 'VOCAB_UPDATED', payload: { removed: term } });
+  notify(chromeLike, `已移除词条：${term}`);
   return { ok: true };
 }
 
@@ -151,6 +166,11 @@ export async function handleTogglePage(chromeLike, tabId) {
       payload: { vocabulary }
     });
   }
+  notify(
+    chromeLike,
+    enabled ? '已在当前页面启用 Mini Translate。' : '已在当前页面停用 Mini Translate。',
+    'Mini Translate'
+  );
   return { ok: true, enabled };
 }
 
@@ -163,32 +183,52 @@ function notify(chromeLike, message, title = 'Mini Translate') {
   });
 }
 
+function buildToggleMenuTitle(enabled, vocabulary) {
+  const baseTitle = enabled ? 'stop mini-translate' : 'start mini-translate';
+  const latest = [...vocabulary]
+    .reverse()
+    .find((entry) => entry && entry.translation && entry.status !== 'error');
+  if (!latest) {
+    return baseTitle;
+  }
+  return `${baseTitle} · 最近词: ${latest.term}`;
+}
+
+function buildSelectionMenuTitle(term, exists, vocabulary) {
+  if (!exists) {
+    return `add & mini-translate · 选中: ${term}`;
+  }
+  const entry = vocabulary.find((item) => item.term === term);
+  const translation = entry?.translation ? ` → ${entry.translation}` : '';
+  return `remove from mini-translate · 选中: ${term}${translation}`;
+}
+
 async function resolveMenuContext(chromeLike, info, tabId) {
   const selection = (info.selectionText || '').trim();
   const vocabulary = await readVocabulary(chromeLike);
   const states = await readTabState(chromeLike);
-  const enabled = tabId ? Boolean(states[tabId]?.enabled) : false;
+  const tabEnabled = Number.isInteger(tabId) ? Boolean(states[tabId]?.enabled) : false;
 
   if (selection) {
-    const exists = vocabulary.find((entry) => entry.term === selection);
+    const exists = vocabulary.some((entry) => entry.term === selection);
+    const title = buildSelectionMenuTitle(selection, exists, vocabulary);
+
     if (!exists) {
       return {
-        title: 'add & mini-translate',
+        title,
         execute: async () => {
           const result = await handleAddTerm(chromeLike, info, tabId);
-          if (!result.ok && result.reason) {
-            notify(
-              chromeLike,
-              result.reason === 'LIMIT_EXCEEDED'
-                ? '词库已满 (500)，请删除后再添加。'
-                : '添加失败，请检查配置或稍后重试。'
-            );
+          if (!result.ok) {
+            if (result.reason === 'LIMIT_EXCEEDED') {
+              notify(chromeLike, '词库已满 (500)，请删除后再添加。');
+            }
           }
         }
       };
     }
+
     return {
-      title: 'remove from mini-translate',
+      title,
       execute: async () => {
         const result = await handleRemoveTerm(chromeLike, info, tabId);
         if (!result.ok) {
@@ -198,15 +238,16 @@ async function resolveMenuContext(chromeLike, info, tabId) {
     };
   }
 
+  const title = buildToggleMenuTitle(tabEnabled, vocabulary);
   return {
-    title: enabled ? 'stop mini-translate' : 'start mini-translate',
+    title,
     execute: async () => {
-      const result = await handleTogglePage(chromeLike, tabId || info.frameId || 0);
-      notify(
-        chromeLike,
-        '右键菜单随状态更新。',
-        result.enabled ? 'Mini Translate 已开启' : 'Mini Translate 已关闭'
-      );
+      const targetTabId = Number.isInteger(tabId) ? tabId : info?.tabId ?? null;
+      if (!Number.isInteger(targetTabId)) {
+        notify(chromeLike, '无法识别当前页面，暂时无法切换。');
+        return;
+      }
+      await handleTogglePage(chromeLike, targetTabId);
     }
   };
 }
@@ -224,7 +265,7 @@ export async function createContextMenus(chromeLike) {
 export function registerHandlers(chromeLike) {
   chromeLike.contextMenus.onClicked.addListener(async (info, tab) => {
     const tabId = tab?.id;
-    const key = tabId ?? 'global';
+    const key = buildTabKey(tabId);
     let context = menuState.get(key);
     if (!context) {
       context = await resolveMenuContext(chromeLike, info, tabId);
@@ -237,9 +278,7 @@ export function registerHandlers(chromeLike) {
     }
     await context.execute();
     // Refresh menu state after action execution to reflect latest scenario.
-    if (tabId != null) {
-      await updateMenuForInfo(chromeLike, info, tabId);
-    }
+    await updateMenuForInfo(chromeLike, info, tabId);
   });
 
   chromeLike.tabs.onRemoved.addListener((tabId) => {

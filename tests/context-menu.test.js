@@ -128,8 +128,7 @@ describe('context menu dynamic scenes', () => {
   it('shows add action when selection not in vocabulary', async () => {
     await writeSettings(chromeStub, {
       model: 'gpt-4o-mini',
-      apiKey: 'mock-key',
-      apiBaseUrl: 'https://api.example.com'
+      apiKey: 'mock-key'
     });
 
     const info = { selectionText: 'new-term' };
@@ -139,7 +138,10 @@ describe('context menu dynamic scenes', () => {
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ title: 'add & mini-translate', visible: true })
+      expect.objectContaining({
+        title: expect.stringContaining('add & mini-translate'),
+        visible: true
+      })
     );
 
     chromeStub.contextMenus.update.mockClear();
@@ -151,11 +153,36 @@ describe('context menu dynamic scenes', () => {
     const vocab = await readVocabulary(chromeStub);
     expect(vocab).toHaveLength(1);
     expect(vocab[0].term).toBe('new-term');
-    expect(chromeStub.notifications.create).not.toHaveBeenCalled();
+    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
+      expect.objectContaining({ message: '已添加词条：new-term' })
+    );
     expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'TRANSLATE_TERM' }),
       expect.any(Function)
     );
+  });
+
+  it('notifies user when translation settings are incomplete', async () => {
+    await writeSettings(chromeStub, {});
+
+    const info = { selectionText: 'need-config' };
+    const tab = { id: 4 };
+
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
+
+    chromeStub.runtime.sendMessage.mockClear();
+    chromeStub.notifications.create.mockClear();
+
+    await chromeStub._onClicked(info, tab);
+    await flushPromises();
+
+    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
+      expect.objectContaining({ message: '请先在扩展设置中配置模型和 API Key。' })
+    );
+    expect(chromeStub.runtime.sendMessage).not.toHaveBeenCalled();
+
+    const vocab = await readVocabulary(chromeStub);
+    expect(vocab).toHaveLength(0);
   });
 
   it('shows remove action when selection exists in vocabulary', async () => {
@@ -168,14 +195,22 @@ describe('context menu dynamic scenes', () => {
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ title: 'remove from mini-translate', visible: true })
+      expect.objectContaining({
+        title: expect.stringContaining('remove from mini-translate'),
+        visible: true
+      })
     );
+
+    chromeStub.notifications.create.mockClear();
 
     await chromeStub._onClicked(info, tab);
     await flushPromises();
 
     const vocab = await readVocabulary(chromeStub);
     expect(vocab.find((item) => item.term === 'existing')).toBeUndefined();
+    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
+      expect.objectContaining({ message: '已移除词条：existing' })
+    );
   });
 
   it('shows start/stop based on tab state', async () => {
@@ -186,7 +221,10 @@ describe('context menu dynamic scenes', () => {
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ title: 'start mini-translate', visible: true })
+      expect.objectContaining({
+        title: expect.stringContaining('start mini-translate'),
+        visible: true
+      })
     );
 
     chromeStub.contextMenus.update.mockClear();
@@ -195,7 +233,10 @@ describe('context menu dynamic scenes', () => {
     await flushPromises();
 
     expect(chromeStub.notifications.create).toHaveBeenCalledWith(
-      expect.objectContaining({ title: 'Mini Translate 已开启' })
+      expect.objectContaining({
+        title: 'Mini Translate',
+        message: '已在当前页面启用 Mini Translate。'
+      })
     );
 
     chromeStub.notifications.create.mockClear();
@@ -204,14 +245,20 @@ describe('context menu dynamic scenes', () => {
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ title: 'stop mini-translate', visible: true })
+      expect.objectContaining({
+        title: expect.stringContaining('stop mini-translate'),
+        visible: true
+      })
     );
 
     await chromeStub._onClicked(info, tab);
     await flushPromises();
 
     expect(chromeStub.notifications.create).toHaveBeenCalledWith(
-      expect.objectContaining({ title: 'Mini Translate 已关闭' })
+      expect.objectContaining({
+        title: 'Mini Translate',
+        message: '已在当前页面停用 Mini Translate。'
+      })
     );
 
     const state = await readTabState(chromeStub);
