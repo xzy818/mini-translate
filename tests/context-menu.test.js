@@ -119,11 +119,31 @@ describe('context menu dynamic scenes', () => {
     registerHandlers(chromeStub);
     chromeStub.contextMenus.update.mockClear();
     chromeStub.notifications.create.mockClear();
-    chromeStub.runtime.sendMessage.mockClear();
-    chromeStub.tabs.sendMessage.mockClear();
-    chromeStub._localStore.clear();
-    chromeStub._sessionStore.clear();
+  chromeStub.runtime.sendMessage.mockClear();
+  chromeStub.tabs.sendMessage.mockClear();
+  chromeStub._localStore.clear();
+  chromeStub._sessionStore.clear();
+});
+
+function mockTranslateFailure(chromeStub, errorMessage = '网络错误') {
+  chromeStub.runtime.sendMessage.mockImplementation((message, cb) => {
+    if (message.type === 'TRANSLATE_TERM') {
+      cb({ ok: false, reason: errorMessage });
+      return;
+    }
+    cb && cb({ ok: true });
   });
+}
+
+function fillVocabulary(chromeStub, count) {
+  const list = Array.from({ length: count }, (_, index) => ({
+    term: `term-${index}`,
+    translation: `译-${index}`,
+    status: 'active'
+  }));
+  chromeStub._localStore.set('miniTranslateVocabulary', list);
+  return list;
+}
 
   it('shows add action when selection not in vocabulary', async () => {
     await writeSettings(chromeStub, {
@@ -139,7 +159,7 @@ describe('context menu dynamic scenes', () => {
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
       expect.objectContaining({
-        title: expect.stringContaining('add & mini-translate'),
+        title: expect.stringContaining('add & mini-translate · 选中: new-term'),
         visible: true
       })
     );
@@ -159,6 +179,108 @@ describe('context menu dynamic scenes', () => {
     expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'TRANSLATE_TERM' }),
       expect.any(Function)
+    );
+  });
+
+  it('handles translation failure gracefully', async () => {
+    await writeSettings(chromeStub, {
+      model: 'gpt-4o-mini',
+      apiKey: 'mock-key'
+    });
+
+    mockTranslateFailure(chromeStub, '翻译服务暂时不可用');
+
+    const info = { selectionText: 'cloud' };
+    const tab = { id: 7 };
+
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
+
+    await chromeStub._onClicked(info, tab);
+    await flushPromises();
+
+    const vocab = await readVocabulary(chromeStub);
+    expect(vocab).toHaveLength(1);
+    expect(vocab[0]).toEqual(
+      expect.objectContaining({ term: 'cloud', status: 'error', translation: '' })
+    );
+    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
+      expect.objectContaining({ message: '翻译服务暂时不可用' })
+    );
+    expect(chromeStub.tabs.sendMessage).not.toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.objectContaining({ type: 'APPLY_TRANSLATION' }),
+      expect.any(Function)
+    );
+  });
+
+  it('reports vocabulary limit exceeded', async () => {
+    await writeSettings(chromeStub, {
+      model: 'gpt-4o-mini',
+      apiKey: 'mock-key'
+    });
+
+    fillVocabulary(chromeStub, 500);
+
+    const info = { selectionText: 'overflow' };
+    const tab = { id: 8 };
+
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
+
+    await chromeStub._onClicked(info, tab);
+    await flushPromises();
+
+    const vocab = await readVocabulary(chromeStub);
+    expect(vocab).toHaveLength(500);
+    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
+      expect.objectContaining({ message: '词库已满 (500)，请删除后再添加。' })
+    );
+  });
+
+  it('shows last translation in toggle title when available', async () => {
+    await writeSettings(chromeStub, {
+      model: 'gpt-4o-mini',
+      apiKey: 'mock-key'
+    });
+    await writeVocabulary(chromeStub, [
+      { term: 'apple', translation: '苹果', status: 'active' },
+      { term: 'banana', translation: '香蕉', status: 'error' },
+      { term: 'cat', translation: '猫', status: 'active' }
+    ]);
+
+    const info = { selectionText: '' };
+    const tab = { id: 5 };
+
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
+
+    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
+      MENU_ID,
+      expect.objectContaining({
+        title: expect.stringContaining('start mini-translate · 最近词: cat'),
+        visible: true
+      })
+    );
+  });
+
+  it('falls back to base title when no translations available', async () => {
+    await writeSettings(chromeStub, {
+      model: 'gpt-4o-mini',
+      apiKey: 'mock-key'
+    });
+    await writeVocabulary(chromeStub, [
+      { term: 'banana', translation: '', status: 'error' }
+    ]);
+
+    const info = { selectionText: '' };
+    const tab = { id: 6 };
+
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
+
+    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
+      MENU_ID,
+      expect.objectContaining({
+        title: 'start mini-translate',
+        visible: true
+      })
     );
   });
 
