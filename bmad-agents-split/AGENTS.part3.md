@@ -1,4 +1,29 @@
-uld I proceed with comprehensive documentation of the entire codebase? (Note: This may create excessive documentation for large projects)
+### 1. Initial Project Analysis
+
+**CRITICAL:** First, check if a PRD or requirements document exists in context. If yes, use it to focus your documentation efforts on relevant areas only.
+
+**IF PRD EXISTS**:
+
+- Review the PRD to understand what enhancement/feature is planned
+- Identify which modules, services, or areas will be affected
+- Focus documentation ONLY on these relevant areas
+- Skip unrelated parts of the codebase to keep docs lean
+
+**IF NO PRD EXISTS**:
+Ask the user:
+
+"I notice you haven't provided a PRD or requirements document. To create more focused and useful documentation, I recommend one of these options:
+
+1. **Create a PRD first** - Would you like me to help create a brownfield PRD before documenting? This helps focus documentation on relevant areas.
+
+2. **Provide existing requirements** - Do you have a requirements document, epic, or feature description you can share?
+
+3. **Describe the focus** - Can you briefly describe what enhancement or feature you're planning? For example:
+   - 'Adding payment processing to the user service'
+   - 'Refactoring the authentication module'
+   - 'Integrating with a new third-party API'
+
+4. **Document everything** - Or should I proceed with comprehensive documentation of the entire codebase? (Note: This may create excessive documentation for large projects)
 
 Please let me know your preference, or I can proceed with full documentation if you prefer."
 
@@ -1837,3 +1862,4 @@ Choose a number (0-8) or 9 to proceed:
 ```
 
 <!-- END: BMAD-AGENTS -->
+```
