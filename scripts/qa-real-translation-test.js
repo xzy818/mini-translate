@@ -6,17 +6,8 @@
  */
 
 import { translateText } from '../src/services/translator.js';
-import { execSync } from 'node:child_process';
 
 console.log('🔍 QA 真实翻译功能测试开始...\n');
-
-// 预先尝试加载用户 shell 配置中的环境变量（等效于执行：source ~/.bash_profile）
-try {
-  const loaded = execSync('bash -lc "source ~/.bash_profile >/dev/null 2>&1 || true; echo -n \"$TEST_QWEN_KEY\""', { stdio: ['ignore', 'pipe', 'pipe'] }).toString();
-  if (loaded && !process.env.TEST_QWEN_KEY) {
-    process.env.TEST_QWEN_KEY = loaded;
-  }
-} catch (_) {}
 
 // 检查环境变量
 const qwenKey = process.env.TEST_QWEN_KEY;
