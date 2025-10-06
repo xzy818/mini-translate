@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 importScripts('./src/services/context-menu.js');
 importScripts('./src/services/translator.js');
 importScripts('./src/services/ai-api-client.js');
 importScripts('./src/config/model-providers.js');
 
+=======
+>>>>>>> 33a33d622fb869fba02be16f56ea1ebcb2702405
 import {
   initializeBackground,
   handleAddTerm,
@@ -15,6 +18,11 @@ import {
   validateTranslationConfig,
   TRANSLATION_ERRORS
 } from './src/services/translator.js';
+<<<<<<< HEAD
+=======
+import { AIApiClient } from './src/services/ai-api-client.js';
+import { MODEL_PROVIDERS } from './src/config/model-providers.js';
+>>>>>>> 33a33d622fb869fba02be16f56ea1ebcb2702405
 
 let initialized = false;
 let aiApiClient = null;
