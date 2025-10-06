@@ -12,7 +12,8 @@
     "build": "node scripts/build-zip.sh",
     "dev": "vitest --watch",
     "lint": "eslint . --ext .js,.mjs",
-    "lint:fix": "eslint . --ext .js,.mjs --fix"
+    "lint:fix": "eslint . --ext .js,.mjs --fix",
+    "validate": "npm run lint && npm run test"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^1.0.0",
