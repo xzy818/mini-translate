@@ -9,7 +9,7 @@
     "test:diagnosis:coverage": "node scripts/run-translation-diagnosis-tests.js --coverage",
     "test:diagnosis:pattern": "node scripts/run-translation-diagnosis-tests.js --pattern",
     "test:e2e:local": "node tests/run-local-e2e-tests.js",
-    "build": "node scripts/build-zip.sh",
+    "build": "bash scripts/build-zip.sh",
     "dev": "vitest --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
