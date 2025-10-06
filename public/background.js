@@ -179,6 +179,12 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       })
       .catch((error) => {
         const meta = error?.meta || {};
+        // 控制台统一输出模型与URL，便于排查
+        try {
+          const logModel = finalPayload?.model || meta?.model;
+          const logUrl = meta?.url || finalPayload?.apiBaseUrl;
+          console.error('[translate] term failed', { model: logModel, apiBaseUrl: logUrl }, error);
+        } catch (_) {}
         // 将模型/URL 透传给前端，便于控制台和UI显示
         sendResponse({ ok: false, error: error.message || '翻译失败', meta });
       });
@@ -229,8 +235,16 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
         sendResponse({ ok: true, translation });
       } catch (error) {
-        console.error('重新翻译失败:', error);
-        sendResponse({ ok: false, error: error.message || '重新翻译失败' });
+        // 包含模型与URL的错误日志
+        try {
+          const meta = error?.meta || {};
+          const logModel = meta?.model || model;
+          const logUrl = meta?.url || apiBaseUrl;
+          console.error('重新翻译失败:', { model: logModel, apiBaseUrl: logUrl }, error);
+          sendResponse({ ok: false, error: error.message || '重新翻译失败', meta });
+        } catch (_) {
+          sendResponse({ ok: false, error: error.message || '重新翻译失败' });
+        }
       }
     });
     return true; // keep channel open for async response
