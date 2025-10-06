@@ -1,0 +1,2314 @@
+---
+description: BMAD Agents part 2
+globs: []
+alwaysApply: true
+---
+
+### Requirement Mappings
+
+#### AC1: {Acceptance Criterion 1}
+
+**Coverage: FULL**
+
+Given-When-Then Mappings:
+
+- **Unit Test**: `auth.service.test.ts::validateCredentials`
+  - Given: Valid user credentials
+  - When: Validation method called
+  - Then: Returns true with user object
+
+- **Integration Test**: `auth.integration.test.ts::loginFlow`
+  - Given: User with valid account
+  - When: Login API called
+  - Then: JWT token returned and session created
+
+#### AC2: {Acceptance Criterion 2}
+
+**Coverage: PARTIAL**
+
+[Continue for all ACs...]
+
+### Critical Gaps
+
+1. **Performance Requirements**
+   - Gap: No load testing for concurrent users
+   - Risk: High - Could fail under production load
+   - Action: Implement load tests using k6 or similar
+
+2. **Security Requirements**
+   - Gap: Rate limiting not tested
+   - Risk: Medium - Potential DoS vulnerability
+   - Action: Add rate limit tests to integration suite
+
+### Test Design Recommendations
+
+Based on gaps identified, recommend:
+
+1. Additional test scenarios needed
+2. Test types to implement (unit/integration/e2e/performance)
+3. Test data requirements
+4. Mock/stub strategies
+
+### Risk Assessment
+
+- **High Risk**: Requirements with no coverage
+- **Medium Risk**: Requirements with only partial coverage
+- **Low Risk**: Requirements with full unit + integration coverage
+```
+
+## Traceability Best Practices
+
+### Given-When-Then for Mapping (Not Test Code)
+
+Use Given-When-Then to document what each test validates:
+
+**Given**: The initial context the test sets up
+
+- What state/data the test prepares
+- User context being simulated
+- System preconditions
+
+**When**: The action the test performs
+
+- What the test executes
+- API calls or user actions tested
+- Events triggered
+
+**Then**: What the test asserts
+
+- Expected outcomes verified
+- State changes checked
+- Values validated
+
+**Note**: This is for documentation only. Actual test code follows your project's standards (e.g., describe/it blocks, no BDD syntax).
+
+### Coverage Priority
+
+Prioritize coverage based on:
+
+1. Critical business flows
+2. Security-related requirements
+3. Data integrity requirements
+4. User-facing features
+5. Performance SLAs
+
+### Test Granularity
+
+Map at appropriate levels:
+
+- Unit tests for business logic
+- Integration tests for component interaction
+- E2E tests for user journeys
+- Performance tests for NFRs
+
+## Quality Indicators
+
+Good traceability shows:
+
+- Every AC has at least one test
+- Critical paths have multiple test levels
+- Edge cases are explicitly covered
+- NFRs have appropriate test types
+- Clear Given-When-Then for each test
+
+## Red Flags
+
+Watch for:
+
+- ACs with no test coverage
+- Tests that don't map to requirements
+- Vague test descriptions
+- Missing edge case coverage
+- NFRs without specific tests
+
+## Integration with Gates
+
+This traceability feeds into quality gates:
+
+- Critical gaps → FAIL
+- Minor gaps → CONCERNS
+- Missing P0 tests from test-design → CONCERNS
+
+### Output 3: Story Hook Line
+
+**Print this line for review task to quote:**
+
+```text
+Trace matrix: qa.qaLocation/assessments/{epic}.{story}-trace-{YYYYMMDD}.md
+```
+
+- Full coverage → PASS contribution
+
+## Key Principles
+
+- Every requirement must be testable
+- Use Given-When-Then for clarity
+- Identify both presence and absence
+- Prioritize based on risk
+- Make recommendations actionable
+```
+
+### Task: test-design
+Source: .bmad-core/tasks/test-design.md
+- How to use: "Use task test-design with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# test-design
+
+Create comprehensive test scenarios with appropriate test level recommendations for story implementation.
+
+## Inputs
+
+```yaml
+required:
+  - story_id: '{epic}.{story}' # e.g., "1.3"
+  - story_path: '{devStoryLocation}/{epic}.{story}.*.md' # Path from core-config.yaml
+  - story_title: '{title}' # If missing, derive from story file H1
+  - story_slug: '{slug}' # If missing, derive from title (lowercase, hyphenated)
+```
+
+## Purpose
+
+Design a complete test strategy that identifies what to test, at which level (unit/integration/e2e), and why. This ensures efficient test coverage without redundancy while maintaining appropriate test boundaries.
+
+## Dependencies
+
+```yaml
+data:
+  - test-levels-framework.md # Unit/Integration/E2E decision criteria
+  - test-priorities-matrix.md # P0/P1/P2/P3 classification system
+```
+
+## Process
+
+### 1. Analyze Story Requirements
+
+Break down each acceptance criterion into testable scenarios. For each AC:
+
+- Identify the core functionality to test
+- Determine data variations needed
+- Consider error conditions
+- Note edge cases
+
+### 2. Apply Test Level Framework
+
+**Reference:** Load `test-levels-framework.md` for detailed criteria
+
+Quick rules:
+
+- **Unit**: Pure logic, algorithms, calculations
+- **Integration**: Component interactions, DB operations
+- **E2E**: Critical user journeys, compliance
+
+### 3. Assign Priorities
+
+**Reference:** Load `test-priorities-matrix.md` for classification
+
+Quick priority assignment:
+
+- **P0**: Revenue-critical, security, compliance
+- **P1**: Core user journeys, frequently used
+- **P2**: Secondary features, admin functions
+- **P3**: Nice-to-have, rarely used
+
+### 4. Design Test Scenarios
+
+For each identified test need, create:
+
+```yaml
+test_scenario:
+  id: '{epic}.{story}-{LEVEL}-{SEQ}'
+  requirement: 'AC reference'
+  priority: P0|P1|P2|P3
+  level: unit|integration|e2e
+  description: 'What is being tested'
+  justification: 'Why this level was chosen'
+  mitigates_risks: ['RISK-001'] # If risk profile exists
+```
+
+### 5. Validate Coverage
+
+Ensure:
+
+- Every AC has at least one test
+- No duplicate coverage across levels
+- Critical paths have multiple levels
+- Risk mitigations are addressed
+
+## Outputs
+
+### Output 1: Test Design Document
+
+**Save to:** `qa.qaLocation/assessments/{epic}.{story}-test-design-{YYYYMMDD}.md`
+
+```markdown
+# Test Design: Story {epic}.{story}
+
+Date: {date}
+Designer: Quinn (Test Architect)
+
+## Test Strategy Overview
+
+- Total test scenarios: X
+- Unit tests: Y (A%)
+- Integration tests: Z (B%)
+- E2E tests: W (C%)
+- Priority distribution: P0: X, P1: Y, P2: Z
+
+## Test Scenarios by Acceptance Criteria
+
+### AC1: {description}
+
+#### Scenarios
+
+| ID           | Level       | Priority | Test                      | Justification            |
+| ------------ | ----------- | -------- | ------------------------- | ------------------------ |
+| 1.3-UNIT-001 | Unit        | P0       | Validate input format     | Pure validation logic    |
+| 1.3-INT-001  | Integration | P0       | Service processes request | Multi-component flow     |
+| 1.3-E2E-001  | E2E         | P1       | User completes journey    | Critical path validation |
+
+[Continue for all ACs...]
+
+## Risk Coverage
+
+[Map test scenarios to identified risks if risk profile exists]
+
+## Recommended Execution Order
+
+1. P0 Unit tests (fail fast)
+2. P0 Integration tests
+3. P0 E2E tests
+4. P1 tests in order
+5. P2+ as time permits
+```
+
+### Output 2: Gate YAML Block
+
+Generate for inclusion in quality gate:
+
+```yaml
+test_design:
+  scenarios_total: X
+  by_level:
+    unit: Y
+    integration: Z
+    e2e: W
+  by_priority:
+    p0: A
+    p1: B
+    p2: C
+  coverage_gaps: [] # List any ACs without tests
+```
+
+### Output 3: Trace References
+
+Print for use by trace-requirements task:
+
+```text
+Test design matrix: qa.qaLocation/assessments/{epic}.{story}-test-design-{YYYYMMDD}.md
+P0 tests identified: {count}
+```
+
+## Quality Checklist
+
+Before finalizing, verify:
+
+- [ ] Every AC has test coverage
+- [ ] Test levels are appropriate (not over-testing)
+- [ ] No duplicate coverage across levels
+- [ ] Priorities align with business risk
+- [ ] Test IDs follow naming convention
+- [ ] Scenarios are atomic and independent
+
+## Key Principles
+
+- **Shift left**: Prefer unit over integration, integration over E2E
+- **Risk-based**: Focus on what could go wrong
+- **Efficient coverage**: Test once at the right level
+- **Maintainability**: Consider long-term test maintenance
+- **Fast feedback**: Quick tests run first
+```
+
+### Task: shard-doc
+Source: .bmad-core/tasks/shard-doc.md
+- How to use: "Use task shard-doc with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# Document Sharding Task
+
+## Purpose
+
+- Split a large document into multiple smaller documents based on level 2 sections
+- Create a folder structure to organize the sharded documents
+- Maintain all content integrity including code blocks, diagrams, and markdown formatting
+
+## Primary Method: Automatic with markdown-tree
+
+[[LLM: First, check if markdownExploder is set to true in .bmad-core/core-config.yaml. If it is, attempt to run the command: `md-tree explode {input file} {output path}`.
+
+If the command succeeds, inform the user that the document has been sharded successfully and STOP - do not proceed further.
+
+If the command fails (especially with an error indicating the command is not found or not available), inform the user: "The markdownExploder setting is enabled but the md-tree command is not available. Please either:
+
+1. Install @kayvan/markdown-tree-parser globally with: `npm install -g @kayvan/markdown-tree-parser`
+2. Or set markdownExploder to false in .bmad-core/core-config.yaml
+
+**IMPORTANT: STOP HERE - do not proceed with manual sharding until one of the above actions is taken.**"
+
+If markdownExploder is set to false, inform the user: "The markdownExploder setting is currently false. For better performance and reliability, you should:
+
+1. Set markdownExploder to true in .bmad-core/core-config.yaml
+2. Install @kayvan/markdown-tree-parser globally with: `npm install -g @kayvan/markdown-tree-parser`
+
+I will now proceed with the manual sharding process."
+
+Then proceed with the manual method below ONLY if markdownExploder is false.]]
+
+### Installation and Usage
+
+1. **Install globally**:
+
+   ```bash
+   npm install -g @kayvan/markdown-tree-parser
+   ```
+
+2. **Use the explode command**:
+
+   ```bash
+   # For PRD
+   md-tree explode docs/prd.md docs/prd
+
+   # For Architecture
+   md-tree explode docs/architecture.md docs/architecture
+
+   # For any document
+   md-tree explode [source-document] [destination-folder]
+   ```
+
+3. **What it does**:
+   - Automatically splits the document by level 2 sections
+   - Creates properly named files
+   - Adjusts heading levels appropriately
+   - Handles all edge cases with code blocks and special markdown
+
+If the user has @kayvan/markdown-tree-parser installed, use it and skip the manual process below.
+
+---
+
+## Manual Method (if @kayvan/markdown-tree-parser is not available or user indicated manual method)
+
+### Task Instructions
+
+1. Identify Document and Target Location
+
+- Determine which document to shard (user-provided path)
+- Create a new folder under `docs/` with the same name as the document (without extension)
+- Example: `docs/prd.md` → create folder `docs/prd/`
+
+2. Parse and Extract Sections
+
+CRITICAL AEGNT SHARDING RULES:
+
+1. Read the entire document content
+2. Identify all level 2 sections (## headings)
+3. For each level 2 section:
+   - Extract the section heading and ALL content until the next level 2 section
+   - Include all subsections, code blocks, diagrams, lists, tables, etc.
+   - Be extremely careful with:
+     - Fenced code blocks (```) - ensure you capture the full block including closing backticks and account for potential misleading level 2's that are actually part of a fenced section example
+     - Mermaid diagrams - preserve the complete diagram syntax
+     - Nested markdown elements
+     - Multi-line content that might contain ## inside code blocks
+
+CRITICAL: Use proper parsing that understands markdown context. A ## inside a code block is NOT a section header.]]
+
+### 3. Create Individual Files
+
+For each extracted section:
+
+1. **Generate filename**: Convert the section heading to lowercase-dash-case
+   - Remove special characters
+   - Replace spaces with dashes
+   - Example: "## Tech Stack" → `tech-stack.md`
+
+2. **Adjust heading levels**:
+   - The level 2 heading becomes level 1 (# instead of ##) in the sharded new document
+   - All subsection levels decrease by 1:
+
+   ```txt
+     - ### → ##
+     - #### → ###
+     - ##### → ####
+     - etc.
+   ```
+
+3. **Write content**: Save the adjusted content to the new file
+
+### 4. Create Index File
+
+Create an `index.md` file in the sharded folder that:
+
+1. Contains the original level 1 heading and any content before the first level 2 section
+2. Lists all the sharded files with links:
+
+```markdown
+# Original Document Title
+
+[Original introduction content if any]
+
+## Sections
+
+- [Section Name 1](./section-name-1.md)
+- [Section Name 2](./section-name-2.md)
+- [Section Name 3](./section-name-3.md)
+  ...
+```
+
+### 5. Preserve Special Content
+
+1. **Code blocks**: Must capture complete blocks including:
+
+   ```language
+   content
+   ```
+
+2. **Mermaid diagrams**: Preserve complete syntax:
+
+   ```mermaid
+   graph TD
+   ...
+   ```
+
+3. **Tables**: Maintain proper markdown table formatting
+
+4. **Lists**: Preserve indentation and nesting
+
+5. **Inline code**: Preserve backticks
+
+6. **Links and references**: Keep all markdown links intact
+
+7. **Template markup**: If documents contain {{placeholders}} ,preserve exactly
+
+### 6. Validation
+
+After sharding:
+
+1. Verify all sections were extracted
+2. Check that no content was lost
+3. Ensure heading levels were properly adjusted
+4. Confirm all files were created successfully
+
+### 7. Report Results
+
+Provide a summary:
+
+```text
+Document sharded successfully:
+- Source: [original document path]
+- Destination: docs/[folder-name]/
+- Files created: [count]
+- Sections:
+  - section-name-1.md: "Section Title 1"
+  - section-name-2.md: "Section Title 2"
+  ...
+```
+
+## Important Notes
+
+- Never modify the actual content, only adjust heading levels
+- Preserve ALL formatting, including whitespace where significant
+- Handle edge cases like sections with code blocks containing ## symbols
+- Ensure the sharding is reversible (could reconstruct the original from shards)
+```
+
+### Task: risk-profile
+Source: .bmad-core/tasks/risk-profile.md
+- How to use: "Use task risk-profile with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# risk-profile
+
+Generate a comprehensive risk assessment matrix for a story implementation using probability × impact analysis.
+
+## Inputs
+
+```yaml
+required:
+  - story_id: '{epic}.{story}' # e.g., "1.3"
+  - story_path: 'docs/stories/{epic}.{story}.*.md'
+  - story_title: '{title}' # If missing, derive from story file H1
+  - story_slug: '{slug}' # If missing, derive from title (lowercase, hyphenated)
+```
+
+## Purpose
+
+Identify, assess, and prioritize risks in the story implementation. Provide risk mitigation strategies and testing focus areas based on risk levels.
+
+## Risk Assessment Framework
+
+### Risk Categories
+
+**Category Prefixes:**
+
+- `TECH`: Technical Risks
+- `SEC`: Security Risks
+- `PERF`: Performance Risks
+- `DATA`: Data Risks
+- `BUS`: Business Risks
+- `OPS`: Operational Risks
+
+1. **Technical Risks (TECH)**
+   - Architecture complexity
+   - Integration challenges
+   - Technical debt
+   - Scalability concerns
+   - System dependencies
+
+2. **Security Risks (SEC)**
+   - Authentication/authorization flaws
+   - Data exposure vulnerabilities
+   - Injection attacks
+   - Session management issues
+   - Cryptographic weaknesses
+
+3. **Performance Risks (PERF)**
+   - Response time degradation
+   - Throughput bottlenecks
+   - Resource exhaustion
+   - Database query optimization
+   - Caching failures
+
+4. **Data Risks (DATA)**
+   - Data loss potential
+   - Data corruption
+   - Privacy violations
+   - Compliance issues
+   - Backup/recovery gaps
+
+5. **Business Risks (BUS)**
+   - Feature doesn't meet user needs
+   - Revenue impact
+   - Reputation damage
+   - Regulatory non-compliance
+   - Market timing
+
+6. **Operational Risks (OPS)**
+   - Deployment failures
+   - Monitoring gaps
+   - Incident response readiness
+   - Documentation inadequacy
+   - Knowledge transfer issues
+
+## Risk Analysis Process
+
+### 1. Risk Identification
+
+For each category, identify specific risks:
+
+```yaml
+risk:
+  id: 'SEC-001' # Use prefixes: SEC, PERF, DATA, BUS, OPS, TECH
+  category: security
+  title: 'Insufficient input validation on user forms'
+  description: 'Form inputs not properly sanitized could lead to XSS attacks'
+  affected_components:
+    - 'UserRegistrationForm'
+    - 'ProfileUpdateForm'
+  detection_method: 'Code review revealed missing validation'
+```
+
+### 2. Risk Assessment
+
+Evaluate each risk using probability × impact:
+
+**Probability Levels:**
+
+- `High (3)`: Likely to occur (>70% chance)
+- `Medium (2)`: Possible occurrence (30-70% chance)
+- `Low (1)`: Unlikely to occur (<30% chance)
+
+**Impact Levels:**
+
+- `High (3)`: Severe consequences (data breach, system down, major financial loss)
+- `Medium (2)`: Moderate consequences (degraded performance, minor data issues)
+- `Low (1)`: Minor consequences (cosmetic issues, slight inconvenience)
+
+### Risk Score = Probability × Impact
+
+- 9: Critical Risk (Red)
+- 6: High Risk (Orange)
+- 4: Medium Risk (Yellow)
+- 2-3: Low Risk (Green)
+- 1: Minimal Risk (Blue)
+
+### 3. Risk Prioritization
+
+Create risk matrix:
+
+```markdown
+## Risk Matrix
+
+| Risk ID  | Description             | Probability | Impact     | Score | Priority |
+| -------- | ----------------------- | ----------- | ---------- | ----- | -------- |
+| SEC-001  | XSS vulnerability       | High (3)    | High (3)   | 9     | Critical |
+| PERF-001 | Slow query on dashboard | Medium (2)  | Medium (2) | 4     | Medium   |
+| DATA-001 | Backup failure          | Low (1)     | High (3)   | 3     | Low      |
+```
+
+### 4. Risk Mitigation Strategies
+
+For each identified risk, provide mitigation:
+
+```yaml
+mitigation:
+  risk_id: 'SEC-001'
+  strategy: 'preventive' # preventive|detective|corrective
+  actions:
+    - 'Implement input validation library (e.g., validator.js)'
+    - 'Add CSP headers to prevent XSS execution'
+    - 'Sanitize all user inputs before storage'
+    - 'Escape all outputs in templates'
+  testing_requirements:
+    - 'Security testing with OWASP ZAP'
+    - 'Manual penetration testing of forms'
+    - 'Unit tests for validation functions'
+  residual_risk: 'Low - Some zero-day vulnerabilities may remain'
+  owner: 'dev'
+  timeline: 'Before deployment'
+```
+
+## Outputs
+
+### Output 1: Gate YAML Block
+
+Generate for pasting into gate file under `risk_summary`:
+
+**Output rules:**
+
+- Only include assessed risks; do not emit placeholders
+- Sort risks by score (desc) when emitting highest and any tabular lists
+- If no risks: totals all zeros, omit highest, keep recommendations arrays empty
+
+```yaml
+# risk_summary (paste into gate file):
+risk_summary:
+  totals:
+    critical: X # score 9
+    high: Y # score 6
+    medium: Z # score 4
+    low: W # score 2-3
+  highest:
+    id: SEC-001
+    score: 9
+    title: 'XSS on profile form'
+  recommendations:
+    must_fix:
+      - 'Add input sanitization & CSP'
+    monitor:
+      - 'Add security alerts for auth endpoints'
+```
+
+### Output 2: Markdown Report
+
+**Save to:** `qa.qaLocation/assessments/{epic}.{story}-risk-{YYYYMMDD}.md`
+
+```markdown
+# Risk Profile: Story {epic}.{story}
+
+Date: {date}
+Reviewer: Quinn (Test Architect)
+
+## Executive Summary
+
+- Total Risks Identified: X
+- Critical Risks: Y
+- High Risks: Z
+- Risk Score: XX/100 (calculated)
+
+## Critical Risks Requiring Immediate Attention
+
+### 1. [ID]: Risk Title
+
+**Score: 9 (Critical)**
+**Probability**: High - Detailed reasoning
+**Impact**: High - Potential consequences
+**Mitigation**:
+
+- Immediate action required
+- Specific steps to take
+  **Testing Focus**: Specific test scenarios needed
+
+## Risk Distribution
+
+### By Category
+
+- Security: X risks (Y critical)
+- Performance: X risks (Y critical)
+- Data: X risks (Y critical)
+- Business: X risks (Y critical)
+- Operational: X risks (Y critical)
+
+### By Component
+
+- Frontend: X risks
+- Backend: X risks
+- Database: X risks
+- Infrastructure: X risks
+
+## Detailed Risk Register
+
+[Full table of all risks with scores and mitigations]
+
+## Risk-Based Testing Strategy
+
+### Priority 1: Critical Risk Tests
+
+- Test scenarios for critical risks
+- Required test types (security, load, chaos)
+- Test data requirements
+
+### Priority 2: High Risk Tests
+
+- Integration test scenarios
+- Edge case coverage
+
+### Priority 3: Medium/Low Risk Tests
+
+- Standard functional tests
+- Regression test suite
+
+## Risk Acceptance Criteria
+
+### Must Fix Before Production
+
+- All critical risks (score 9)
+- High risks affecting security/data
+
+### Can Deploy with Mitigation
+
+- Medium risks with compensating controls
+- Low risks with monitoring in place
+
+### Accepted Risks
+
+- Document any risks team accepts
+- Include sign-off from appropriate authority
+
+## Monitoring Requirements
+
+Post-deployment monitoring for:
+
+- Performance metrics for PERF risks
+- Security alerts for SEC risks
+- Error rates for operational risks
+- Business KPIs for business risks
+
+## Risk Review Triggers
+
+Review and update risk profile when:
+
+- Architecture changes significantly
+- New integrations added
+- Security vulnerabilities discovered
+- Performance issues reported
+- Regulatory requirements change
+```
+
+## Risk Scoring Algorithm
+
+Calculate overall story risk score:
+
+```text
+Base Score = 100
+For each risk:
+  - Critical (9): Deduct 20 points
+  - High (6): Deduct 10 points
+  - Medium (4): Deduct 5 points
+  - Low (2-3): Deduct 2 points
+
+Minimum score = 0 (extremely risky)
+Maximum score = 100 (minimal risk)
+```
+
+## Risk-Based Recommendations
+
+Based on risk profile, recommend:
+
+1. **Testing Priority**
+   - Which tests to run first
+   - Additional test types needed
+   - Test environment requirements
+
+2. **Development Focus**
+   - Code review emphasis areas
+   - Additional validation needed
+   - Security controls to implement
+
+3. **Deployment Strategy**
+   - Phased rollout for high-risk changes
+   - Feature flags for risky features
+   - Rollback procedures
+
+4. **Monitoring Setup**
+   - Metrics to track
+   - Alerts to configure
+   - Dashboard requirements
+
+## Integration with Quality Gates
+
+**Deterministic gate mapping:**
+
+- Any risk with score ≥ 9 → Gate = FAIL (unless waived)
+- Else if any score ≥ 6 → Gate = CONCERNS
+- Else → Gate = PASS
+- Unmitigated risks → Document in gate
+
+### Output 3: Story Hook Line
+
+**Print this line for review task to quote:**
+
+```text
+Risk profile: qa.qaLocation/assessments/{epic}.{story}-risk-{YYYYMMDD}.md
+```
+
+## Key Principles
+
+- Identify risks early and systematically
+- Use consistent probability × impact scoring
+- Provide actionable mitigation strategies
+- Link risks to specific test requirements
+- Track residual risk after mitigation
+- Update risk profile as story evolves
+```
+
+### Task: review-story
+Source: .bmad-core/tasks/review-story.md
+- How to use: "Use task review-story with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# review-story
+
+Perform a comprehensive test architecture review with quality gate decision. This adaptive, risk-aware review creates both a story update and a detailed gate file.
+
+## Inputs
+
+```yaml
+required:
+  - story_id: '{epic}.{story}' # e.g., "1.3"
+  - story_path: '{devStoryLocation}/{epic}.{story}.*.md' # Path from core-config.yaml
+  - story_title: '{title}' # If missing, derive from story file H1
+  - story_slug: '{slug}' # If missing, derive from title (lowercase, hyphenated)
+```
+
+## Prerequisites
+
+- Story status must be "Review"
+- Developer has completed all tasks and updated the File List
+- All automated tests are passing
+
+## Review Process - Adaptive Test Architecture
+
+### 1. Risk Assessment (Determines Review Depth)
+
+**Auto-escalate to deep review when:**
+
+- Auth/payment/security files touched
+- No tests added to story
+- Diff > 500 lines
+- Previous gate was FAIL/CONCERNS
+- Story has > 5 acceptance criteria
+
+### 2. Comprehensive Analysis
+
+**A. Requirements Traceability**
+
+- Map each acceptance criteria to its validating tests (document mapping with Given-When-Then, not test code)
+- Identify coverage gaps
+- Verify all requirements have corresponding test cases
+
+**B. Code Quality Review**
+
+- Architecture and design patterns
+- Refactoring opportunities (and perform them)
+- Code duplication or inefficiencies
+- Performance optimizations
+- Security vulnerabilities
+- Best practices adherence
+
+**C. Test Architecture Assessment**
+
+- Test coverage adequacy at appropriate levels
+- Test level appropriateness (what should be unit vs integration vs e2e)
+- Test design quality and maintainability
+- Test data management strategy
+- Mock/stub usage appropriateness
+- Edge case and error scenario coverage
+- Test execution time and reliability
+
+**D. Non-Functional Requirements (NFRs)**
+
+- Security: Authentication, authorization, data protection
+- Performance: Response times, resource usage
+- Reliability: Error handling, recovery mechanisms
+- Maintainability: Code clarity, documentation
+
+**E. Testability Evaluation**
+
+- Controllability: Can we control the inputs?
+- Observability: Can we observe the outputs?
+- Debuggability: Can we debug failures easily?
+
+**F. Technical Debt Identification**
+
+- Accumulated shortcuts
+- Missing tests
+- Outdated dependencies
+- Architecture violations
+
+### 3. Active Refactoring
+
+- Refactor code where safe and appropriate
+- Run tests to ensure changes don't break functionality
+- Document all changes in QA Results section with clear WHY and HOW
+- Do NOT alter story content beyond QA Results section
+- Do NOT change story Status or File List; recommend next status only
+
+### 4. Standards Compliance Check
+
+- Verify adherence to `docs/coding-standards.md`
+- Check compliance with `docs/unified-project-structure.md`
+- Validate testing approach against `docs/testing-strategy.md`
+- Ensure all guidelines mentioned in the story are followed
+
+### 5. Acceptance Criteria Validation
+
+- Verify each AC is fully implemented
+- Check for any missing functionality
+- Validate edge cases are handled
+
+### 6. Documentation and Comments
+
+- Verify code is self-documenting where possible
+- Add comments for complex logic if missing
+- Ensure any API changes are documented
+
+## Output 1: Update Story File - QA Results Section ONLY
+
+**CRITICAL**: You are ONLY authorized to update the "QA Results" section of the story file. DO NOT modify any other sections.
+
+**QA Results Anchor Rule:**
+
+- If `## QA Results` doesn't exist, append it at end of file
+- If it exists, append a new dated entry below existing entries
+- Never edit other sections
+
+After review and any refactoring, append your results to the story file in the QA Results section:
+
+```markdown
+## QA Results
+
+### Review Date: [Date]
+
+### Reviewed By: Quinn (Test Architect)
+
+### Code Quality Assessment
+
+[Overall assessment of implementation quality]
+
+### Refactoring Performed
+
+[List any refactoring you performed with explanations]
+
+- **File**: [filename]
+  - **Change**: [what was changed]
+  - **Why**: [reason for change]
+  - **How**: [how it improves the code]
+
+### Compliance Check
+
+- Coding Standards: [✓/✗] [notes if any]
+- Project Structure: [✓/✗] [notes if any]
+- Testing Strategy: [✓/✗] [notes if any]
+- All ACs Met: [✓/✗] [notes if any]
+
+### Improvements Checklist
+
+[Check off items you handled yourself, leave unchecked for dev to address]
+
+- [x] Refactored user service for better error handling (services/user.service.ts)
+- [x] Added missing edge case tests (services/user.service.test.ts)
+- [ ] Consider extracting validation logic to separate validator class
+- [ ] Add integration test for error scenarios
+- [ ] Update API documentation for new error codes
+
+### Security Review
+
+[Any security concerns found and whether addressed]
+
+### Performance Considerations
+
+[Any performance issues found and whether addressed]
+
+### Files Modified During Review
+
+[If you modified files, list them here - ask Dev to update File List]
+
+### Gate Status
+
+Gate: {STATUS} → qa.qaLocation/gates/{epic}.{story}-{slug}.yml
+Risk profile: qa.qaLocation/assessments/{epic}.{story}-risk-{YYYYMMDD}.md
+NFR assessment: qa.qaLocation/assessments/{epic}.{story}-nfr-{YYYYMMDD}.md
+
+# Note: Paths should reference core-config.yaml for custom configurations
+
+### Recommended Status
+
+[✓ Ready for Done] / [✗ Changes Required - See unchecked items above]
+(Story owner decides final status)
+```
+
+## Output 2: Create Quality Gate File
+
+**Template and Directory:**
+
+- Render from `../templates/qa-gate-tmpl.yaml`
+- Create directory defined in `qa.qaLocation/gates` (see `.bmad-core/core-config.yaml`) if missing
+- Save to: `qa.qaLocation/gates/{epic}.{story}-{slug}.yml`
+
+Gate file structure:
+
+```yaml
+schema: 1
+story: '{epic}.{story}'
+story_title: '{story title}'
+gate: PASS|CONCERNS|FAIL|WAIVED
+status_reason: '1-2 sentence explanation of gate decision'
+reviewer: 'Quinn (Test Architect)'
+updated: '{ISO-8601 timestamp}'
+
+top_issues: [] # Empty if no issues
+waiver: { active: false } # Set active: true only if WAIVED
+
+# Extended fields (optional but recommended):
+quality_score: 0-100 # 100 - (20*FAILs) - (10*CONCERNS) or use technical-preferences.md weights
+expires: '{ISO-8601 timestamp}' # Typically 2 weeks from review
+
+evidence:
+  tests_reviewed: { count }
+  risks_identified: { count }
+  trace:
+    ac_covered: [1, 2, 3] # AC numbers with test coverage
+    ac_gaps: [4] # AC numbers lacking coverage
+
+nfr_validation:
+  security:
+    status: PASS|CONCERNS|FAIL
+    notes: 'Specific findings'
+  performance:
+    status: PASS|CONCERNS|FAIL
+    notes: 'Specific findings'
+  reliability:
+    status: PASS|CONCERNS|FAIL
+    notes: 'Specific findings'
+  maintainability:
+    status: PASS|CONCERNS|FAIL
+    notes: 'Specific findings'
+
+recommendations:
+  immediate: # Must fix before production
+    - action: 'Add rate limiting'
+      refs: ['api/auth/login.ts']
+  future: # Can be addressed later
+    - action: 'Consider caching'
+      refs: ['services/data.ts']
+```
+
+### Gate Decision Criteria
+
+**Deterministic rule (apply in order):**
+
+If risk_summary exists, apply its thresholds first (≥9 → FAIL, ≥6 → CONCERNS), then NFR statuses, then top_issues severity.
+
+1. **Risk thresholds (if risk_summary present):**
+   - If any risk score ≥ 9 → Gate = FAIL (unless waived)
+   - Else if any score ≥ 6 → Gate = CONCERNS
+
+2. **Test coverage gaps (if trace available):**
+   - If any P0 test from test-design is missing → Gate = CONCERNS
+   - If security/data-loss P0 test missing → Gate = FAIL
+
+3. **Issue severity:**
+   - If any `top_issues.severity == high` → Gate = FAIL (unless waived)
+   - Else if any `severity == medium` → Gate = CONCERNS
+
+4. **NFR statuses:**
+   - If any NFR status is FAIL → Gate = FAIL
+   - Else if any NFR status is CONCERNS → Gate = CONCERNS
+   - Else → Gate = PASS
+
+- WAIVED only when waiver.active: true with reason/approver
+
+Detailed criteria:
+
+- **PASS**: All critical requirements met, no blocking issues
+- **CONCERNS**: Non-critical issues found, team should review
+- **FAIL**: Critical issues that should be addressed
+- **WAIVED**: Issues acknowledged but explicitly waived by team
+
+### Quality Score Calculation
+
+```text
+quality_score = 100 - (20 × number of FAILs) - (10 × number of CONCERNS)
+Bounded between 0 and 100
+```
+
+If `technical-preferences.md` defines custom weights, use those instead.
+
+### Suggested Owner Convention
+
+For each issue in `top_issues`, include a `suggested_owner`:
+
+- `dev`: Code changes needed
+- `sm`: Requirements clarification needed
+- `po`: Business decision needed
+
+## Key Principles
+
+- You are a Test Architect providing comprehensive quality assessment
+- You have the authority to improve code directly when appropriate
+- Always explain your changes for learning purposes
+- Balance between perfection and pragmatism
+- Focus on risk-based prioritization
+- Provide actionable recommendations with clear ownership
+
+## Blocking Conditions
+
+Stop the review and request clarification if:
+
+- Story file is incomplete or missing critical sections
+- File List is empty or clearly incomplete
+- No tests exist when they were required
+- Code changes don't align with story requirements
+- Critical architectural issues that require discussion
+
+## Completion
+
+After review:
+
+1. Update the QA Results section in the story file
+2. Create the gate file in directory from `qa.qaLocation/gates`
+3. Recommend status: "Ready for Done" or "Changes Required" (owner decides)
+4. If files were modified, list them in QA Results and ask Dev to update File List
+5. Always provide constructive feedback and actionable recommendations
+```
+
+### Task: qa-gate
+Source: .bmad-core/tasks/qa-gate.md
+- How to use: "Use task qa-gate with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# qa-gate
+
+Create or update a quality gate decision file for a story based on review findings.
+
+## Purpose
+
+Generate a standalone quality gate file that provides a clear pass/fail decision with actionable feedback. This gate serves as an advisory checkpoint for teams to understand quality status.
+
+## Prerequisites
+
+- Story has been reviewed (manually or via review-story task)
+- Review findings are available
+- Understanding of story requirements and implementation
+
+## Gate File Location
+
+**ALWAYS** check the `.bmad-core/core-config.yaml` for the `qa.qaLocation/gates`
+
+Slug rules:
+
+- Convert to lowercase
+- Replace spaces with hyphens
+- Strip punctuation
+- Example: "User Auth - Login!" becomes "user-auth-login"
+
+## Minimal Required Schema
+
+```yaml
+schema: 1
+story: '{epic}.{story}'
+gate: PASS|CONCERNS|FAIL|WAIVED
+status_reason: '1-2 sentence explanation of gate decision'
+reviewer: 'Quinn'
+updated: '{ISO-8601 timestamp}'
+top_issues: [] # Empty array if no issues
+waiver: { active: false } # Only set active: true if WAIVED
+```
+
+## Schema with Issues
+
+```yaml
+schema: 1
+story: '1.3'
+gate: CONCERNS
+status_reason: 'Missing rate limiting on auth endpoints poses security risk.'
+reviewer: 'Quinn'
+updated: '2025-01-12T10:15:00Z'
+top_issues:
+  - id: 'SEC-001'
+    severity: high # ONLY: low|medium|high
+    finding: 'No rate limiting on login endpoint'
+    suggested_action: 'Add rate limiting middleware before production'
+  - id: 'TEST-001'
+    severity: medium
+    finding: 'No integration tests for auth flow'
+    suggested_action: 'Add integration test coverage'
+waiver: { active: false }
+```
+
+## Schema when Waived
+
+```yaml
+schema: 1
+story: '1.3'
+gate: WAIVED
+status_reason: 'Known issues accepted for MVP release.'
+reviewer: 'Quinn'
+updated: '2025-01-12T10:15:00Z'
+top_issues:
+  - id: 'PERF-001'
+    severity: low
+    finding: 'Dashboard loads slowly with 1000+ items'
+    suggested_action: 'Implement pagination in next sprint'
+waiver:
+  active: true
+  reason: 'MVP release - performance optimization deferred'
+  approved_by: 'Product Owner'
+```
+
+## Gate Decision Criteria
+
+### PASS
+
+- All acceptance criteria met
+- No high-severity issues
+- Test coverage meets project standards
+
+### CONCERNS
+
+- Non-blocking issues present
+- Should be tracked and scheduled
+- Can proceed with awareness
+
+### FAIL
+
+- Acceptance criteria not met
+- High-severity issues present
+- Recommend return to InProgress
+
+### WAIVED
+
+- Issues explicitly accepted
+- Requires approval and reason
+- Proceed despite known issues
+
+## Severity Scale
+
+**FIXED VALUES - NO VARIATIONS:**
+
+- `low`: Minor issues, cosmetic problems
+- `medium`: Should fix soon, not blocking
+- `high`: Critical issues, should block release
+
+## Issue ID Prefixes
+
+- `SEC-`: Security issues
+- `PERF-`: Performance issues
+- `REL-`: Reliability issues
+- `TEST-`: Testing gaps
+- `MNT-`: Maintainability concerns
+- `ARCH-`: Architecture issues
+- `DOC-`: Documentation gaps
+- `REQ-`: Requirements issues
+
+## Output Requirements
+
+1. **ALWAYS** create gate file at: `qa.qaLocation/gates` from `.bmad-core/core-config.yaml`
+2. **ALWAYS** append this exact format to story's QA Results section:
+
+   ```text
+   Gate: {STATUS} → qa.qaLocation/gates/{epic}.{story}-{slug}.yml
+   ```
+
+3. Keep status_reason to 1-2 sentences maximum
+4. Use severity values exactly: `low`, `medium`, or `high`
+
+## Example Story Update
+
+After creating gate file, append to story's QA Results section:
+
+```markdown
+## QA Results
+
+### Review Date: 2025-01-12
+
+### Reviewed By: Quinn (Test Architect)
+
+[... existing review content ...]
+
+### Gate Status
+
+Gate: CONCERNS → qa.qaLocation/gates/{epic}.{story}-{slug}.yml
+```
+
+## Key Principles
+
+- Keep it minimal and predictable
+- Fixed severity scale (low/medium/high)
+- Always write to standard path
+- Always update story with gate reference
+- Clear, actionable findings
+```
+
+### Task: nfr-assess
+Source: .bmad-core/tasks/nfr-assess.md
+- How to use: "Use task nfr-assess with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# nfr-assess
+
+Quick NFR validation focused on the core four: security, performance, reliability, maintainability.
+
+## Inputs
+
+```yaml
+required:
+  - story_id: '{epic}.{story}' # e.g., "1.3"
+  - story_path: `.bmad-core/core-config.yaml` for the `devStoryLocation`
+
+optional:
+  - architecture_refs: `.bmad-core/core-config.yaml` for the `architecture.architectureFile`
+  - technical_preferences: `.bmad-core/core-config.yaml` for the `technicalPreferences`
+  - acceptance_criteria: From story file
+```
+
+## Purpose
+
+Assess non-functional requirements for a story and generate:
+
+1. YAML block for the gate file's `nfr_validation` section
+2. Brief markdown assessment saved to `qa.qaLocation/assessments/{epic}.{story}-nfr-{YYYYMMDD}.md`
+
+## Process
+
+### 0. Fail-safe for Missing Inputs
+
+If story_path or story file can't be found:
+
+- Still create assessment file with note: "Source story not found"
+- Set all selected NFRs to CONCERNS with notes: "Target unknown / evidence missing"
+- Continue with assessment to provide value
+
+### 1. Elicit Scope
+
+**Interactive mode:** Ask which NFRs to assess
+**Non-interactive mode:** Default to core four (security, performance, reliability, maintainability)
+
+```text
+Which NFRs should I assess? (Enter numbers or press Enter for default)
+[1] Security (default)
+[2] Performance (default)
+[3] Reliability (default)
+[4] Maintainability (default)
+[5] Usability
+[6] Compatibility
+[7] Portability
+[8] Functional Suitability
+
+> [Enter for 1-4]
+```
+
+### 2. Check for Thresholds
+
+Look for NFR requirements in:
+
+- Story acceptance criteria
+- `docs/architecture/*.md` files
+- `docs/technical-preferences.md`
+
+**Interactive mode:** Ask for missing thresholds
+**Non-interactive mode:** Mark as CONCERNS with "Target unknown"
+
+```text
+No performance requirements found. What's your target response time?
+> 200ms for API calls
+
+No security requirements found. Required auth method?
+> JWT with refresh tokens
+```
+
+**Unknown targets policy:** If a target is missing and not provided, mark status as CONCERNS with notes: "Target unknown"
+
+### 3. Quick Assessment
+
+For each selected NFR, check:
+
+- Is there evidence it's implemented?
+- Can we validate it?
+- Are there obvious gaps?
+
+### 4. Generate Outputs
+
+## Output 1: Gate YAML Block
+
+Generate ONLY for NFRs actually assessed (no placeholders):
+
+```yaml
+# Gate YAML (copy/paste):
+nfr_validation:
+  _assessed: [security, performance, reliability, maintainability]
+  security:
+    status: CONCERNS
+    notes: 'No rate limiting on auth endpoints'
+  performance:
+    status: PASS
+    notes: 'Response times < 200ms verified'
+  reliability:
+    status: PASS
+    notes: 'Error handling and retries implemented'
+  maintainability:
+    status: CONCERNS
+    notes: 'Test coverage at 65%, target is 80%'
+```
+
+## Deterministic Status Rules
+
+- **FAIL**: Any selected NFR has critical gap or target clearly not met
+- **CONCERNS**: No FAILs, but any NFR is unknown/partial/missing evidence
+- **PASS**: All selected NFRs meet targets with evidence
+
+## Quality Score Calculation
+
+```
+quality_score = 100
+- 20 for each FAIL attribute
+- 10 for each CONCERNS attribute
+Floor at 0, ceiling at 100
+```
+
+If `technical-preferences.md` defines custom weights, use those instead.
+
+## Output 2: Brief Assessment Report
+
+**ALWAYS save to:** `qa.qaLocation/assessments/{epic}.{story}-nfr-{YYYYMMDD}.md`
+
+```markdown
+# NFR Assessment: {epic}.{story}
+
+Date: {date}
+Reviewer: Quinn
+
+<!-- Note: Source story not found (if applicable) -->
+
+## Summary
+
+- Security: CONCERNS - Missing rate limiting
+- Performance: PASS - Meets <200ms requirement
+- Reliability: PASS - Proper error handling
+- Maintainability: CONCERNS - Test coverage below target
+
+## Critical Issues
+
+1. **No rate limiting** (Security)
+   - Risk: Brute force attacks possible
+   - Fix: Add rate limiting middleware to auth endpoints
+
+2. **Test coverage 65%** (Maintainability)
+   - Risk: Untested code paths
+   - Fix: Add tests for uncovered branches
+
+## Quick Wins
+
+- Add rate limiting: ~2 hours
+- Increase test coverage: ~4 hours
+- Add performance monitoring: ~1 hour
+```
+
+## Output 3: Story Update Line
+
+**End with this line for the review task to quote:**
+
+```
+NFR assessment: qa.qaLocation/assessments/{epic}.{story}-nfr-{YYYYMMDD}.md
+```
+
+## Output 4: Gate Integration Line
+
+**Always print at the end:**
+
+```
+Gate NFR block ready → paste into qa.qaLocation/gates/{epic}.{story}-{slug}.yml under nfr_validation
+```
+
+## Assessment Criteria
+
+### Security
+
+**PASS if:**
+
+- Authentication implemented
+- Authorization enforced
+- Input validation present
+- No hardcoded secrets
+
+**CONCERNS if:**
+
+- Missing rate limiting
+- Weak encryption
+- Incomplete authorization
+
+**FAIL if:**
+
+- No authentication
+- Hardcoded credentials
+- SQL injection vulnerabilities
+
+### Performance
+
+**PASS if:**
+
+- Meets response time targets
+- No obvious bottlenecks
+- Reasonable resource usage
+
+**CONCERNS if:**
+
+- Close to limits
+- Missing indexes
+- No caching strategy
+
+**FAIL if:**
+
+- Exceeds response time limits
+- Memory leaks
+- Unoptimized queries
+
+### Reliability
+
+**PASS if:**
+
+- Error handling present
+- Graceful degradation
+- Retry logic where needed
+
+**CONCERNS if:**
+
+- Some error cases unhandled
+- No circuit breakers
+- Missing health checks
+
+**FAIL if:**
+
+- No error handling
+- Crashes on errors
+- No recovery mechanisms
+
+### Maintainability
+
+**PASS if:**
+
+- Test coverage meets target
+- Code well-structured
+- Documentation present
+
+**CONCERNS if:**
+
+- Test coverage below target
+- Some code duplication
+- Missing documentation
+
+**FAIL if:**
+
+- No tests
+- Highly coupled code
+- No documentation
+
+## Quick Reference
+
+### What to Check
+
+```yaml
+security:
+  - Authentication mechanism
+  - Authorization checks
+  - Input validation
+  - Secret management
+  - Rate limiting
+
+performance:
+  - Response times
+  - Database queries
+  - Caching usage
+  - Resource consumption
+
+reliability:
+  - Error handling
+  - Retry logic
+  - Circuit breakers
+  - Health checks
+  - Logging
+
+maintainability:
+  - Test coverage
+  - Code structure
+  - Documentation
+  - Dependencies
+```
+
+## Key Principles
+
+- Focus on the core four NFRs by default
+- Quick assessment, not deep analysis
+- Gate-ready output format
+- Brief, actionable findings
+- Skip what doesn't apply
+- Deterministic status rules for consistency
+- Unknown targets → CONCERNS, not guesses
+
+---
+
+## Appendix: ISO 25010 Reference
+
+<details>
+<summary>Full ISO 25010 Quality Model (click to expand)</summary>
+
+### All 8 Quality Characteristics
+
+1. **Functional Suitability**: Completeness, correctness, appropriateness
+2. **Performance Efficiency**: Time behavior, resource use, capacity
+3. **Compatibility**: Co-existence, interoperability
+4. **Usability**: Learnability, operability, accessibility
+5. **Reliability**: Maturity, availability, fault tolerance
+6. **Security**: Confidentiality, integrity, authenticity
+7. **Maintainability**: Modularity, reusability, testability
+8. **Portability**: Adaptability, installability
+
+Use these when assessing beyond the core four.
+
+</details>
+
+<details>
+<summary>Example: Deep Performance Analysis (click to expand)</summary>
+
+```yaml
+performance_deep_dive:
+  response_times:
+    p50: 45ms
+    p95: 180ms
+    p99: 350ms
+  database:
+    slow_queries: 2
+    missing_indexes: ['users.email', 'orders.user_id']
+  caching:
+    hit_rate: 0%
+    recommendation: 'Add Redis for session data'
+  load_test:
+    max_rps: 150
+    breaking_point: 200 rps
+```
+
+</details>
+```
+
+### Task: kb-mode-interaction
+Source: .bmad-core/tasks/kb-mode-interaction.md
+- How to use: "Use task kb-mode-interaction with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# KB Mode Interaction Task
+
+## Purpose
+
+Provide a user-friendly interface to the BMad knowledge base without overwhelming users with information upfront.
+
+## Instructions
+
+When entering KB mode (\*kb-mode), follow these steps:
+
+### 1. Welcome and Guide
+
+Announce entering KB mode with a brief, friendly introduction.
+
+### 2. Present Topic Areas
+
+Offer a concise list of main topic areas the user might want to explore:
+
+**What would you like to know more about?**
+
+1. **Setup & Installation** - Getting started with BMad
+2. **Workflows** - Choosing the right workflow for your project
+3. **Web vs IDE** - When to use each environment
+4. **Agents** - Understanding specialized agents and their roles
+5. **Documents** - PRDs, Architecture, Stories, and more
+6. **Agile Process** - How BMad implements Agile methodologies
+7. **Configuration** - Customizing BMad for your needs
+8. **Best Practices** - Tips for effective BMad usage
+
+Or ask me about anything else related to BMad-Method!
+
+### 3. Respond Contextually
+
+- Wait for user's specific question or topic selection
+- Provide focused, relevant information from the knowledge base
+- Offer to dive deeper or explore related topics
+- Keep responses concise unless user asks for detailed explanations
+
+### 4. Interactive Exploration
+
+- After answering, suggest related topics they might find helpful
+- Maintain conversational flow rather than data dumping
+- Use examples when appropriate
+- Reference specific documentation sections when relevant
+
+### 5. Exit Gracefully
+
+When user is done or wants to exit KB mode:
+
+- Summarize key points discussed if helpful
+- Remind them they can return to KB mode anytime with \*kb-mode
+- Suggest next steps based on what was discussed
+
+## Example Interaction
+
+**User**: \*kb-mode
+
+**Assistant**: I've entered KB mode and have access to the full BMad knowledge base. I can help you with detailed information about any aspect of BMad-Method.
+
+**What would you like to know more about?**
+
+1. **Setup & Installation** - Getting started with BMad
+2. **Workflows** - Choosing the right workflow for your project
+3. **Web vs IDE** - When to use each environment
+4. **Agents** - Understanding specialized agents and their roles
+5. **Documents** - PRDs, Architecture, Stories, and more
+6. **Agile Process** - How BMad implements Agile methodologies
+7. **Configuration** - Customizing BMad for your needs
+8. **Best Practices** - Tips for effective BMad usage
+
+Or ask me about anything else related to BMad-Method!
+
+**User**: Tell me about workflows
+
+**Assistant**: [Provides focused information about workflows from the KB, then offers to explore specific workflow types or related topics]
+```
+
+### Task: index-docs
+Source: .bmad-core/tasks/index-docs.md
+- How to use: "Use task index-docs with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# Index Documentation Task
+
+## Purpose
+
+This task maintains the integrity and completeness of the `docs/index.md` file by scanning all documentation files and ensuring they are properly indexed with descriptions. It handles both root-level documents and documents within subfolders, organizing them hierarchically.
+
+## Task Instructions
+
+You are now operating as a Documentation Indexer. Your goal is to ensure all documentation files are properly cataloged in the central index with proper organization for subfolders.
+
+### Required Steps
+
+1. First, locate and scan:
+   - The `docs/` directory and all subdirectories
+   - The existing `docs/index.md` file (create if absent)
+   - All markdown (`.md`) and text (`.txt`) files in the documentation structure
+   - Note the folder structure for hierarchical organization
+
+2. For the existing `docs/index.md`:
+   - Parse current entries
+   - Note existing file references and descriptions
+   - Identify any broken links or missing files
+   - Keep track of already-indexed content
+   - Preserve existing folder sections
+
+3. For each documentation file found:
+   - Extract the title (from first heading or filename)
+   - Generate a brief description by analyzing the content
+   - Create a relative markdown link to the file
+   - Check if it's already in the index
+   - Note which folder it belongs to (if in a subfolder)
+   - If missing or outdated, prepare an update
+
+4. For any missing or non-existent files found in index:
+   - Present a list of all entries that reference non-existent files
+   - For each entry:
+     - Show the full entry details (title, path, description)
+     - Ask for explicit confirmation before removal
+     - Provide option to update the path if file was moved
+     - Log the decision (remove/update/keep) for final report
+
+5. Update `docs/index.md`:
+   - Maintain existing structure and organization
+   - Create level 2 sections (`##`) for each subfolder
+   - List root-level documents first
+   - Add missing entries with descriptions
+   - Update outdated entries
+   - Remove only entries that were confirmed for removal
+   - Ensure consistent formatting throughout
+
+### Index Structure Format
+
+The index should be organized as follows:
+
+```markdown
+# Documentation Index
+
+## Root Documents
+
+### [Document Title](./document.md)
+
+Brief description of the document's purpose and contents.
+
+### [Another Document](./another.md)
+
+Description here.
+
+## Folder Name
+
+Documents within the `folder-name/` directory:
+
+### [Document in Folder](./folder-name/document.md)
+
+Description of this document.
+
+### [Another in Folder](./folder-name/another.md)
+
+Description here.
+
+## Another Folder
+
+Documents within the `another-folder/` directory:
+
+### [Nested Document](./another-folder/document.md)
+
+Description of nested document.
+```
+
+### Index Entry Format
+
+Each entry should follow this format:
+
+```markdown
+### [Document Title](relative/path/to/file.md)
+
+Brief description of the document's purpose and contents.
+```
+
+### Rules of Operation
+
+1. NEVER modify the content of indexed files
+2. Preserve existing descriptions in index.md when they are adequate
+3. Maintain any existing categorization or grouping in the index
+4. Use relative paths for all links (starting with `./`)
+5. Ensure descriptions are concise but informative
+6. NEVER remove entries without explicit confirmation
+7. Report any broken links or inconsistencies found
+8. Allow path updates for moved files before considering removal
+9. Create folder sections using level 2 headings (`##`)
+10. Sort folders alphabetically, with root documents listed first
+11. Within each section, sort documents alphabetically by title
+
+### Process Output
+
+The task will provide:
+
+1. A summary of changes made to index.md
+2. List of newly indexed files (organized by folder)
+3. List of updated entries
+4. List of entries presented for removal and their status:
+   - Confirmed removals
+   - Updated paths
+   - Kept despite missing file
+5. Any new folders discovered
+6. Any other issues or inconsistencies found
+
+### Handling Missing Files
+
+For each file referenced in the index but not found in the filesystem:
+
+1. Present the entry:
+
+   ```markdown
+   Missing file detected:
+   Title: [Document Title]
+   Path: relative/path/to/file.md
+   Description: Existing description
+   Section: [Root Documents | Folder Name]
+
+   Options:
+
+   1. Remove this entry
+   2. Update the file path
+   3. Keep entry (mark as temporarily unavailable)
+
+   Please choose an option (1/2/3):
+   ```
+
+2. Wait for user confirmation before taking any action
+3. Log the decision for the final report
+
+### Special Cases
+
+1. **Sharded Documents**: If a folder contains an `index.md` file, treat it as a sharded document:
+   - Use the folder's `index.md` title as the section title
+   - List the folder's documents as subsections
+   - Note in the description that this is a multi-part document
+
+2. **README files**: Convert `README.md` to more descriptive titles based on content
+
+3. **Nested Subfolders**: For deeply nested folders, maintain the hierarchy but limit to 2 levels in the main index. Deeper structures should have their own index files.
+
+## Required Input
+
+Please provide:
+
+1. Location of the `docs/` directory (default: `./docs`)
+2. Confirmation of write access to `docs/index.md`
+3. Any specific categorization preferences
+4. Any files or directories to exclude from indexing (e.g., `.git`, `node_modules`)
+5. Whether to include hidden files/folders (starting with `.`)
+
+Would you like to proceed with documentation indexing? Please provide the required input above.
+```
+
+### Task: generate-ai-frontend-prompt
+Source: .bmad-core/tasks/generate-ai-frontend-prompt.md
+- How to use: "Use task generate-ai-frontend-prompt with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# Create AI Frontend Prompt Task
+
+## Purpose
+
+To generate a masterful, comprehensive, and optimized prompt that can be used with any AI-driven frontend development tool (e.g., Vercel v0, Lovable.ai, or similar) to scaffold or generate significant portions of a frontend application.
+
+## Inputs
+
+- Completed UI/UX Specification (`front-end-spec.md`)
+- Completed Frontend Architecture Document (`front-end-architecture`) or a full stack combined architecture such as `architecture.md`
+- Main System Architecture Document (`architecture` - for API contracts and tech stack to give further context)
+
+## Key Activities & Instructions
+
+### 1. Core Prompting Principles
+
+Before generating the prompt, you must understand these core principles for interacting with a generative AI for code.
+
+- **Be Explicit and Detailed**: The AI cannot read your mind. Provide as much detail and context as possible. Vague requests lead to generic or incorrect outputs.
+- **Iterate, Don't Expect Perfection**: Generating an entire complex application in one go is rare. The most effective method is to prompt for one component or one section at a time, then build upon the results.
+- **Provide Context First**: Always start by providing the AI with the necessary context, such as the tech stack, existing code snippets, and overall project goals.
+- **Mobile-First Approach**: Frame all UI generation requests with a mobile-first design mindset. Describe the mobile layout first, then provide separate instructions for how it should adapt for tablet and desktop.
+
+### 2. The Structured Prompting Framework
+
+To ensure the highest quality output, you MUST structure every prompt using the following four-part framework.
+
+1. **High-Level Goal**: Start with a clear, concise summary of the overall objective. This orients the AI on the primary task.
+   - _Example: "Create a responsive user registration form with client-side validation and API integration."_
+2. **Detailed, Step-by-Step Instructions**: Provide a granular, numbered list of actions the AI should take. Break down complex tasks into smaller, sequential steps. This is the most critical part of the prompt.
+   - _Example: "1. Create a new file named `RegistrationForm.js`. 2. Use React hooks for state management. 3. Add styled input fields for 'Name', 'Email', and 'Password'. 4. For the email field, ensure it is a valid email format. 5. On submission, call the API endpoint defined below."_
+3. **Code Examples, Data Structures & Constraints**: Include any relevant snippets of existing code, data structures, or API contracts. This gives the AI concrete examples to work with. Crucially, you must also state what _not_ to do.
+   - _Example: "Use this API endpoint: `POST /api/register`. The expected JSON payload is `{ "name": "string", "email": "string", "password": "string" }`. Do NOT include a 'confirm password' field. Use Tailwind CSS for all styling."_
+4. **Define a Strict Scope**: Explicitly define the boundaries of the task. Tell the AI which files it can modify and, more importantly, which files to leave untouched to prevent unintended changes across the codebase.
+   - _Example: "You should only create the `RegistrationForm.js` component and add it to the `pages/register.js` file. Do NOT alter the `Navbar.js` component or any other existing page or component."_
+
+### 3. Assembling the Master Prompt
+
+You will now synthesize the inputs and the above principles into a final, comprehensive prompt.
+
+1. **Gather Foundational Context**:
+   - Start the prompt with a preamble describing the overall project purpose, the full tech stack (e.g., Next.js, TypeScript, Tailwind CSS), and the primary UI component library being used.
+2. **Describe the Visuals**:
+   - If the user has design files (Figma, etc.), instruct them to provide links or screenshots.
+   - If not, describe the visual style: color palette, typography, spacing, and overall aesthetic (e.g., "minimalist", "corporate", "playful").
+3. **Build the Prompt using the Structured Framework**:
+   - Follow the four-part framework from Section 2 to build out the core request, whether it's for a single component or a full page.
+4. **Present and Refine**:
+   - Output the complete, generated prompt in a clear, copy-pasteable format (e.g., a large code block).
+   - Explain the structure of the prompt and why certain information was included, referencing the principles above.
+   - <important_note>Conclude by reminding the user that all AI-generated code will require careful human review, testing, and refinement to be considered production-ready.</important_note>
+```
+
+### Task: facilitate-brainstorming-session
+Source: .bmad-core/tasks/facilitate-brainstorming-session.md
+- How to use: "Use task facilitate-brainstorming-session with the appropriate agent" and paste relevant parts as needed.
+
+```md
+## <!-- Powered by BMAD™ Core -->
+
+docOutputLocation: docs/brainstorming-session-results.md
+template: '.bmad-core/templates/brainstorming-output-tmpl.yaml'
+
+---
+
+# Facilitate Brainstorming Session Task
+
+Facilitate interactive brainstorming sessions with users. Be creative and adaptive in applying techniques.
+
+## Process
+
+### Step 1: Session Setup
+
+Ask 4 context questions (don't preview what happens next):
+
+1. What are we brainstorming about?
+2. Any constraints or parameters?
+3. Goal: broad exploration or focused ideation?
+4. Do you want a structured document output to reference later? (Default Yes)
+
+### Step 2: Present Approach Options
+
+After getting answers to Step 1, present 4 approach options (numbered):
+
+1. User selects specific techniques
+2. Analyst recommends techniques based on context
+3. Random technique selection for creative variety
+4. Progressive technique flow (start broad, narrow down)
+
+### Step 3: Execute Techniques Interactively
+
+**KEY PRINCIPLES:**
+
+- **FACILITATOR ROLE**: Guide user to generate their own ideas through questions, prompts, and examples
+- **CONTINUOUS ENGAGEMENT**: Keep user engaged with chosen technique until they want to switch or are satisfied
+- **CAPTURE OUTPUT**: If (default) document output requested, capture all ideas generated in each technique section to the document from the beginning.
+
+**Technique Selection:**
+If user selects Option 1, present numbered list of techniques from the brainstorming-techniques data file. User can select by number..
+
+**Technique Execution:**
+
+1. Apply selected technique according to data file description
+2. Keep engaging with technique until user indicates they want to:
+   - Choose a different technique
+   - Apply current ideas to a new technique
+   - Move to convergent phase
+   - End session
+
+**Output Capture (if requested):**
+For each technique used, capture:
+
+- Technique name and duration
+- Key ideas generated by user
+- Insights and patterns identified
+- User's reflections on the process
+
+### Step 4: Session Flow
+
+1. **Warm-up** (5-10 min) - Build creative confidence
+2. **Divergent** (20-30 min) - Generate quantity over quality
+3. **Convergent** (15-20 min) - Group and categorize ideas
+4. **Synthesis** (10-15 min) - Refine and develop concepts
+
+### Step 5: Document Output (if requested)
+
+Generate structured document with these sections:
+
+**Executive Summary**
+
+- Session topic and goals
+- Techniques used and duration
+- Total ideas generated
+- Key themes and patterns identified
+
+**Technique Sections** (for each technique used)
+
+- Technique name and description
+- Ideas generated (user's own words)
+- Insights discovered
+- Notable connections or patterns
+
+**Idea Categorization**
+
+- **Immediate Opportunities** - Ready to implement now
+- **Future Innovations** - Requires development/research
+- **Moonshots** - Ambitious, transformative concepts
+- **Insights & Learnings** - Key realizations from session
+
+**Action Planning**
+
+- Top 3 priority ideas with rationale
+- Next steps for each priority
+- Resources/research needed
+- Timeline considerations
+
+**Reflection & Follow-up**
+
+- What worked well in this session
+- Areas for further exploration
+- Recommended follow-up techniques
+- Questions that emerged for future sessions
+
+## Key Principles
+
+- **YOU ARE A FACILITATOR**: Guide the user to brainstorm, don't brainstorm for them (unless they request it persistently)
+- **INTERACTIVE DIALOGUE**: Ask questions, wait for responses, build on their ideas
+- **ONE TECHNIQUE AT A TIME**: Don't mix multiple techniques in one response
+- **CONTINUOUS ENGAGEMENT**: Stay with one technique until user wants to switch
+- **DRAW IDEAS OUT**: Use prompts and examples to help them generate their own ideas
+- **REAL-TIME ADAPTATION**: Monitor engagement and adjust approach as needed
+- Maintain energy and momentum
+- Defer judgment during generation
+- Quantity leads to quality (aim for 100 ideas in 60 minutes)
+- Build on ideas collaboratively
+- Document everything in output document
+
+## Advanced Engagement Strategies
+
+**Energy Management**
+
+- Check engagement levels: "How are you feeling about this direction?"
+- Offer breaks or technique switches if energy flags
+- Use encouraging language and celebrate idea generation
+
+**Depth vs. Breadth**
+
+- Ask follow-up questions to deepen ideas: "Tell me more about that..."
+- Use "Yes, and..." to build on their ideas
+- Help them make connections: "How does this relate to your earlier idea about...?"
+
+**Transition Management**
+
+- Always ask before switching techniques: "Ready to try a different approach?"
+- Offer options: "Should we explore this idea deeper or generate more alternatives?"
+- Respect their process and timing
+```
+
+### Task: execute-checklist
+Source: .bmad-core/tasks/execute-checklist.md
+- How to use: "Use task execute-checklist with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# Checklist Validation Task
+
+This task provides instructions for validating documentation against checklists. The agent MUST follow these instructions to ensure thorough and systematic validation of documents.
+
+## Available Checklists
+
+If the user asks or does not specify a specific checklist, list the checklists available to the agent persona. If the task is being run not with a specific agent, tell the user to check the .bmad-core/checklists folder to select the appropriate one to run.
+
+## Instructions
+
+1. **Initial Assessment**
+   - If user or the task being run provides a checklist name:
+     - Try fuzzy matching (e.g. "architecture checklist" -> "architect-checklist")
+     - If multiple matches found, ask user to clarify
+     - Load the appropriate checklist from .bmad-core/checklists/
+   - If no checklist specified:
+     - Ask the user which checklist they want to use
+     - Present the available options from the files in the checklists folder
+   - Confirm if they want to work through the checklist:
+     - Section by section (interactive mode - very time consuming)
+     - All at once (YOLO mode - recommended for checklists, there will be a summary of sections at the end to discuss)
+
+2. **Document and Artifact Gathering**
+   - Each checklist will specify its required documents/artifacts at the beginning
+   - Follow the checklist's specific instructions for what to gather, generally a file can be resolved in the docs folder, if not or unsure, halt and ask or confirm with the user.
+
+3. **Checklist Processing**
+
+   If in interactive mode:
+   - Work through each section of the checklist one at a time
+   - For each section:
+     - Review all items in the section following instructions for that section embedded in the checklist
+     - Check each item against the relevant documentation or artifacts as appropriate
+     - Present summary of findings for that section, highlighting warnings, errors and non applicable items (rationale for non-applicability).
+     - Get user confirmation before proceeding to next section or if any thing major do we need to halt and take corrective action
+
+   If in YOLO mode:
+   - Process all sections at once
+   - Create a comprehensive report of all findings
+   - Present the complete analysis to the user
+
+4. **Validation Approach**
+
+   For each checklist item:
+   - Read and understand the requirement
+   - Look for evidence in the documentation that satisfies the requirement
+   - Consider both explicit mentions and implicit coverage
+   - Aside from this, follow all checklist llm instructions
+   - Mark items as:
+     - ✅ PASS: Requirement clearly met
+     - ❌ FAIL: Requirement not met or insufficient coverage
+     - ⚠️ PARTIAL: Some aspects covered but needs improvement
+     - N/A: Not applicable to this case
+
+5. **Section Analysis**
+
+   For each section:
+   - think step by step to calculate pass rate
+   - Identify common themes in failed items
+   - Provide specific recommendations for improvement
+   - In interactive mode, discuss findings with user
+   - Document any user decisions or explanations
+
+6. **Final Report**
+
+   Prepare a summary that includes:
+   - Overall checklist completion status
+   - Pass rates by section
+   - List of failed items with context
+   - Specific recommendations for improvement
+   - Any sections or items marked as N/A with justification
+
+## Checklist Execution Methodology
+
+Each checklist now contains embedded LLM prompts and instructions that will:
+
+1. **Guide thorough thinking** - Prompts ensure deep analysis of each section
+2. **Request specific artifacts** - Clear instructions on what documents/access is needed
+3. **Provide contextual guidance** - Section-specific prompts for better validation
+4. **Generate comprehensive reports** - Final summary with detailed findings
+
+The LLM will:
+
+- Execute the complete checklist validation
+- Present a final report with pass/fail rates and key findings
+- Offer to provide detailed analysis of any section, especially those with warnings or failures
+```
+
+### Task: document-project
+Source: .bmad-core/tasks/document-project.md
+- How to use: "Use task document-project with the appropriate agent" and paste relevant parts as needed.
+
+```md
+<!-- Powered by BMAD™ Core -->
+
+# Document an Existing Project
+
+## Purpose
+
+Generate comprehensive documentation for existing projects optimized for AI development agents. This task creates structured reference materials that enable AI agents to understand project context, conventions, and patterns for effective contribution to any codebase.
+
+## Task Instructions
