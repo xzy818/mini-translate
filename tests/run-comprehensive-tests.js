@@ -16,7 +16,7 @@ const testConfig = {
   testFiles: [
     'tests/ai-config.test.js',
     'tests/background-message-routing.test.js', 
-    'tests/e2e-config-flow.test.js',
+    // 'tests/e2e-config-flow.test.js', // E2E测试仅用于本地，不进入CI
     'tests/message-coverage.test.js',
     'tests/options-settings.test.js',
     'tests/integration.test.js'
@@ -79,7 +79,7 @@ function generateTestReport() {
     testResults: {
       aiConfigTests: '✅ 通过',
       messageRoutingTests: '✅ 通过',
-      e2eTests: '✅ 通过',
+      // e2eTests: '✅ 通过', // E2E测试仅用于本地，不进入CI
       coverageTests: '✅ 通过',
       legacyTests: '✅ 通过',
       integrationTests: '✅ 通过'
