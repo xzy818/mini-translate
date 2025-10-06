@@ -23,7 +23,7 @@ const TEST_CONFIG = {
   chromeDebugPort: 9224,
   chromeLogFile: '/tmp/mini-translate-verification.log',
   chromeProfileDir: '/tmp/mini-translate-verification-profile',
-  chromePath: '/Users/dr.yang/code/mini-translate/.cache/chrome-for-testing/140.0.7339.207/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
+  chromePath: '/Users/dada-mac/code/ai/mini-translate/.cache/chrome-for-testing/140.0.7339.207/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
 };
 
 // 测试结果收集

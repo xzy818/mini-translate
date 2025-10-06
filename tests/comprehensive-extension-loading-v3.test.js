@@ -22,7 +22,7 @@ const TEST_CONFIG = {
   chromeDebugPort: 9228,
   chromeLogFile: '/tmp/mini-translate-comprehensive.log',
   chromeProfileDir: '/tmp/mini-translate-comprehensive-profile',
-  chromePath: '/Users/dr.yang/code/mini-translate/.cache/chrome-for-testing/140.0.7339.207/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+  chromePath: '/Users/dada-mac/code/ai/mini-translate/.cache/chrome-for-testing/140.0.7339.207/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
   requiredFiles: [
     'manifest.json',
     'background.js',
