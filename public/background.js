@@ -184,7 +184,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           const logModel = finalPayload?.model || meta?.model;
           const logUrl = meta?.url || finalPayload?.apiBaseUrl;
           console.error('[translate] term failed', { model: logModel, apiBaseUrl: logUrl }, error);
-        } catch (_) {}
+        } catch (_) {
+          // 防止空的 catch 触发 eslint(no-empty)
+          console.warn('[translate] term failed: meta logging unavailable');
+        }
         // 将模型/URL 透传给前端，便于控制台和UI显示
         sendResponse({ ok: false, error: error.message || '翻译失败', meta });
       });
