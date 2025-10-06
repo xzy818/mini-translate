@@ -23,7 +23,7 @@ function mapBaseUrlByModel(model) {
       return 'https://api.deepseek.com';
     case 'qwen-mt-turbo':
     case 'qwen-mt-plus':
-      return 'https://dashscope.aliyuncs.com/compatible-mode';
+      return 'https://dashscope.aliyuncs.com';
     case 'gpt-4o-mini':
       return 'https://api.openai.com';
     default:
