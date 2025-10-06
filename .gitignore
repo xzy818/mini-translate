@@ -26,3 +26,7 @@ coverage/
 .vscode/
 .idea/
 .DS_Store
+
+scripts/split-agents-*.js
+scripts/split-agents-*.mjs
+scripts/split-agents.cjs
