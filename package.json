@@ -11,8 +11,8 @@
     "test:e2e:local": "node tests/run-local-e2e-tests.js",
     "build": "node scripts/build-zip.sh",
     "dev": "vitest --watch",
-    "lint": "eslint . --ext .js,.mjs",
-    "lint:fix": "eslint . --ext .js,.mjs --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "validate": "npm run lint && npm run test"
   },
   "devDependencies": {
