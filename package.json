@@ -20,7 +20,7 @@
     "vitest": "^1.0.0"
   },
   "dependencies": {
-    "chrome-extension-async": "^3.6.0"
+    "chrome-extension-async": "^3.4.1"
   },
   "engines": {
     "node": ">=18.0.0"
