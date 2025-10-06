@@ -3,19 +3,6 @@ importScripts('./src/services/translator.js');
 importScripts('./src/services/ai-api-client.js');
 importScripts('./src/config/model-providers.js');
 
-import {
-  initializeBackground,
-  handleAddTerm,
-  handleRemoveTerm,
-  handleTogglePage,
-  updateMenuForInfo
-} from './src/services/context-menu.js';
-import {
-  translateText,
-  validateTranslationConfig,
-  TRANSLATION_ERRORS
-} from './src/services/translator.js';
-
 let initialized = false;
 let aiApiClient = null;
  
