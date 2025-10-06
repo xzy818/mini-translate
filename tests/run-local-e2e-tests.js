@@ -45,7 +45,7 @@ function runE2ETests() {
 
   try {
     console.log('🚀 运行E2E测试套件...');
-    const testCommand = `npx vitest run ${e2eTestConfig.testFiles.join(' ')} --reporter=verbose`;
+    const testCommand = `npx vitest -c vitest.e2e.config.js run ${e2eTestConfig.testFiles.join(' ')} --reporter=verbose`;
     execSync(testCommand, { stdio: 'inherit' });
     
     console.log('\n✅ E2E测试通过！');
