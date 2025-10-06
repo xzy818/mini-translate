@@ -82,7 +82,19 @@ global.fetch = vi.fn().mockImplementation(async (url, options) => {
     headers: maskedOptions.headers
   });
   
-  return originalFetch(url, options);
+  // 默认返回成功响应，具体测试可以覆盖这个mock
+  return {
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({
+      choices: [{
+        message: {
+          content: '测试翻译结果'
+        }
+      }]
+    }),
+    text: () => Promise.resolve('{"choices":[{"message":{"content":"测试翻译结果"}}]}')
+  };
 });
 
 // 测试环境清理

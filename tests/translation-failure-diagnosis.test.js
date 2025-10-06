@@ -39,6 +39,9 @@ describe('网页翻译失败诊断', () => {
 
     // 清除临时 Key
     clearTemporaryKeys();
+    
+    // 重置 fetch mock
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -223,7 +226,11 @@ describe('网页翻译失败诊断', () => {
 
       // Mock 存储操作
       mockChrome.storage.local.get.mockImplementation((keys, callback) => {
-        callback({ vocabulary: [] });
+        if (keys === 'vocabulary') {
+          callback({ vocabulary: [] });
+        } else {
+          callback({ model: 'deepseek-v3', apiKey: 'test-key' });
+        }
       });
       mockChrome.storage.local.set.mockImplementation((data, callback) => {
         callback();
