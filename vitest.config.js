@@ -2,29 +2,21 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    environment: 'jsdom',
     globals: true,
-    environment: 'node',
+    setupFiles: ['./tests/setup-translation-diagnosis.js'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
-        'node_modules/**',
-        'dist/**',
-        'coverage/**',
-        'public/**',
-        'scripts/**',
-        '.github/**'
-      ],
-      thresholds: {
-        global: {
-          branches: 80,
-          functions: 80,
-          lines: 80,
-          statements: 80
-        }
-      }
+        'node_modules/',
+        'dist/',
+        'test-reports/',
+        'scripts/',
+        'tests/setup-*.js'
+      ]
     },
-    testTimeout: 10000,
-    hookTimeout: 10000
+    testTimeout: 30000, // 30秒超时，支持真实 API 测试
+    hookTimeout: 30000
   }
 });

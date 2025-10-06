@@ -1,0 +1,12 @@
+{
+  "completedAt": "2025-10-05T14:14:26.450Z",
+  "result": "failed",
+  "batches": [
+    {
+      "batch": "context-menu.json",
+      "status": "failed",
+      "error": "Tool new_page failed: Failed to fetch browser webSocket URL from http://127.0.0.1:9222/json/version: fetch failed",
+      "log": "test-artifacts/mcp/2025-10-05T14-14-24-531Z/context-menu/context-menu.json.log"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "timestamp": "2025-10-06T01:31:07.621Z",
+  "summary": {
+    "totalTests": 4,
+    "passedTests": 4,
+    "failedTests": 0,
+    "successRate": "100%"
+  },
+  "results": [
+    {
+      "test": "基础翻译测试",
+      "input": "hello",
+      "output": "你好",
+      "responseTime": 519,
+      "status": "success"
+    },
+    {
+      "test": "复杂句子翻译",
+      "input": "The quick brown fox jumps over the lazy dog.",
+      "output": "敏捷的棕色狐狸跳过了懒惰的狗。",
+      "responseTime": 385,
+      "status": "success"
+    },
+    {
+      "test": "技术术语翻译",
+      "input": "artificial intelligence",
+      "output": "人工智能",
+      "responseTime": 342,
+      "status": "success"
+    },
+    {
+      "test": "长文本翻译",
+      "input": "This is a comprehensive test of the translation functionality to ensure it works correctly with longer text inputs.",
+      "output": "这是一个对翻译功能的全面测试，以确保其能正确处理较长的文本输入。",
+      "responseTime": 500,
+      "status": "success"
+    }
+  ]
+}

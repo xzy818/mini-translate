@@ -1,0 +1,12 @@
+{
+  "completedAt": "2025-10-06T01:21:40.615Z",
+  "result": "failed",
+  "batches": [
+    {
+      "batch": "translation-scenarios.json",
+      "status": "failed",
+      "error": "Tool wait_for failed: Timed out after waiting 30000ms",
+      "log": "test-artifacts/mcp/2025-10-06T01-21-08-144Z/translation-scenarios/translation-scenarios.json.log"
+    }
+  ]
+}

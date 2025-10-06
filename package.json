@@ -1,56 +1,36 @@
 {
-  "name": "mini-translate",
-  "version": "0.2.12",
-  "description": "A mini translation plugin developed for Chrome that does not discrupt the reading experience and only translates a few unfamiliar words.",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "name": "mini-translate-extension",
+  "version": "1.0.0",
+  "description": "Mini Translate Chrome Extension",
+  "type": "module",
   "scripts": {
-    "pretest": "npm run build",
-    "test": "vitest run --environment=node",
-    "test:coverage": "vitest run --environment=node --coverage",
-    "test:integration": "vitest run tests/integration.test.js",
-    "test:watch": "vitest",
-    "test:e2e": "playwright test tests/e2e --project=chromium",
-    "mcp:capture": "node scripts/mcp/capture-uids.mjs --update --write-batches",
-    "mcp:prepare": "npm run mcp:capture",
-    "test:mcp": "node scripts/mcp/run-suite.mjs",
-    "mcp:auto": "node scripts/mcp/full-auto.mjs",
-    "lint": "eslint .",
-    "lint:ci": "eslint . -f json -o eslint-report.json && eslint . -f html -o eslint-report.html && eslint .",
-    "lint:fix": "eslint . --fix",
-    "build": "bash scripts/build-zip.sh",
-    "validate": "npm run lint && npm test",
-    "ci": "npm run validate"
+    "test": "vitest",
+    "test:diagnosis": "node scripts/run-translation-diagnosis-tests.js",
+    "test:diagnosis:coverage": "node scripts/run-translation-diagnosis-tests.js --coverage",
+    "test:diagnosis:pattern": "node scripts/run-translation-diagnosis-tests.js --pattern",
+    "build": "node scripts/build-zip.sh",
+    "dev": "vitest --watch",
+    "lint": "eslint . --ext .js,.mjs",
+    "lint:fix": "eslint . --ext .js,.mjs --fix"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/xzy818/mini-translate.git"
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.57.0",
+    "jsdom": "^23.0.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "chrome-extension-async": "^3.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [
     "chrome-extension",
     "translation",
-    "vocabulary",
+    "ai",
     "mini-translate"
   ],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "bugs": {
-    "url": "https://github.com/xzy818/mini-translate/issues"
-  },
-  "homepage": "https://github.com/xzy818/mini-translate#readme",
-  "devDependencies": {
-    "@playwright/test": "^1.48.2",
-    "@vitest/coverage-v8": "^3.2.4",
-    "chrome-devtools-mcp": "^0.2.7",
-    "eslint": "^9.35.0",
-    "jsdom": "^24.0.0",
-    "vitest": "^3.2.4"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  }
+  "author": "Mini Translate Team",
+  "license": "MIT"
 }

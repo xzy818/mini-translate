@@ -1,0 +1,12 @@
+{
+  "completedAt": "2025-10-06T01:23:32.749Z",
+  "result": "failed",
+  "batches": [
+    {
+      "batch": "simple-translation-test.json",
+      "status": "failed",
+      "error": "Tool wait_for failed: Timed out after waiting 30000ms",
+      "log": "test-artifacts/mcp/2025-10-06T01-23-00-190Z/simple-translation-test/simple-translation-test.json.log"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "completedAt": "2025-10-06T01:20:31.279Z",
+  "result": "failed",
+  "batches": [
+    {
+      "batch": "context-menu.json",
+      "status": "failed",
+      "error": "Tool evaluate_script failed: QA bridge not available",
+      "log": "test-artifacts/mcp/2025-10-06T01-20-25-268Z/context-menu/context-menu.json.log"
+    }
+  ]
+}

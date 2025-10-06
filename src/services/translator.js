@@ -115,10 +115,10 @@ function buildMessages(text, withSystem = true) {
   if (withSystem) {
     messages.push({
       role: 'system',
-      content: '你是一个专业的翻译助手。请将用户提供的文本翻译成中文，只返回翻译结果，不要添加任何解释或其他内容。'
+      content: 'You are a translator. Translate text to Chinese.'
     });
   }
-  messages.push({ role: 'user', content: text });
+  messages.push({ role: 'user', content: `请将以下文本翻译成中文：${text}` });
   return messages;
 }
 
@@ -175,8 +175,9 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl, timeout = DEFAULT
  * Qwen MT 翻译实现
  */
 async function translateWithQwen(text, apiKey, apiBaseUrl, model, timeout = DEFAULT_TIMEOUT) {
-  // 处理API Base URL，如果已经包含路径则直接使用，否则添加默认路径
-  const url = `${buildApiBaseUrl(apiBaseUrl)}/chat/completions`;
+  // Qwen 使用兼容模式的 OpenAI API 端点
+  const url = `${apiBaseUrl}/compatible-mode/v1/chat/completions`;
+  // Qwen 使用 OpenAI 兼容格式的请求
   const payload = {
     model,
     messages: buildMessages(text, false),

@@ -1,0 +1,12 @@
+{
+  "completedAt": "2025-10-06T01:24:54.550Z",
+  "result": "failed",
+  "batches": [
+    {
+      "batch": "direct-extension-test.json",
+      "status": "failed",
+      "error": "Tool new_page failed: net::ERR_BLOCKED_BY_CLIENT at chrome-extension://acfpkkkhehadjlkdnffdkoilmhchefbl/options.html",
+      "log": "test-artifacts/mcp/2025-10-06T01-24-53-178Z/direct-extension-test/direct-extension-test.json.log"
+    }
+  ]
+}
