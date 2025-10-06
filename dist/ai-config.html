@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 模型配置 - Mini Translate</title>
+    <link rel="stylesheet" href="design-system.css">
+    <style>
+        /* AI配置页面特定样式 */
+        .ai-config-container {
+            max-width: 600px;
+        }
+        
+        .provider-info {
+            background: rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-sm);
+            font-size: var(--font-size-sm);
+            color: var(--accent);
+        }
+        
+        .model-info {
+            background: rgba(22, 163, 74, 0.1);
+            border: 1px solid rgba(22, 163, 74, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-sm);
+            font-size: var(--font-size-sm);
+            color: var(--success);
+        }
+        
+        .status {
+            padding: var(--spacing-md);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-sm);
+            margin-top: var(--spacing-lg);
+        }
+        
+        .status.success {
+            background: rgba(22, 163, 74, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(22, 163, 74, 0.2);
+        }
+        
+        .status.error {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+        
+        .status.info {
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--accent);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+        
+        .api-key-help {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            margin-top: var(--spacing-xs);
+        }
+        
+        .api-key-help a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        .api-key-help a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container ai-config-container">
+        <div class="panel">
+            <h1>🤖 AI 模型配置</h1>
+            
+            <form id="aiConfigForm">
+                <div class="form-group">
+                    <label for="provider">选择 AI 服务商</label>
+                    <select id="provider" name="provider" required>
+                        <option value="">请选择服务商...</option>
+                    </select>
+                    <div id="providerInfo" class="provider-info hidden">
+                        <strong>服务商信息：</strong>
+                        <span id="providerDetails"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="model">选择模型</label>
+                    <select id="model" name="model" required disabled>
+                        <option value="">请先选择服务商</option>
+                    </select>
+                    <div id="modelInfo" class="model-info hidden">
+                        <strong>模型信息：</strong>
+                        <span id="modelDetails"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="apiKey">API Key</label>
+                    <div style="display:flex; gap:8px; width:100%;">
+                        <input type="password" id="apiKey" name="apiKey" placeholder="请输入您的 API Key" required style="flex:1;">
+                        <button type="button" id="toggleApiKey" class="btn btn--secondary">显示</button>
+                    </div>
+                    <div class="api-key-help">
+                        获取 API Key：
+                        <a href="#" id="apiKeyHelpLink" target="_blank">查看获取方法</a>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" id="testConnection" class="btn btn--secondary" disabled>测试连接</button>
+                    <button type="submit" id="saveConfig" class="btn btn--primary" disabled>保存配置</button>
+                </div>
+            </form>
+            
+            <div id="status" class="status hidden"></div>
+        </div>
+    </div>
+    
+    <script type="module" src="ai-config.js"></script>
+</body>
+</html>

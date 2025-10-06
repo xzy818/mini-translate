@@ -8,10 +8,12 @@
     "test:diagnosis": "node scripts/run-translation-diagnosis-tests.js",
     "test:diagnosis:coverage": "node scripts/run-translation-diagnosis-tests.js --coverage",
     "test:diagnosis:pattern": "node scripts/run-translation-diagnosis-tests.js --pattern",
+    "test:e2e:local": "node tests/run-local-e2e-tests.js",
     "build": "node scripts/build-zip.sh",
     "dev": "vitest --watch",
-    "lint": "eslint . --ext .js,.mjs",
-    "lint:fix": "eslint . --ext .js,.mjs --fix"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "validate": "npm run lint && npm run test"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^1.0.0",
