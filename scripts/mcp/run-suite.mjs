@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// CI 保护：禁止在 CI 环境运行 chrome-mcp 测试
+if (process.env.CI === 'true' || process.env.CI === '1') {
+  console.error('[run-suite] Detected CI environment. chrome-mcp tests are local-only. Aborting.');
+  process.exit(0);
+}
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';

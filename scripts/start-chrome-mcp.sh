@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# CI 保护：禁止在 CI 环境运行 chrome-mcp 启动脚本
+if [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; then
+  echo "[start-chrome-mcp] Detected CI environment. chrome-mcp is local-only. Aborting." >&2
+  exit 0
+fi
+
 CFT_CACHE_DIR="$(pwd)/.cache/chrome-for-testing"
 if [[ -z "${CHROME_PATH:-}" ]]; then
   if [[ -d "$CFT_CACHE_DIR" ]]; then
