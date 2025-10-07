@@ -31,6 +31,28 @@ function mapBaseUrlByModel(model) {
   }
 }
 
+// QA: 打印当前翻译配置上下文（model/baseUrl）
+function logCurrentTranslationContext(tag = '[qa] ctx') {
+  try {
+    if (!chrome?.storage?.local) {
+      console.warn(`${tag} model/url`, { model: 'no-storage', apiBaseUrl: 'no-storage' });
+      return;
+    }
+    // 同步获取，避免异步问题
+    chrome.storage.local.get(['settings'], (bag) => {
+      try {
+        const model = bag?.settings?.model;
+        const apiBaseUrl = mapBaseUrlByModel(model);
+        console.warn(`${tag} model/url`, { model, apiBaseUrl });
+      } catch (_) {
+        console.warn(`${tag} model/url`, { model: 'unknown', apiBaseUrl: 'unknown' });
+      }
+    });
+  } catch (_) {
+    console.warn(`${tag} model/url`, { model: 'unknown', apiBaseUrl: 'unknown' });
+  }
+}
+
 function setup() {
   if (initialized) return;
   initializeBackground(chrome);
@@ -44,6 +66,8 @@ self.addEventListener('unhandledrejection', (event) => {
     const msg = typeof reason?.message === 'string' ? reason.message : String(reason || '');
     if (msg.includes('Could not establish connection') || msg.includes('The message port closed')) {
       console.warn('[qa] unhandled rejection (ignored)', msg);
+      // 连接类错误常见于 Service Worker 与前端端口断开：补充打印当前 model/url 帮助定位
+      logCurrentTranslationContext('[qa] ctx');
       return;
     }
     console.error('[qa] unhandled rejection', reason);
@@ -206,6 +230,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       const model = bag?.settings?.model;
       const apiKey = bag?.settings?.apiKey;
       const apiBaseUrl = mapBaseUrlByModel(model);
+      // 在重试前输出一次上下文，便于在错误发生前也能看到当前 model/url
+      console.warn('[qa] retry context model/url', { model, apiBaseUrl });
       if (!model || !apiKey || !apiBaseUrl) {
         sendResponse({ ok: false, error: '翻译配置不完整' });
         return;
@@ -416,6 +442,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 
   // 未识别消息：显式返回 false，避免悬空端口
+  // 同时输出当前配置上下文，便于 QA 在控制台定位 model/url
+  console.warn('[qa] unknown message type', message.type);
+  logCurrentTranslationContext('[qa] ctx');
   return false;
 });
 

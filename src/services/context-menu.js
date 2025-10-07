@@ -108,13 +108,16 @@ export async function handleAddTerm(chromeLike, info, tabId) {
     notify(chromeLike, '请先在扩展设置中配置模型和 API Key。');
     return { ok: false, reason: 'INVALID_SETTINGS' };
   }
-  const translation = translationResult.ok ? translationResult.translation : '';
+  // 修复：确保翻译结果不为空，避免显示"T"
+  const translation = translationResult.ok && translationResult.translation 
+    ? translationResult.translation.trim() 
+    : '';
 
   const payload = {
     term: selectionText,
     translation,
     type: inferType(selectionText),
-    status: translationResult.ok ? 'active' : 'error'
+    status: translationResult.ok && translation ? 'active' : 'error'
   };
 
   const upserted = await appendVocabulary(chromeLike, payload);
