@@ -12,6 +12,12 @@ import {
 } from './src/services/translator.js';
 import { AIApiClient } from './src/services/ai-api-client.js';
 import { MODEL_PROVIDERS } from './src/config/model-providers.js';
+import {
+  appendVocabulary,
+  readVocabulary,
+  writeVocabulary,
+  VOCAB_KEY
+} from './src/services/storage.js';
 
 let initialized = false;
 let aiApiClient = null;
@@ -241,23 +247,44 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         // 重新翻译
         const translation = await translateText({ text: term, model, apiKey, apiBaseUrl });
 
-        // 更新词库中的翻译结果
-        const vocabData = await chrome.storage.local.get(['vocabulary']);
-        const vocabulary = vocabData.vocabulary || [];
-        
-        const updatedVocabulary = vocabulary.map(item => {
-          if (item.term === term) {
-            return {
-              ...item,
-              translation,
-              status: 'active',
-              updatedAt: new Date().toISOString()
-            };
+        const vocabulary = await readVocabulary(chrome);
+        const now = new Date().toISOString();
+        let updated = false;
+
+        const updatedVocabulary = vocabulary.map((item) => {
+          if (item.term !== term) {
+            return item;
           }
-          return item;
+          updated = true;
+          return {
+            ...item,
+            translation,
+            status: 'active',
+            updatedAt: now
+          };
         });
 
-        await chrome.storage.local.set({ vocabulary: updatedVocabulary });
+        if (updated) {
+          await writeVocabulary(chrome, updatedVocabulary);
+        } else {
+          await appendVocabulary(chrome, {
+            term,
+            translation,
+            status: 'active',
+            type: term.split(/\s+/).length > 1 ? 'phrase' : 'word',
+            length: term.length,
+            createdAt: now,
+            updatedAt: now
+          });
+        }
+
+        if (typeof process !== 'undefined' && process.env?.MT_QA_HOOKS === '1') {
+          console.warn('[qa] retry updated vocabulary', {
+            term,
+            updated,
+            targetKey: VOCAB_KEY
+          });
+        }
 
         // 发送词库更新事件
         chrome.runtime.sendMessage({ type: 'VOCAB_UPDATED', payload: { retried: term } });
@@ -378,6 +405,18 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         sendResponse({ ok: true, local: localData, session: sessionData });
       });
     });
+    return true;
+  }
+
+  // 处理 SELECTION_CHANGED 消息 - 转发给 context-menu 处理
+  if (message.type === 'SELECTION_CHANGED') {
+    const selection = (message.payload?.selectionText || '').trim();
+    const info = {
+      selectionText: selection,
+      frameId: sender?.frameId ?? message.payload?.frameId ?? 0
+    };
+    const tabId = sender?.tab?.id ?? message.payload?.tabId ?? null;
+    updateMenuForInfo(chrome, info, tabId);
     return true;
   }
 

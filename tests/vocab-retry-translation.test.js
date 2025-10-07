@@ -4,7 +4,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { setTemporaryKey, getTemporaryKey, clearTemporaryKeys, maskKey } from './setup-translation-diagnosis.js';
+import { setTemporaryKey, getTemporaryKey, clearTemporaryKeys } from './setup-translation-diagnosis.js';
+
+const VOCAB_KEY = 'miniTranslateVocabulary';
 
 describe('生词表重新翻译失败诊断', () => {
   let mockChrome;
@@ -50,7 +52,7 @@ describe('生词表重新翻译失败诊断', () => {
             model: 'deepseek-v3', 
             apiKey: 'invalid-key' 
           },
-          vocabulary: [{ 
+          [VOCAB_KEY]: [{ 
             term: 'test', 
             translation: '', 
             status: 'error',
@@ -124,12 +126,12 @@ describe('生词表重新翻译失败诊断', () => {
 
           // 更新词库
           const vocabData = await new Promise((resolve) => {
-            mockChrome.storage.local.get(['vocabulary'], (result) => {
+            mockChrome.storage.local.get([VOCAB_KEY], (result) => {
               resolve(result);
             });
           });
 
-          const vocabulary = vocabData.vocabulary || [];
+          const vocabulary = vocabData[VOCAB_KEY] || [];
           const updatedVocabulary = vocabulary.map(item => {
             if (item.term === term) {
               return {
@@ -143,7 +145,7 @@ describe('生词表重新翻译失败诊断', () => {
           });
 
           await new Promise((resolve) => {
-            mockChrome.storage.local.set({ vocabulary: updatedVocabulary }, () => {
+            mockChrome.storage.local.set({ [VOCAB_KEY]: updatedVocabulary }, () => {
               resolve();
             });
           });
@@ -192,7 +194,7 @@ describe('生词表重新翻译失败诊断', () => {
             model: 'deepseek-v3', 
             apiKey: 'valid-key' 
           },
-          vocabulary: [{ 
+          [VOCAB_KEY]: [{ 
             term: 'test', 
             translation: '', 
             status: 'error' 
@@ -265,7 +267,7 @@ describe('生词表重新翻译失败诊断', () => {
             model: 'deepseek-v3', 
             apiKey: 'valid-key' 
           },
-          vocabulary: [{ 
+          [VOCAB_KEY]: [{ 
             term: 'test', 
             translation: '', 
             status: 'error' 
@@ -312,7 +314,7 @@ describe('生词表重新翻译失败诊断', () => {
 
           // 尝试更新词库（会失败）
           await new Promise((resolve, reject) => {
-            mockChrome.storage.local.set({ vocabulary: [] }, (error) => {
+            mockChrome.storage.local.set({ [VOCAB_KEY]: [] }, (error) => {
               if (error) reject(error);
               else resolve();
             });
@@ -359,7 +361,7 @@ describe('生词表重新翻译失败诊断', () => {
             model: 'deepseek-v3', 
             apiKey: getTemporaryKey('deepseek')
           },
-          vocabulary: [{ 
+          [VOCAB_KEY]: [{ 
             term: 'hello', 
             translation: '', 
             status: 'error' 
@@ -442,13 +444,13 @@ describe('生词表重新翻译失败诊断', () => {
       mockChrome.storage.local.get.mockImplementation((keys, callback) => {
         callback({
           settings: { model: 'deepseek-v3', apiKey: 'valid-key' },
-          vocabulary: mockVocabulary
+          [VOCAB_KEY]: mockVocabulary
         });
       });
 
       let updatedVocabulary;
       mockChrome.storage.local.set.mockImplementation((data, callback) => {
-        updatedVocabulary = data.vocabulary;
+        updatedVocabulary = data[VOCAB_KEY];
         callback();
       });
 
@@ -485,12 +487,12 @@ describe('生词表重新翻译失败诊断', () => {
 
           // 更新词库
           const vocabData = await new Promise((resolve) => {
-            mockChrome.storage.local.get(['vocabulary'], (result) => {
+            mockChrome.storage.local.get([VOCAB_KEY], (result) => {
               resolve(result);
             });
           });
 
-          const vocabulary = vocabData.vocabulary || [];
+          const vocabulary = vocabData[VOCAB_KEY] || [];
           const updatedVocabulary = vocabulary.map(item => {
             if (item.term === 'test') {
               return {
@@ -504,7 +506,7 @@ describe('生词表重新翻译失败诊断', () => {
           });
 
           await new Promise((resolve) => {
-            mockChrome.storage.local.set({ vocabulary: updatedVocabulary }, () => {
+            mockChrome.storage.local.set({ [VOCAB_KEY]: updatedVocabulary }, () => {
               resolve();
             });
           });
@@ -543,4 +545,3 @@ describe('生词表重新翻译失败诊断', () => {
     });
   });
 });
-
