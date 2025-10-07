@@ -453,7 +453,6 @@ export function createVocabularyManager({
       row.appendChild(createCell(item.term || '—'));
       row.appendChild(createCell(item.translation || '—'));
       row.appendChild(createCell(item.type === 'phrase' ? '短语' : '单词'));
-      row.appendChild(createCell(String(item.length || item.term.length)));
       row.appendChild(createCell(formatTimestamp(item.createdAt)));
       row.appendChild(createCell(buildStatusBadge(item.status, item)));
 
