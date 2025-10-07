@@ -8,7 +8,8 @@ import {
   __testing__
 } from '../public/vocab-ui.js';
 
-const { paginate } = __testing__();
+const testingHelpers = __testing__();
+const { paginate, sendRetryRequest, shouldRetryConnectionError } = testingHelpers;
 
 function buildSampleData(count = 12) {
   const now = Date.now();
@@ -50,6 +51,73 @@ function setupDom() {
     alert: document.getElementById('vocab-alert')
   };
 }
+
+describe('retry helpers', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    global.chrome = {
+      runtime: {
+        lastError: null,
+        sendMessage: vi.fn()
+      }
+    };
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete global.chrome;
+  });
+
+  it('identifies connection errors correctly', () => {
+    expect(shouldRetryConnectionError('Could not establish connection. Receiving end does not exist.')).toBe(true);
+    expect(shouldRetryConnectionError('Receiving end does not exist')).toBe(true);
+    expect(shouldRetryConnectionError('Other error')).toBe(false);
+  });
+
+  it('retries once after connection error and resolves on success', async () => {
+    let attempt = 0;
+    global.chrome.runtime.sendMessage.mockImplementation((message, cb) => {
+      if (attempt === 0) {
+        attempt += 1;
+        global.chrome.runtime.lastError = {
+          message: 'Could not establish connection. Receiving end does not exist.'
+        };
+        cb && cb();
+        global.chrome.runtime.lastError = null;
+        return;
+      }
+      attempt += 1;
+      cb && cb({ ok: true });
+    });
+
+    const resultPromise = sendRetryRequest('hello');
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(200);
+    await Promise.resolve();
+    const result = await resultPromise;
+
+    expect(result).toEqual({ ok: true });
+    expect(attempt).toBe(2);
+  });
+
+  it('returns fallback error after retries exhausted', async () => {
+    global.chrome.runtime.sendMessage.mockImplementation((message, cb) => {
+      global.chrome.runtime.lastError = {
+        message: 'The message port closed before a response was received.'
+      };
+      cb && cb();
+      global.chrome.runtime.lastError = null;
+    });
+
+    const resultPromise = sendRetryRequest('world');
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(1200);
+    await Promise.resolve();
+    const result = await resultPromise;
+
+    expect(result).toEqual({ ok: false, error: '连接失败，请重试' });
+  });
+});
 
 describe('paginate()', () => {
   it('limits page range', () => {
