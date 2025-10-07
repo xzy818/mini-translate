@@ -12,7 +12,11 @@ function buildWordRegex(term) {
 
 function replaceWithMark(text, term, translation) {
   const re = buildWordRegex(term);
-  return text.replace(re, (match) => `${match}(${translation || 'T'})`);
+  // 修复：当翻译为空时，不显示翻译标记，避免显示"T"
+  if (!translation || translation.trim() === '') {
+    return text; // 不进行替换，保持原文
+  }
+  return text.replace(re, (match) => `${match}(${translation})`);
 }
 
 function getTextNodes(root) {
