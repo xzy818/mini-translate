@@ -4,7 +4,7 @@ import {
   exportToJson,
   importFromTxt,
   importFromJson
-} from '../src/services/vocab-io.js';
+} from './services/vocab-io.js';
 
 const PAGE_SELECTORS = {
   counter: 'vocab-counter',
