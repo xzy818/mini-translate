@@ -213,6 +213,51 @@ function fillVocabulary(chromeStub, count) {
     );
   });
 
+  it('retries translation after connection error and succeeds', async () => {
+    await writeSettings(chromeStub, {
+      model: 'gpt-4o-mini',
+      apiKey: 'mock-key'
+    });
+
+    let callCount = 0;
+    chromeStub.runtime.sendMessage.mockImplementation((message, cb) => {
+      if (message.type === 'TRANSLATE_TERM') {
+        callCount += 1;
+        if (callCount === 1) {
+          chromeStub.runtime.lastError = {
+            message: 'Could not establish connection. Receiving end does not exist.'
+          };
+          cb && cb();
+          chromeStub.runtime.lastError = null;
+          return;
+        }
+        cb && cb({ ok: true, translation: `${message.payload.text}-译` });
+        return;
+      }
+      cb && cb({ ok: true });
+    });
+
+    const info = { selectionText: 'cloud' };
+    const tab = { id: 11 };
+
+    await dispatchSelection(chromeStub, info.selectionText, tab.id);
+
+    const clickPromise = chromeStub._onClicked(info, tab);
+    await flushPromises();
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    await flushPromises();
+    await clickPromise;
+
+    const vocab = await readVocabulary(chromeStub);
+    expect(vocab).toHaveLength(1);
+    expect(vocab[0]).toMatchObject({
+      term: 'cloud',
+      translation: 'cloud-译',
+      status: 'active'
+    });
+    expect(callCount).toBe(2);
+  });
+
   it('reports vocabulary limit exceeded', async () => {
     await writeSettings(chromeStub, {
       model: 'gpt-4o-mini',

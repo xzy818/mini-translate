@@ -13,6 +13,8 @@ import { validateTerm } from './vocab-core.js';
 export const MENU_ID = 'mini-translate-action';
 
 const menuState = new Map();
+const injectedTabs = new Set();
+let tabRemovalListenerRegistered = false;
 
 function buildTabKey(tabId) {
   return Number.isInteger(tabId) ? tabId : 'global';
@@ -41,34 +43,111 @@ export async function updateMenuForInfo(chromeLike, info, tabId) {
   }
 }
 
-export function safeSendMessage(chromeLike, tabId, payload) {
+function registerTabRemovalCleanup(chromeLike) {
+  if (tabRemovalListenerRegistered || !chromeLike?.tabs?.onRemoved?.addListener) {
+    return;
+  }
+  chromeLike.tabs.onRemoved.addListener((removedTabId) => {
+    if (Number.isInteger(removedTabId)) {
+      injectedTabs.delete(removedTabId);
+    }
+  });
+  tabRemovalListenerRegistered = true;
+}
+
+async function ensureContentScript(chromeLike, tabId) {
+  if (!Number.isInteger(tabId) || !chromeLike?.scripting?.executeScript) {
+    return;
+  }
+  registerTabRemovalCleanup(chromeLike);
+  if (injectedTabs.has(tabId)) {
+    return;
+  }
   try {
-    chromeLike.tabs.sendMessage(tabId, payload, (response) => {
-      const error = chromeLike.runtime?.lastError;
-      if (error) {
-        // 检查是否是常见的连接错误，避免在控制台显示警告
-        if (error.message.includes('Could not establish connection') || 
-            error.message.includes('Receiving end does not exist') ||
-            error.message.includes('The message port closed')) {
-          // 这些是正常的连接错误，不需要警告
+    await new Promise((resolve, reject) => {
+      chromeLike.scripting.executeScript(
+        {
+          target: { tabId },
+          files: ['content.js']
+        },
+        () => {
+          const err = chromeLike.runtime?.lastError;
+          if (err) {
+            reject(new Error(err.message));
+            return;
+          }
+          resolve();
+        }
+      );
+    });
+    injectedTabs.add(tabId);
+  } catch (error) {
+    console.warn('[qa] content script injection failed', { tabId, message: error.message });
+  }
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const TAB_MESSAGE_RETRY_DELAYS = [120, 250, 600];
+
+export async function safeSendMessage(chromeLike, tabId, payload) {
+  if (!Number.isInteger(tabId)) {
+    return;
+  }
+
+  const attemptSend = () => new Promise((resolve, reject) => {
+    try {
+      chromeLike.tabs.sendMessage(tabId, payload, () => {
+        const error = chromeLike.runtime?.lastError;
+        if (error) {
+          reject(new Error(error.message));
           return;
         }
-        console.warn('tabs.sendMessage failed', error.message);
-      }
-    });
-  } catch (error) {
-    // 检查是否是常见的连接异常，避免在控制台显示警告
-    if (error.message && (
-        error.message.includes('Could not establish connection') ||
-        error.message.includes('Receiving end does not exist'))) {
-      return;
+        resolve();
+      });
+    } catch (error) {
+      reject(error);
     }
-    console.warn('tabs.sendMessage exception', error);
+  });
+
+  for (let attempt = 0; attempt <= TAB_MESSAGE_RETRY_DELAYS.length; attempt += 1) {
+    try {
+      await attemptSend();
+      return;
+    } catch (error) {
+      const message = String(error?.message || '');
+      if (!shouldRetryConnectionError(message) || attempt === TAB_MESSAGE_RETRY_DELAYS.length) {
+        if (!shouldRetryConnectionError(message)) {
+          console.warn('tabs.sendMessage failed', message);
+        }
+        return;
+      }
+      await ensureContentScript(chromeLike, tabId);
+      const delayMs = TAB_MESSAGE_RETRY_DELAYS[attempt] ?? TAB_MESSAGE_RETRY_DELAYS.at(-1);
+      await delay(delayMs);
+    }
   }
 }
 
 function inferType(term) {
   return term.split(/\s+/).length > 1 ? 'phrase' : 'word';
+}
+
+const CONNECTION_ERROR_PATTERNS = [
+  'Could not establish connection',
+  'Receiving end does not exist',
+  'The message port closed'
+];
+
+const CONNECTION_RETRY_DELAYS = [150, 300, 600];
+
+function shouldRetryConnectionError(message) {
+  if (typeof message !== 'string') {
+    return false;
+  }
+  return CONNECTION_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
 }
 
 async function translateTerm(chromeLike, text) {
@@ -77,20 +156,37 @@ async function translateTerm(chromeLike, text) {
   if (!model || !apiKey) {
     return { ok: false, reason: 'INVALID_SETTINGS' };
   }
+  const payload = {
+    type: 'TRANSLATE_TERM',
+    payload: { text, model, apiKey }
+  };
+
   return new Promise((resolve) => {
-    chromeLike.runtime.sendMessage(
-      {
-        type: 'TRANSLATE_TERM',
-        payload: { text, model, apiKey }
-      },
-      (response) => {
-        if (chromeLike.runtime.lastError) {
-          resolve({ ok: false, reason: chromeLike.runtime.lastError.message });
+    const send = (attempt = 0) => {
+      chromeLike.runtime.sendMessage(payload, (response) => {
+        const error = chromeLike.runtime?.lastError;
+        if (error) {
+          if (shouldRetryConnectionError(error.message) && attempt < CONNECTION_RETRY_DELAYS.length) {
+            if (typeof process !== 'undefined' && process.env?.MT_QA_HOOKS === '1') {
+              console.warn('[qa] translate retry after connection error', {
+                attempt: attempt + 1,
+                reason: error.message
+              });
+            }
+            const delay = CONNECTION_RETRY_DELAYS[attempt] ?? CONNECTION_RETRY_DELAYS.at(-1);
+            setTimeout(() => {
+              send(attempt + 1);
+            }, delay);
+            return;
+          }
+          resolve({ ok: false, reason: error.message });
           return;
         }
         resolve(response);
-      }
-    );
+      });
+    };
+
+    send();
   });
 }
 
@@ -126,7 +222,7 @@ export async function handleAddTerm(chromeLike, info, tabId) {
   }
   if (translationResult.ok) {
     if (Number.isInteger(tabId)) {
-      safeSendMessage(chromeLike, tabId, {
+      await safeSendMessage(chromeLike, tabId, {
         type: 'APPLY_TRANSLATION',
         payload
       });
@@ -150,7 +246,7 @@ export async function handleRemoveTerm(chromeLike, info, tabId) {
     return { ok: false, reason: 'NOT_FOUND' };
   }
   if (Number.isInteger(tabId)) {
-    safeSendMessage(chromeLike, tabId, {
+    await safeSendMessage(chromeLike, tabId, {
       type: 'REMOVE_TRANSLATION',
       payload: { term }
     });
@@ -164,7 +260,7 @@ export async function handleTogglePage(chromeLike, tabId) {
   const enabled = await toggleTabState(chromeLike, tabId);
   const vocabulary = await readVocabulary(chromeLike);
   if (Number.isInteger(tabId)) {
-    safeSendMessage(chromeLike, tabId, {
+    await safeSendMessage(chromeLike, tabId, {
       type: enabled ? 'TRANSLATE_ALL' : 'RESET_PAGE',
       payload: { vocabulary }
     });

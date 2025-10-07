@@ -1,34 +1,54 @@
 export const MAX_VOCABULARY = 500;
 const PAGE_SIZE_DEFAULT = 10;
 
+const CONNECTION_ERROR_PATTERNS = [
+  'Could not establish connection',
+  'Receiving end does not exist',
+  'The message port closed'
+];
+const CONNECTION_RETRY_DELAYS = [150, 300, 600];
+
+function shouldRetryConnectionError(message) {
+  if (typeof message !== 'string') {
+    return false;
+  }
+  return CONNECTION_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
+}
+
+function sendRetryRequest(term, attempt = 0) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(
+      {
+        type: 'RETRY_TRANSLATION',
+        payload: { term }
+      },
+      (res) => {
+        const error = chrome.runtime.lastError;
+        if (error) {
+          if (shouldRetryConnectionError(error.message)) {
+            if (attempt < CONNECTION_RETRY_DELAYS.length) {
+              const delay = CONNECTION_RETRY_DELAYS[attempt] ?? CONNECTION_RETRY_DELAYS.at(-1);
+              setTimeout(() => {
+                sendRetryRequest(term, attempt + 1).then(resolve).catch(reject);
+              }, delay);
+              return;
+            }
+            resolve({ ok: false, error: '连接失败，请重试' });
+            return;
+          }
+          reject(new Error(error.message));
+          return;
+        }
+        resolve(res);
+      }
+    );
+  });
+}
+
 // 重新翻译功能
 async function retryTranslation(item) {
   try {
-    // 发送重新翻译请求到background
-    const response = await new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(
-        {
-          type: 'RETRY_TRANSLATION',
-          payload: { term: item.term }
-        },
-        (res) => {
-          if (chrome.runtime.lastError) {
-            const error = chrome.runtime.lastError;
-            // 忽略常见的连接错误
-            if (error.message && (
-                error.message.includes('Could not establish connection') ||
-                error.message.includes('Receiving end does not exist') ||
-                error.message.includes('The message port closed'))) {
-              resolve({ ok: false, error: '连接失败，请重试' });
-              return;
-            }
-            reject(new Error(error.message));
-            return;
-          }
-          resolve(res);
-        }
-      );
-    });
+    const response = await sendRetryRequest(item.term);
     
     if (response && response.ok) {
       // 重新翻译成功，刷新词库显示
@@ -82,8 +102,8 @@ async function retryAllErrors() {
   // 获取当前词库数据
   let currentVocabulary = [];
   try {
-    const result = await chrome.storage.local.get(['vocabulary']);
-    currentVocabulary = result.vocabulary || [];
+    const result = await chrome.storage.local.get({ miniTranslateVocabulary: [] });
+    currentVocabulary = result.miniTranslateVocabulary || [];
   } catch (error) {
     console.error('获取词库数据失败:', error);
     showNotification('❌ 获取词库数据失败', 'error');
@@ -107,30 +127,7 @@ async function retryAllErrors() {
 
   for (const item of errorItems) {
     try {
-      const response = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
-          {
-            type: 'RETRY_TRANSLATION',
-            payload: { term: item.term }
-          },
-          (res) => {
-            if (chrome.runtime.lastError) {
-              const error = chrome.runtime.lastError;
-              // 忽略常见的连接错误
-              if (error.message && (
-                  error.message.includes('Could not establish connection') ||
-                  error.message.includes('Receiving end does not exist') ||
-                  error.message.includes('The message port closed'))) {
-                resolve({ ok: false, error: '连接失败' });
-                return;
-              }
-              reject(new Error(error.message));
-              return;
-            }
-            resolve(res);
-          }
-        );
-      });
+      const response = await sendRetryRequest(item.term);
       
       if (response && response.ok) {
         successCount++;
@@ -582,5 +579,12 @@ export function createVocabularyManager({
 }
 
 export function __testing__() {
-  return { normalizeItem, normalizeList, paginate, formatTimestamp };
+  return {
+    normalizeItem,
+    normalizeList,
+    paginate,
+    formatTimestamp,
+    shouldRetryConnectionError,
+    sendRetryRequest
+  };
 }
