@@ -5,7 +5,11 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { translateText, TRANSLATION_ERRORS } from '../src/services/translator.js';
-import { handleAddTerm } from '../src/services/context-menu.js';
+import {
+  handleAddTerm,
+  __setTranslateTextImplementation,
+  __resetTranslateTextImplementation
+} from '../src/services/context-menu.js';
 import { setTemporaryKey, getTemporaryKey, clearTemporaryKeys, maskKey } from './setup-translation-diagnosis.js';
 
 describe('网页翻译失败诊断', () => {
@@ -39,14 +43,16 @@ describe('网页翻译失败诊断', () => {
 
     // 清除临时 Key
     clearTemporaryKeys();
-    
+
     // 重置 fetch mock
     vi.clearAllMocks();
+    __setTranslateTextImplementation(async ({ text }) => `${text}-译`);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     clearTemporaryKeys();
+    __resetTranslateTextImplementation();
   });
 
   describe('配置问题导致的翻译失败', () => {
@@ -215,10 +221,10 @@ describe('网页翻译失败诊断', () => {
   describe('词条添加失败场景', () => {
     it('应该处理翻译失败时的词条状态', async () => {
       // Mock 翻译失败
-      mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
-        if (message.type === 'TRANSLATE_TERM') {
-          callback({ ok: false, reason: 'API_ERROR' });
-        }
+      __setTranslateTextImplementation(async () => {
+        const error = new Error('API_ERROR');
+        error.meta = { url: 'https://api.test' };
+        throw error;
       });
 
       // Mock 存储操作
@@ -248,10 +254,9 @@ describe('网页翻译失败诊断', () => {
     });
 
     it('应该处理配置无效时的词条状态', async () => {
-      mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
-        if (message.type === 'TRANSLATE_TERM') {
-          callback({ ok: false, reason: 'INVALID_SETTINGS' });
-        }
+      __setTranslateTextImplementation(async () => {
+        const error = new Error('INVALID_SETTINGS');
+        throw error;
       });
 
       const result = await handleAddTerm(mockChrome, {

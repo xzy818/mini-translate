@@ -9,12 +9,24 @@ import {
   MAX_VOCAB
 } from './storage.js';
 import { validateTerm } from './vocab-core.js';
+import { translateText as translateTextDefault } from './translator.js';
+import { mapBaseUrlByModel } from './model-utils.js';
 
 export const MENU_ID = 'mini-translate-action';
 
 const menuState = new Map();
 const injectedTabs = new Set();
 let tabRemovalListenerRegistered = false;
+let translateTextImpl = translateTextDefault;
+
+// 仅供测试覆盖使用：允许注入 mock 翻译实现
+export function __setTranslateTextImplementation(fn) {
+  translateTextImpl = typeof fn === 'function' ? fn : translateTextDefault;
+}
+
+export function __resetTranslateTextImplementation() {
+  translateTextImpl = translateTextDefault;
+}
 
 function buildTabKey(tabId) {
   return Number.isInteger(tabId) ? tabId : 'global';
@@ -141,8 +153,6 @@ const CONNECTION_ERROR_PATTERNS = [
   'The message port closed'
 ];
 
-const CONNECTION_RETRY_DELAYS = [150, 300, 600];
-
 function shouldRetryConnectionError(message) {
   if (typeof message !== 'string') {
     return false;
@@ -153,41 +163,39 @@ function shouldRetryConnectionError(message) {
 async function translateTerm(chromeLike, text) {
   const settings = await readSettings(chromeLike);
   const { model, apiKey } = settings;
+
   if (!model || !apiKey) {
     return { ok: false, reason: 'INVALID_SETTINGS' };
   }
-  const payload = {
-    type: 'TRANSLATE_TERM',
-    payload: { text, model, apiKey }
-  };
 
-  return new Promise((resolve) => {
-    const send = (attempt = 0) => {
-      chromeLike.runtime.sendMessage(payload, (response) => {
-        const error = chromeLike.runtime?.lastError;
-        if (error) {
-          if (shouldRetryConnectionError(error.message) && attempt < CONNECTION_RETRY_DELAYS.length) {
-            if (typeof process !== 'undefined' && process.env?.MT_QA_HOOKS === '1') {
-              console.warn('[qa] translate retry after connection error', {
-                attempt: attempt + 1,
-                reason: error.message
-              });
-            }
-            const delay = CONNECTION_RETRY_DELAYS[attempt] ?? CONNECTION_RETRY_DELAYS.at(-1);
-            setTimeout(() => {
-              send(attempt + 1);
-            }, delay);
-            return;
-          }
-          resolve({ ok: false, reason: error.message });
-          return;
+  const apiBaseUrl = mapBaseUrlByModel(model);
+  if (!apiBaseUrl) {
+    return { ok: false, reason: 'UNSUPPORTED_MODEL', meta: { model } };
+  }
+
+  try {
+    const translation = await translateTextImpl({
+      text: text.trim(),
+      model,
+      apiKey,
+      apiBaseUrl
+    });
+    return { ok: true, translation };
+  } catch (error) {
+    const fallbackMeta = { model, apiBaseUrl };
+    const meta = error?.meta
+      ? {
+          model: error.meta.model || fallbackMeta.model,
+          apiBaseUrl: error.meta.url || error.meta.apiBaseUrl || fallbackMeta.apiBaseUrl
         }
-        resolve(response);
-      });
+      : fallbackMeta;
+    return {
+      ok: false,
+      reason: error?.message || '翻译失败，请稍后重试。',
+      error,
+      meta
     };
-
-    send();
-  });
+  }
 }
 
 export async function handleAddTerm(chromeLike, info, tabId) {
@@ -203,6 +211,13 @@ export async function handleAddTerm(chromeLike, info, tabId) {
   if (!translationResult.ok && translationResult.reason === 'INVALID_SETTINGS') {
     notify(chromeLike, '请先在扩展设置中配置模型和 API Key。');
     return { ok: false, reason: 'INVALID_SETTINGS' };
+  }
+  if (!translationResult.ok && translationResult.error) {
+    try {
+      console.error('[translate] term failed', translationResult.meta || {}, translationResult.error);
+    } catch (_) {
+      // ignore logging failures in test environments
+    }
   }
   // 修复：确保翻译结果不为空，避免显示"T"
   const translation = translationResult.ok && translationResult.translation 

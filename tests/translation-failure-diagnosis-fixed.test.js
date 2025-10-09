@@ -4,7 +4,11 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { translateText, TRANSLATION_ERRORS } from '../src/services/translator.js';
-import { handleAddTerm } from '../src/services/context-menu.js';
+import {
+  handleAddTerm,
+  __setTranslateTextImplementation,
+  __resetTranslateTextImplementation
+} from '../src/services/context-menu.js';
 
 // Mock Chrome API
 const mockChrome = {
@@ -36,11 +40,13 @@ describe('网页翻译失败诊断', () => {
     };
     vi.clearAllMocks();
     global.fetch.mockClear();
+    __setTranslateTextImplementation(async ({ text }) => `${text}-译`);
   });
 
   afterEach(() => {
     consoleSpy.error.mockRestore();
     consoleSpy.warn.mockRestore();
+    __resetTranslateTextImplementation();
   });
 
   describe('配置问题导致的翻译失败', () => {
@@ -195,10 +201,10 @@ describe('网页翻译失败诊断', () => {
   describe('词条添加失败场景', () => {
     it('应该处理翻译失败时的词条状态', async () => {
       // Mock 翻译失败
-      mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
-        if (message.type === 'TRANSLATE_TERM') {
-          callback({ ok: false, reason: 'API_ERROR' });
-        }
+      __setTranslateTextImplementation(async () => {
+        const error = new Error('API_ERROR');
+        error.meta = { url: 'https://api.test' };
+        throw error;
       });
 
       // Mock 存储操作
@@ -228,10 +234,9 @@ describe('网页翻译失败诊断', () => {
     });
 
     it('应该处理配置无效时的词条状态', async () => {
-      mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
-        if (message.type === 'TRANSLATE_TERM') {
-          callback({ ok: false, reason: 'INVALID_SETTINGS' });
-        }
+      __setTranslateTextImplementation(async () => {
+        const error = new Error('INVALID_SETTINGS');
+        throw error;
       });
 
       mockChrome.storage.local.get.mockImplementation((keys, callback) => {
