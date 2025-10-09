@@ -19,6 +19,9 @@ coverage/
 .vite/
 .turbo/
 
+# Test artifacts
+tests/mcp/
+
 # Release/build artifacts
 /*.zip
 

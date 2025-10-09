@@ -1,8 +1,0 @@
-{
-  "version": "0.2.10",
-  "exportedAt": "2025-09-25T00:00:00Z",
-  "items": [
-    { "term": "hello", "translation": "你好", "type": "word", "length": 5, "createdAt": "2025-09-20T08:00:00Z" },
-    { "term": "mini translate", "translation": "迷你翻译", "type": "phrase", "length": 13, "createdAt": "2025-09-20T08:05:00Z" }
-  ]
-}
