@@ -75,10 +75,10 @@ ls -la dist/services/
 
 ### 测试问题
 
-#### 问题: MCP 测试失败
+#### 问题: Chrome 测试失败
 ```bash
 # 检查测试环境
-npm run mcp:auto
+npm run test:chrome
 
 # 查看测试日志
 find test-artifacts -name "*.log" -exec tail -20 {} \;
@@ -90,10 +90,10 @@ rm -rf test-artifacts/
 #### 问题: API 模拟失败
 ```bash
 # 检查模拟文件
-ls -la tests/mcp/qa-api-mock.js
+ls -la tests/qa-api-mock.js
 
 # 验证模拟加载
-grep -r "qa-api-mock" tests/mcp/batches/
+grep -r "qa-api-mock" tests/
 ```
 
 ### 开发问题
@@ -164,10 +164,10 @@ chrome.storage.local.get(console.log)
 ### 2. 检查扩展日志
 ```bash
 # 查看 Chrome 日志
-tail -f /tmp/mini-translate-mcp.log
+tail -f /tmp/mini-translate-chrome.log
 
 # 检查扩展错误
-grep -i error /tmp/mini-translate-mcp.log
+grep -i error /tmp/mini-translate-chrome.log
 ```
 
 ### 3. 验证文件完整性
@@ -213,7 +213,7 @@ grep -r "from.*services" dist/background.js
 
 ### 外部资源
 - Chrome Extension 文档
-- MCP 测试框架文档
+- Chrome 测试框架文档
 - JavaScript 调试指南
 
 ### 联系支持

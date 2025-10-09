@@ -66,11 +66,11 @@ Content Script ←→ Service Worker
 
 ### 测试架构
 ```
-MCP Test Environment
-├── Chrome DevTools Protocol
-├── Extension Loading
-├── API Mocking
-└── Test Execution
+Test Environment
+├── Unit Tests
+├── Integration Tests
+├── E2E Tests
+└── Performance Tests
 ```
 
 ## 🧪 测试策略
@@ -90,10 +90,6 @@ MCP Test Environment
 - 跨页面功能
 - 性能测试
 
-### MCP 自动化测试
-- 扩展加载测试
-- API 功能测试
-- 回归测试
 
 ## 🚀 部署架构
 
@@ -109,7 +105,7 @@ Build → Package → Chrome Web Store → Users
 
 ### 测试环境
 ```
-MCP → Chrome Debug → Extension → Test Execution
+Test Runner → Extension → Test Execution
 ```
 
 ## 🔒 安全考虑

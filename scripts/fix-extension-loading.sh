@@ -13,8 +13,9 @@ sleep 2
 CHROME_PATH="/Users/dr.yang/code/mini-translate/.cache/chrome-for-testing/140.0.7339.207/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
 
 if [[ ! -x "$CHROME_PATH" ]]; then
-    echo "❌ Chrome for Testing not found. Installing..."
-    node scripts/mcp/install-chrome.mjs
+    echo "❌ Chrome for Testing not found. Please install Chrome for Testing manually."
+    echo "   Download from: https://developer.chrome.com/docs/chrome-for-testing/"
+    exit 1
 fi
 
 # 检查扩展目录

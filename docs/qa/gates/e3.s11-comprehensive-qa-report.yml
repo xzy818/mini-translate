@@ -42,7 +42,7 @@ test_coverage:
       total: 3
       passed: 3
       coverage: ADEQUATE
-    mcp_automation:
+    chrome_automation:
       qa_messages: COVERED
       api_exposure: COVERED
       service_worker_reset: COVERED
@@ -50,19 +50,19 @@ test_coverage:
   test_scenarios:
     - scenario: 'QA_APPLY_TERM 消息处理'
       coverage: FULL
-      test_files: ['tests/mcp/batches/smoke.template.json']
+      test_files: ['tests/batches/smoke.template.json']
     - scenario: 'QA_REMOVE_TERM 消息处理'
       coverage: FULL
-      test_files: ['tests/mcp/batches/smoke.template.json']
+      test_files: ['tests/batches/smoke.template.json']
     - scenario: 'QA_QUERY_TERM 消息处理'
       coverage: FULL
-      test_files: ['tests/mcp/batches/smoke.template.json']
+      test_files: ['tests/batches/smoke.template.json']
     - scenario: 'QA_RESET_WORKER 消息处理'
       coverage: FULL
-      test_files: ['tests/mcp/batches/storage.template.json']
+      test_files: ['tests/batches/storage.template.json']
     - scenario: 'window.__miniTranslateQA API 暴露'
       coverage: FULL
-      test_files: ['tests/mcp/batches/smoke.template.json']
+      test_files: ['tests/batches/smoke.template.json']
 
 # 重构方案完整性评估
 refactor_completeness:
@@ -82,12 +82,12 @@ refactor_completeness:
         - '消息传递机制可靠'
         - '错误处理覆盖全面'
         - 'tabId自动获取机制完善'
-    mcp_integration:
+    chrome_integration:
       status: PASS
       findings:
         - 'smoke.template.json 包含完整QA测试流程'
         - 'storage.template.json 包含Service Worker重启验证'
-        - 'MCP工具函数支持新消息类型'
+        - 'Chrome工具函数支持新消息类型'
         - 'Example Domain翻译断言完整'
 
 # 质量指标
@@ -102,10 +102,10 @@ quality_metrics:
 key_findings:
   strengths:
     - 'QA消息处理架构设计合理，分层清晰'
-    - '测试覆盖充分，包含单元测试和MCP自动化测试'
+    - '测试覆盖充分，包含单元测试和Chrome自动化测试'
     - '错误处理机制完善，包含超时和异常情况'
     - 'MT_QA_HOOKS条件控制正确，仅在QA build中启用'
-    - 'MCP集成完整，支持自动化测试流程'
+    - 'Chrome集成完整，支持自动化测试流程'
   areas_for_improvement:
     - '配置界面设计系统不统一，需要标准化'
     - 'ai-config.html 样式需要与主界面保持一致'
@@ -125,9 +125,9 @@ acceptance_criteria:
   ac1_qa_build_api:
     status: PASS
     evidence: 'window.__miniTranslateQA API 完整暴露，包含所有QA方法'
-  ac2_mcp_automation:
+  ac2_chrome_automation:
     status: PASS
-    evidence: 'MCP模板包含完整QA测试流程，支持自动化验证'
+    evidence: 'Chrome模板包含完整QA测试流程，支持自动化验证'
   ac3_qa_hooks_conditional:
     status: PASS
     evidence: 'MT_QA_HOOKS=1 条件控制正确，仅在QA build中注册'

@@ -22,12 +22,8 @@
 - [Epic E3](./epics/epic-e3-assets-docs.md)
 - [Story S8: 发布文档](./stories/story-s8-release-docs.md)
 - [Story S9: 弹窗配置](./stories/story-s9-popup-config.md)
-- [Story S10: MCP 自动化](./stories/story-s10-mcp-automation.md)
-- [Story S11: QA 扩展消息增强](./stories/story-s11-qa-targeted-tab.md)
 
 ## 🐛 Issues
-- [Issue S10: MCP 自动化](./issues/issue-s10-mcp-automation.md)
-- [Issue S11: QA 扩展消息增强](./issues/issue-s11-qa-targeted-tab.md)
 
 ## 🧪 QA 和质量保证
 ### 测试设计
@@ -46,9 +42,7 @@
 - [E3.S8 质量门禁](./qa/gates/e3.s8-release-docs.yml)
 
 ### 测试计划
-- [Chrome DevTools MCP 测试计划](./qa/chrome-devtools-mcp-test-plan.md)
 - [Story QA 检查清单](./qa/story-qa-checklist.md)
-- [MCP QA 扩展消息增强设计](./qa/mcp-qa-targeted-tab-design.md)
 
 ## 📚 技术文档
 - [AI API 使用指南](./AI_API_USAGE.md)

@@ -16,7 +16,7 @@
 
 在真实场景真实key测试3个翻译场景的用例设计中发现了严重的bug：
 
-- **问题**: `scripts/chrome-mcp-translation-test.js` 是**模拟测试**，不是真实测试
+- **问题**: `scripts/chrome-translation-test.js` 是**模拟测试**，不是真实测试
 - **影响**: 导致"首次翻译失败，重试后成功"问题未被发现
 - **根因**: 硬编码返回成功，没有真实的浏览器自动化
 
@@ -33,7 +33,7 @@
 
 #### 问题代码 (已修复)
 ```javascript
-// scripts/chrome-mcp-translation-test.js - 问题代码
+// scripts/chrome-translation-test.js - 问题代码
 test: async () => {
   console.log('📝 测试场景1: 添加词条');
   // 这里需要实际的浏览器自动化代码
@@ -95,7 +95,7 @@ test: async () => {
 
 ### 修复前测试结果
 ```bash
-$ TEST_QWEN_KEY="$TEST_QWEN_KEY" node scripts/chrome-mcp-translation-test.js
+$ TEST_QWEN_KEY="$TEST_QWEN_KEY" node scripts/chrome-translation-test.js
 📝 测试场景1: 添加词条
 ✅ 词条添加成功
 📝 测试场景2: 切换翻译
@@ -229,7 +229,7 @@ $ TEST_QWEN_KEY="$TEST_QWEN_KEY" node scripts/real-timing-test.js
 ## 🔗 相关文件
 
 ### 测试文件
-- `scripts/chrome-mcp-translation-test.js` - 原始模拟测试 (已修复)
+- `scripts/chrome-translation-test.js` - 原始模拟测试 (已修复)
 - `scripts/real-translation-e2e-test.js` - 真实E2E测试 (新增)
 - `scripts/real-timing-test.js` - 真实时序测试 (新增)
 - `scripts/simple-timing-test.js` - 简化时序测试 (新增)
@@ -248,14 +248,14 @@ $ TEST_QWEN_KEY="$TEST_QWEN_KEY" node scripts/real-timing-test.js
 
 ### CI/CD限制
 根据项目规则，以下测试类型**禁止进入CI流程**：
-- ❌ Chrome MCP测试用例
+- ❌ Chrome测试用例
 - ❌ 真实API密钥测试用例  
 - ❌ E2E测试用例
 
 ### 测试策略更新
 - **本地开发**: 可以运行所有测试类型
 - **CI流程**: 只包含单元测试和静态检查
-- **QA验证**: 在本地环境运行Chrome MCP和真实API测试
+- **QA验证**: 在本地环境运行Chrome和真实API测试
 - **发布前**: 在本地环境运行完整测试套件
 
 ---

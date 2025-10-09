@@ -13,7 +13,7 @@
 
 ## 差距与补充要求（2025-09 更新）
 
-| 差距 | 说明 | MCP 用例 |
+| 差距 | 说明 | Chrome 用例 |
 | --- | --- | --- |
 | Popup/Options 同步 | 右键菜单仅验证正常路径，缺少对 Popup 统计与 Options 表格同步的检查 | `TC-STAT-006`、`TC-POP-007`
 | 词库上限提示 | 当词库满 500 条时应阻止新增并提示 | `TC-CM-101`
@@ -23,13 +23,13 @@
 | QA Toggle 事件 | QA Hook `mt-qa-toggle` 触发应真正影响页面翻译 | `TC-ROB-110`
 | 存储可观测性 | 操作后 `chrome.storage.local/session` 应与预期一致 | `TC-OBS-112`
 
-## MCP 自动化测试扩展
+## Chrome 自动化测试扩展
 
 1. **添加/移除/启停（基础流）**
    - 使用 QA 面板 (`options.html?qa=1`) 执行 add/remove/toggle。
-   - 右键菜单验证后捕获 `test-artifacts/mcp/context-menu/` 下的 DOM Snapshot 与截图。
+   - 右键菜单验证后捕获 `test-artifacts/chrome/context-menu/` 下的 DOM Snapshot 与截图。
 2. **词库上限测试**
-   - 通过批处理预先导入 500 条词条，再次尝试添加 → 断言提示“词库已满”。
+   - 通过批处理预先导入 500 条词条，再次尝试添加 → 断言提示"词库已满"。
    - 验证 Popup/Options 统计保持 500/500。
 3. **翻译失败模拟**
    - 设置翻译配置为 `stub://translator/auth-error`。
@@ -44,12 +44,12 @@
 
 ## 结果记录
 
-- 将上述场景纳入 `tests/mcp/batches/context-menu.json` 与 `smoke.json`。
-- 执行完毕后在 `test-artifacts/mcp/<timestamp>/` 下保留截图、DOM、日志，以及 `storage/*.json`。
+- 将上述场景纳入 `tests/batches/context-menu.json` 与 `smoke.json`。
+- 执行完毕后在 `test-artifacts/chrome/<timestamp>/` 下保留截图、DOM、日志，以及 `storage/*.json`。
 - 在 `docs/qa/story-qa-checklist.md` 的对应复选项打勾并回写 Story QA Results。
 
 ## 后续行动
 
 - [ ] 完成词库上限、翻译失败、存储断言等批处理脚本。
-- [ ] 在下一次 MCP 执行后更新本文件的“差距与补充要求”状态。
+- [ ] 在下一次 Chrome 执行后更新本文件的"差距与补充要求"状态。
 - [ ] 将性能指标（菜单响应 ≤ 500ms）纳入 Trace 收集计划。

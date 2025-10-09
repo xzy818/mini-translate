@@ -24,4 +24,4 @@
 - Gate: PASS — Options 页面新增导入/导出控件，TXT/JSON 互通，失败条目提示清晰。
 - Tests: `npm run validate`
 - Notes: 自动化针对成功/部分失败/超限场景做了验证；建议在真实文件对接场景确认大文件性能。
-- MCP: 2025-09-27 — 自动化上传 `sample-vocab.json` 并记录摘要，见 `test-artifacts/mcp/2025-09-27T10-24-40-280Z/smoke/smoke.json.log` 与 `.../options/options-after-import.dom.json`。
+- Chrome: 2025-09-27 — 自动化上传 `sample-vocab.json` 并记录摘要，见 `test-artifacts/chrome/2025-09-27T10-24-40-280Z/smoke/smoke.json.log` 与 `.../options/options-after-import.dom.json`。

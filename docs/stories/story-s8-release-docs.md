@@ -19,10 +19,10 @@
 - `mini-translate-extension.zip` 在 `chrome://extensions` 通过“加载已解压的扩展程序”即可使用（或直接加载生成的 `dist/` 目录）。
 - Release 附件齐全，Checklist 项全部完成。
 - QA 验证安装流程、文档内容与打包脚本。
-- 依据 `docs/qa/chrome-devtools-mcp-test-plan.md` 执行并通过 MCP 自动化测试，输出的截图/日志纳入 Release 记录。
+- 执行完整的测试套件，确保所有功能正常工作。
 
 ## QA Results
 - 2025-09-25 — Gate: CONCERNS → `docs/qa/gates/e3.s8-release-docs.yml`
   - Tests: `npm run validate`
-  - Notes: `docs/qa/chrome-devtools-mcp-test-plan.md` 定义的 MCP 自动化测试方案已准备，需在正式 Release 前执行并上传附件与 changelog。
+  - Notes: 发布前需执行完整的测试套件，确保所有功能正常工作。
 - 2025-09-18 — Gate: PASS — README 更新模型/词库/导入导出说明，打包脚本生成 ZIP 可加载，Release checklist 可执行。

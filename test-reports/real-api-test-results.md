@@ -24,8 +24,8 @@
   - 通道握手测试 ✅
   - 真实翻译流程测试 ✅ (使用真实API)
 
-### 3. Chrome MCP场景测试 ✅
-- **脚本**: `scripts/chrome-mcp-translation-test.js`
+### 3. Chrome场景测试 ✅
+- **脚本**: `scripts/chrome-translation-test.js`
 - **状态**: 通过 (3/3)
 - **测试场景**:
   - 场景1: 添加词条到词汇表 ✅

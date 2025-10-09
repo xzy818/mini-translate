@@ -26,7 +26,7 @@
 - Gate: PASS — 导入的右键菜单逻辑支持添加、移除与页面级开关，词库/翻译事件与 content script 联动正常。
 - Tests: `npm run validate`
 - Notes: 自动化覆盖词库上限、菜单增删、翻译开启/关闭；需在浏览器环境验证通知展示与实际 API 调用。
-- MCP: 2025-09-27 — chrome MCP 自动化覆盖 add/remove/启停路径，证据见 `test-artifacts/mcp/2025-09-27T10-24-40-280Z/context-menu/context-menu.json.log` 与截图 `.../context-menu/context-menu/context-menu-scenes.png`。
+- Chrome: 2025-09-27 — chrome 自动化覆盖 add/remove/启停路径，证据见 `test-artifacts/chrome/2025-09-27T10-24-40-280Z/context-menu/context-menu.json.log` 与截图 `.../context-menu/context-menu/context-menu-scenes.png`。
 
 ### Review Date: 2025-09-19
 

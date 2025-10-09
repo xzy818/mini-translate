@@ -104,6 +104,10 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   async function load() {
     if (!hasChrome) return;
+    if (!modelEl || !keyEl) {
+      console.warn('load: modelEl or keyEl not found');
+      return;
+    }
     try {
       const result = await wrapAsync((resolve, reject) => {
         chromeLike.storage.local.get(['settings'], (items) => {
@@ -126,6 +130,11 @@ export function createSettingsController({ chromeLike, notify, elements }) {
   async function save() {
     if (!hasChrome) {
       notify('当前环境不支持保存');
+      return;
+    }
+    if (!modelEl || !keyEl) {
+      console.warn('save: modelEl or keyEl not found');
+      notify('保存失败：配置元素未找到');
       return;
     }
     const payload = {
@@ -161,6 +170,11 @@ export function createSettingsController({ chromeLike, notify, elements }) {
   async function testConnection() {
     if (!hasChrome) {
       notify('当前环境不支持测试');
+      return;
+    }
+    if (!modelEl || !keyEl) {
+      console.warn('testConnection: modelEl or keyEl not found');
+      notify('测试失败：配置元素未找到');
       return;
     }
     const payload = {
@@ -211,6 +225,11 @@ export function createSettingsController({ chromeLike, notify, elements }) {
   }
 
   function toggleKeyVisibility() {
+    if (!keyEl || !toggleKeyEl) {
+      console.warn('toggleKeyVisibility: keyEl or toggleKeyEl not found');
+      return;
+    }
+    
     if (keyEl.type === 'password') {
       keyEl.type = 'text';
       toggleKeyEl.textContent = '隐藏';
@@ -221,14 +240,20 @@ export function createSettingsController({ chromeLike, notify, elements }) {
   }
 
   function bind() {
-    toggleKeyEl.addEventListener('click', toggleKeyVisibility);
+    if (toggleKeyEl) {
+      toggleKeyEl.addEventListener('click', toggleKeyVisibility);
+    }
     // base URL 已由后台映射，无需在前端变更
-    saveEl.addEventListener('click', () => {
-      save();
-    });
-    testEl.addEventListener('click', () => {
-      testConnection();
-    });
+    if (saveEl) {
+      saveEl.addEventListener('click', () => {
+        save();
+      });
+    }
+    if (testEl) {
+      testEl.addEventListener('click', () => {
+        testConnection();
+      });
+    }
   }
 
   return { load, save, testConnection, toggleKeyVisibility, bind };
