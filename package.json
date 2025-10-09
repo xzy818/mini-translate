@@ -12,6 +12,7 @@
     "build": "bash scripts/build-zip.sh",
     "dev": "vitest --watch",
     "lint": "eslint .",
+    "render:icons": "node scripts/render-icons.js",
     "lint:fix": "eslint . --fix",
     "validate": "npm run lint && npm run test"
   },
@@ -19,6 +20,7 @@
     "@vitest/coverage-v8": "^1.0.0",
     "eslint": "^8.57.0",
     "jsdom": "^23.0.0",
+    "sharp": "^0.34.4",
     "vitest": "^1.0.0"
   },
   "dependencies": {
