@@ -341,3 +341,4 @@ class SimpleTimingTester {
 // 运行测试
 const tester = new SimpleTimingTester();
 tester.runAllTests().catch(console.error);
+
