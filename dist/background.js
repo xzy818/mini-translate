@@ -18,24 +18,10 @@ import {
   writeVocabulary,
   VOCAB_KEY
 } from './src/services/storage.js';
+import { mapBaseUrlByModel } from './src/services/model-utils.js';
 
 let initialized = false;
 let aiApiClient = null;
- 
-// 根据模型映射 Base URL（内部使用）
-function mapBaseUrlByModel(model) {
-  switch (model) {
-    case 'deepseek-v3':
-      return 'https://api.deepseek.com';
-    case 'qwen-mt-turbo':
-    case 'qwen-mt-plus':
-      return 'https://dashscope.aliyuncs.com';
-    case 'gpt-4o-mini':
-      return 'https://api.openai.com';
-    default:
-      return '';
-  }
-}
 
 // QA: 打印当前翻译配置上下文（model/baseUrl）
 function logCurrentTranslationContext(tag = '[qa] ctx') {
@@ -74,12 +60,14 @@ self.addEventListener('unhandledrejection', (event) => {
       console.warn('[qa] unhandled rejection (ignored)', msg);
       // 连接类错误常见于 Service Worker 与前端端口断开：补充打印当前 model/url 帮助定位
       logCurrentTranslationContext('[qa] ctx');
+      event?.preventDefault?.();
       return;
     }
     console.error('[qa] unhandled rejection', reason);
   } catch (e) {
     console.error('[qa] unhandled rejection');
   }
+  event?.preventDefault?.();
 });
 
 self.addEventListener('error', (event) => {

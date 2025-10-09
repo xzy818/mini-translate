@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   readVocabulary,
   writeVocabulary,
@@ -8,7 +8,9 @@ import {
 import {
   MENU_ID,
   createContextMenus,
-  registerHandlers
+  registerHandlers,
+  __setTranslateTextImplementation,
+  __resetTranslateTextImplementation
 } from '../src/services/context-menu.js';
 
 function createChromeStub() {
@@ -119,21 +121,24 @@ describe('context menu dynamic scenes', () => {
     registerHandlers(chromeStub);
     chromeStub.contextMenus.update.mockClear();
     chromeStub.notifications.create.mockClear();
-  chromeStub.runtime.sendMessage.mockClear();
-  chromeStub.tabs.sendMessage.mockClear();
-  chromeStub._localStore.clear();
-  chromeStub._sessionStore.clear();
-});
-
-function mockTranslateFailure(chromeStub, errorMessage = '网络错误') {
-  chromeStub.runtime.sendMessage.mockImplementation((message, cb) => {
-    if (message.type === 'TRANSLATE_TERM') {
-      cb({ ok: false, reason: errorMessage });
-      return;
-    }
-    cb && cb({ ok: true });
+    chromeStub.runtime.sendMessage.mockClear();
+    chromeStub.tabs.sendMessage.mockClear();
+    chromeStub._localStore.clear();
+    chromeStub._sessionStore.clear();
+    __setTranslateTextImplementation(async ({ text }) => `${text}-译`);
   });
-}
+
+  afterEach(() => {
+    __resetTranslateTextImplementation();
+  });
+
+  function mockTranslateFailure(errorMessage = '网络错误') {
+    __setTranslateTextImplementation(async () => {
+      const error = new Error(errorMessage);
+      error.meta = { url: 'https://api.mock' };
+      throw error;
+    });
+  }
 
 function fillVocabulary(chromeStub, count) {
   const list = Array.from({ length: count }, (_, index) => ({
@@ -176,10 +181,10 @@ function fillVocabulary(chromeStub, count) {
     expect(chromeStub.notifications.create).toHaveBeenCalledWith(
       expect.objectContaining({ message: '已添加词条：new-term' })
     );
-    expect(chromeStub.runtime.sendMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'TRANSLATE_TERM' }),
-      expect.any(Function)
+    const translateCalls = chromeStub.runtime.sendMessage.mock.calls.filter(
+      ([message]) => message?.type === 'TRANSLATE_TERM'
     );
+    expect(translateCalls.length).toBe(0);
   });
 
   it('handles translation failure gracefully', async () => {
@@ -188,7 +193,7 @@ function fillVocabulary(chromeStub, count) {
       apiKey: 'mock-key'
     });
 
-    mockTranslateFailure(chromeStub, '翻译服务暂时不可用');
+    mockTranslateFailure('翻译服务暂时不可用');
 
     const info = { selectionText: 'cloud' };
     const tab = { id: 7 };
@@ -213,50 +218,6 @@ function fillVocabulary(chromeStub, count) {
     );
   });
 
-  it('retries translation after connection error and succeeds', async () => {
-    await writeSettings(chromeStub, {
-      model: 'gpt-4o-mini',
-      apiKey: 'mock-key'
-    });
-
-    let callCount = 0;
-    chromeStub.runtime.sendMessage.mockImplementation((message, cb) => {
-      if (message.type === 'TRANSLATE_TERM') {
-        callCount += 1;
-        if (callCount === 1) {
-          chromeStub.runtime.lastError = {
-            message: 'Could not establish connection. Receiving end does not exist.'
-          };
-          cb && cb();
-          chromeStub.runtime.lastError = null;
-          return;
-        }
-        cb && cb({ ok: true, translation: `${message.payload.text}-译` });
-        return;
-      }
-      cb && cb({ ok: true });
-    });
-
-    const info = { selectionText: 'cloud' };
-    const tab = { id: 11 };
-
-    await dispatchSelection(chromeStub, info.selectionText, tab.id);
-
-    const clickPromise = chromeStub._onClicked(info, tab);
-    await flushPromises();
-    await new Promise((resolve) => setTimeout(resolve, 220));
-    await flushPromises();
-    await clickPromise;
-
-    const vocab = await readVocabulary(chromeStub);
-    expect(vocab).toHaveLength(1);
-    expect(vocab[0]).toMatchObject({
-      term: 'cloud',
-      translation: 'cloud-译',
-      status: 'active'
-    });
-    expect(callCount).toBe(2);
-  });
 
   it('reports vocabulary limit exceeded', async () => {
     await writeSettings(chromeStub, {
