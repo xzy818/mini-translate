@@ -114,7 +114,7 @@ git commit -m "feat: 完成QA测试环境配置修复和测试设计优化
 - 创建完整用户流程E2E测试
 - 修复dist/background.js的Service Worker兼容性问题
 - 添加测试报告和验证文档
-- 清理过时的MCP测试批次文件
+- 清理过时的Chrome测试批次文件
 
 测试通过率从25%提升到75%，主要问题已解决"
 ```

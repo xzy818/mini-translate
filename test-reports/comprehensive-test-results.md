@@ -23,7 +23,7 @@
   - 真实翻译流程 ✅ (跳过API测试)
 
 ### 3. 原有测试分析 ❌
-- **Chrome MCP测试**: 发现为模拟测试，未执行真实浏览器操作
+- **Chrome测试**: 发现为模拟测试，未执行真实浏览器操作
 - **单元测试**: 使用完美模拟，未覆盖真实时序问题
 - **缺少冷启动测试**: 未测试Service Worker休眠/唤醒场景
 
@@ -33,7 +33,7 @@
 
 #### 1.1 模拟测试的局限性
 ```javascript
-// 问题代码示例 - scripts/chrome-mcp-translation-test.js
+// 问题代码示例 - scripts/chrome-translation-test.js
 test: async () => {
   console.log('📝 测试场景1: 添加词条');
   // 这里需要实际的浏览器自动化代码

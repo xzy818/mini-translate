@@ -29,4 +29,4 @@
 - Gate: TODO
 - Tests: `npm run validate`
 - Notes: 自动化覆盖设置保存/测试、词库操作逻辑；需在真实浏览器验证弹窗加载、导入导出及 toast 提示。
-- MCP: 2025-09-27 — 复用 options 流程验证配置与词库同步，证据见 `test-artifacts/mcp/2025-09-27T10-24-40-280Z/smoke/smoke.json.log`；Popup 场景待补充专用脚本。
+- Chrome: 2025-09-27 — 复用 options 流程验证配置与词库同步，证据见 `test-artifacts/chrome/2025-09-27T10-24-40-280Z/smoke/smoke.json.log`；Popup 场景待补充专用脚本。

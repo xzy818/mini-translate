@@ -23,7 +23,7 @@
 ## QA Results
 - Gate: PASS — 统一翻译服务与错误处理已通过单测与代码审查。
 - Tests: `npm run validate`
-- MCP: 2025-09-27 — options 流程通过 stub 模型验证保存/测试，参考 `test-artifacts/mcp/2025-09-27T10-24-40-280Z/smoke/smoke.json.log` 与 `.../storage/options/storage-after-save.json`。
+- Chrome: 2025-09-27 — options 流程通过 stub 模型验证保存/测试，参考 `test-artifacts/chrome/2025-09-27T10-24-40-280Z/smoke/smoke.json.log` 与 `.../storage/options/storage-after-save.json`。
 
 ### Review Date: 2025-09-18
 

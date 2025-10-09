@@ -2,16 +2,16 @@
 
 > 目标：统一 Mini Translate 核心用户故事（S1/S3/S5/S6/S9/S10）的高优先级验证项，确保每个版本在发布前完成以下覆盖。执行时请勾选并在 Story QA Results 中记录证据（日志、截图、存储快照路径等）。
 
-## 本地 MCP 执行 SOP（macOS）
-1. 确认已安装依赖并下载 Chrome for Testing（首次执行可运行 `node scripts/mcp/install-chrome.mjs`，或手动放置二进制到 `.cache/chrome-for-testing/`）。
-2. 运行 `npm run mcp:auto`（脚本会自动执行 QA 构建、启动调试版 Chrome、捕获 UID、执行批处理、保存证据、关闭浏览器）。
+## 本地 Chrome 执行 SOP（macOS）
+1. 确认已安装依赖并下载 Chrome for Testing（手动放置二进制到 `.cache/chrome-for-testing/`）。
+2. 运行 `npm run test:chrome`（脚本会自动执行 QA 构建、启动调试版 Chrome、捕获 UID、执行批处理、保存证据、关闭浏览器）。
 3. 若需手工分步调试，可依次执行：
    - `MT_QA_HOOKS=1 npm run build`
-   - `bash scripts/start-chrome-mcp.sh`
-   - `npm run mcp:capture`
-   - `npm run test:mcp`
-   - `bash scripts/kill-chrome-mcp.sh`
-4. 执行完成后在 `test-artifacts/mcp/<timestamp>/` 中收集 `summary.json`、DOM Snapshot、截图、存储快照等证据。
+   - `bash scripts/start-chrome.sh`
+   - `npm run test:capture`
+   - `npm run test:chrome`
+   - `bash scripts/kill-chrome.sh`
+4. 执行完成后在 `test-artifacts/chrome/<timestamp>/` 中收集 `summary.json`、DOM Snapshot、截图、存储快照等证据。
 5. 将本次执行路径同步到 `release-checklist.md` 和相关 Story 的 QA Results，必要时附加问题记录或截图。
 
 ## 1. 设置面板（Story S5）
@@ -20,7 +20,7 @@
 - [ ] **测试按钮失败路径**：
   - [ ] Auth 失败：`apiBaseUrl=stub://translator/auth-error` → 断言提示“测试失败: 认证失败”。
   - [ ] 网络超时：`apiBaseUrl=stub://translator/timeout` → 断言提示“测试异常”，日志包含 `请求超时`。
-- [ ] **存储断言**：保存/测试后通过 MCP `evaluate_script` 调用读取 `chrome.storage.local` & `chrome.storage.session`，确认状态无意外字段。
+- [ ] **存储断言**：保存/测试后通过 Chrome `evaluate_script` 调用读取 `chrome.storage.local` & `chrome.storage.session`，确认状态无意外字段。
 
 ## 2. 导入 / 导出（Story S6）
 - [ ] **JSON 导入**：导入合法 JSON，校验去重/上限提示、统计计数更新、分页刷新。
@@ -54,6 +54,6 @@
 ## 6. 可观测性与日志
 - [ ] 关键动作后读取 `chrome.storage.local`、`chrome.storage.session` 并记录到测试报告。
 - [ ] 校验背景页 console 日志包含 `[qa]` 前缀的诊断信息；错误路径日志含义清晰。
-- [ ] `test-artifacts/mcp/<run>/summary.json` 中记录所有批次结果、失败重试详情；若失败需附加网络/Trace 证据。
+- [ ] `test-artifacts/chrome/<run>/summary.json` 中记录所有批次结果、失败重试详情；若失败需附加网络/Trace 证据。
 
-执行完毕后，请将复选结果回抄到对应 Story 的 QA Results，并在 Release Checklist 中附加本次 MCP 执行记录。
+执行完毕后，请将复选结果回抄到对应 Story 的 QA Results，并在 Release Checklist 中附加本次 Chrome 执行记录。
