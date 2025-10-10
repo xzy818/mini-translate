@@ -48,7 +48,6 @@ describe('Chrome Extension Integration Tests',()=>{
       'REFRESH_CONTEXT_MENU',
       'QA_CONTEXT_ADD',
       'QA_CONTEXT_REMOVE',
-      'QA_CONTEXT_TOGGLE',
       'QA_GET_STORAGE_STATE',
       'AI_API_CALL',
       'GET_AI_PROVIDERS',
@@ -64,7 +63,6 @@ describe('Chrome Extension Integration Tests',()=>{
       'REFRESH_CONTEXT_MENU',
       'QA_CONTEXT_ADD',
       'QA_CONTEXT_REMOVE',
-      'QA_CONTEXT_TOGGLE',
       'QA_GET_STORAGE_STATE'
     ];
 
@@ -92,11 +90,11 @@ describe('Chrome Extension Integration Tests',()=>{
 
   // 新增：消息处理覆盖率报告
   it('message handler coverage report',()=>{
-    const totalMessageTypes = 13;
-    const implementedMessageTypes = 10;
+    const totalMessageTypes = 12;
+    const implementedMessageTypes = 9;
     const coverage = (implementedMessageTypes / totalMessageTypes) * 100;
     
-    expect(coverage).toBeCloseTo(76.92, 1);
+    expect(coverage).toBeCloseTo(75, 1);
     expect(implementedMessageTypes).toBeLessThan(totalMessageTypes);
   });
 });

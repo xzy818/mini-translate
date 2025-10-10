@@ -40,19 +40,17 @@
 - [ ] **导入后 Popup 展示**：导入 JSON 后直接打开 Popup → 最新词条可检索/展示。
 
 ## 4. 翻译执行链路（Story S3）
-- [ ] **页面翻译与回写**：添加词条 → 刷新真实页面 → 文本替换为翻译 → 关闭翻译后恢复原文（验证 DOM Snapshot）。
-- [ ] **Service Worker 重启**：强制重启 Service Worker 或关闭再重新打开浏览器 → 确认词库、开关状态、QA Hooks 均保持。
-- [ ] **标签页切换**：在多 Tab 间切换翻译开关，确认状态与词库同步、无异常通知。
+- [ ] **页面翻译与回写**：添加词条 → 刷新真实页面 → 文本替换为翻译；移除词条 → 页面恢复原文（验证 DOM Snapshot）。
+- [ ] **Service Worker 重启**：强制重启 Service Worker 或关闭再重新打开浏览器 → 确认词库与 QA Hooks 均保持，选区更新后菜单正常出现。
 
 ## 5. 基础健壮性
 - [ ] **空白配置提示**：Options、Popup 在无配置时均能友好提示并阻止执行敏感操作。
-- [ ] **QA Toggle 效果**：通过 `mt-qa-toggle` 事件触发翻译开关，验证页面真实翻译/恢复结果。
 - [ ] **扩展初装/升级迁移**：
   - [ ] 初次安装：默认状态与空词库提示正确。
   - [ ] 版本升级（manifest version 变更）：旧词库与设置迁移保留，日志没有迁移错误。
 
 ## 6. 可观测性与日志
-- [ ] 关键动作后读取 `chrome.storage.local`、`chrome.storage.session` 并记录到测试报告。
+- [ ] 关键动作后读取 `chrome.storage.local` 并记录到测试报告。
 - [ ] 校验背景页 console 日志包含 `[qa]` 前缀的诊断信息；错误路径日志含义清晰。
 - [ ] `test-artifacts/chrome/<run>/summary.json` 中记录所有批次结果、失败重试详情；若失败需附加网络/Trace 证据。
 

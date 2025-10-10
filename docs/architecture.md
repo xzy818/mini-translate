@@ -4,7 +4,7 @@
 Chrome 插件由三个核心部分组成：
 1. **Background Service（`background.js`）**：
    - 负责注册 `chrome.contextMenus`、监听右键事件、转发翻译请求。
-   - 维护页面翻译开关状态（`tabId -> boolean`）。
+   - 计算选区对应的菜单标题与动作，并与 content script 同步翻译状态。
 2. **Content Script（`content-script.js`）**：
    - 注入到目标页面，执行 DOM 遍历、翻译替换、原文恢复。
    - 监听来自 background 的消息（开始/停止翻译、添加/移除词条）。
@@ -26,7 +26,6 @@ Chrome 插件由三个核心部分组成：
 用户右键 → Background 判断场景 →
   - add & mini-translate: 读取选中文本 → 写入词库 → 发送 content-script 翻译命令
   - remove from mini-translate: 通知 content-script 回退 → 更新词库
-  - start/stop mini-translate: 更新 tab 状态 → 通知 content-script 批量翻译或恢复
 content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换文本节点
 翻译脚本命中词条 → 调用翻译服务（若无缓存）→ 更新显示并标记节点
 ```
@@ -34,11 +33,11 @@ content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
 ## 3. 模块设计
 ### 3.1 Background Service
 - `contextMenuManager`
-  - 三种菜单 ID：`ADD_TRANSLATE`, `REMOVE_TRANSLATE`, `TOGGLE_TRANSLATE`。
-  - 在 `chrome.contextMenus.onShown` 中根据选区与页面状态动态更新可见性。
-- `tabStateStore`
-  - 使用 `Map` 缓存 `tabId -> { enabled, lastToggleAt }`。
-  - 在 `chrome.tabs.onRemoved` 时清理状态。
+  - 单一菜单 ID `MINI_TRANSLATE_ACTION`，针对选区动态计算标题与动作。
+  - 在 `SELECTION_CHANGED` 消息与菜单点击后刷新可见性与标题。
+- `menuState`
+  - 使用 `Map` 缓存 `tabId -> menuContext`，避免重复读取词库。
+  - 在 `chrome.tabs.onRemoved` 时清理缓存。
 - `messageRouter`
   - 使用 `chrome.runtime.onMessage.addListener` 处理 content-script 的查询（如获取词库）。
 
@@ -49,8 +48,8 @@ content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
 - `nodeMarker`
   - 使用 `data-mini-translate` 属性存储原文 JSON，便于回退与检测已翻译状态。
 - `translationOrchestrator`
-  - 接收 background 指令：`TRANSLATE_ALL`, `TRANSLATE_SELECTION`, `REMOVE_TERM`, `RESET_PAGE`。
-  - 维护词库缓存（从 storage 拉取，监听 storage 变更）。
+  - 接收 background 指令：`APPLY_TRANSLATION`, `REMOVE_TRANSLATION`。
+  - 维护词库缓存（由消息驱动更新）。
 
 ### 3.3 词库存储
 - `storage.js`

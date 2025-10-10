@@ -180,7 +180,6 @@ describe('Settings controller', () => {
       'REFRESH_CONTEXT_MENU',
       'QA_CONTEXT_ADD',
       'QA_CONTEXT_REMOVE',
-      'QA_CONTEXT_TOGGLE',
       'QA_GET_STORAGE_STATE',
       'AI_API_CALL',
       'GET_AI_PROVIDERS',
@@ -196,11 +195,10 @@ describe('Settings controller', () => {
       'REFRESH_CONTEXT_MENU',
       'QA_CONTEXT_ADD',
       'QA_CONTEXT_REMOVE',
-      'QA_CONTEXT_TOGGLE',
       'QA_GET_STORAGE_STATE'
     ];
 
     const coverage = (legacySupportedTypes.length / allMessageTypes.length) * 100;
-    expect(coverage).toBeCloseTo(76.92, 1);
+    expect(coverage).toBeCloseTo(75, 1);
   });
 });

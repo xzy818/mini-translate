@@ -8,7 +8,7 @@
 ## 🎯 Epic 和 Story
 ### Epic E1: Mini Translate 核心能力
 - [Epic E1](./epics/epic-e1-mini-translate-core.md)
-- [Story S1: 右键菜单与页面翻译开关](./stories/story-s1-context-menu.md)
+- [Story S1: 右键菜单即时翻译](./stories/story-s1-context-menu.md)
 - [Story S3: 翻译服务抽象](./stories/story-s3-translation-service.md)
 - [Story S7: 图标设计](./stories/story-s7-icon.md)
 

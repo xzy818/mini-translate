@@ -8,8 +8,8 @@
 | --- | --- | --- |
 | 新选区 → 添加词条 | 第一次选中未存在于词库的文本时，应展示“add & mini-translate”并在点击后写入词库 | ✅ 单测 `shows add action when selection not in vocabulary`
 | 已存在词条 → 移除 | 词库已有条目时应展示“remove from mini-translate”并在点击后移除 | ✅ 单测 `shows remove action when selection exists in vocabulary`
-| 无选区／页面开关互斥 | 未选中内容时根据 tab 状态展示 `start/stop mini-translate`，并在点击后刷新状态通知 | ✅ 单测 `shows start/stop based on tab state`
-| 无有效 action | 其他异常场景时菜单需隐藏或保持默认 | ✅ 单测 `hides menu when no valid action`
+| 无选区 → 菜单隐藏 | 未选中内容时隐藏扩展菜单，避免冗余入口 | ✅ 单测 `hides menu when selection is empty`
+| 无有效 action | 其他异常场景时菜单需隐藏或保持默认 | ✅ 单测 `hides menu when selection is empty`
 
 ## 差距与补充要求（2025-09 更新）
 
@@ -20,13 +20,12 @@
 | 翻译失败重试 | 翻译 API 失败后应展示 error 状态与重试按钮 | `TC-CM-103`
 | 页面翻译回写 | 真实页面翻译与恢复需截图和 DOM 证明 | `TC-TRN-108`
 | Service Worker 重启 & 多 Tab | 验证跨标签与 Service Worker 重启后状态是否保持 | `TC-TRN-109`
-| QA Toggle 事件 | QA Hook `mt-qa-toggle` 触发应真正影响页面翻译 | `TC-ROB-110`
-| 存储可观测性 | 操作后 `chrome.storage.local/session` 应与预期一致 | `TC-OBS-112`
+| 存储可观测性 | 操作后 `chrome.storage.local` 状态应与预期一致 | `TC-OBS-112`
 
 ## Chrome 自动化测试扩展
 
-1. **添加/移除/启停（基础流）**
-   - 使用 QA 面板 (`options.html?qa=1`) 执行 add/remove/toggle。
+1. **添加/移除（基础流）**
+   - 使用 QA 面板 (`options.html?qa=1`) 执行 add/remove。
    - 右键菜单验证后捕获 `test-artifacts/chrome/context-menu/` 下的 DOM Snapshot 与截图。
 2. **词库上限测试**
    - 通过批处理预先导入 500 条词条，再次尝试添加 → 断言提示"词库已满"。
@@ -36,11 +35,11 @@
    - 触发翻译后，右键菜单应显示 error 状态和重试按钮；点击重试后读取日志确认 `[qa:test] error`。
 4. **页面翻译与恢复**
    - 在内容页触发 `mt-qa-selection` → 添加词条。
-   - 刷新页面，抓取翻译前后 DOM；关闭翻译确认恢复原文。
+   - 刷新页面，抓取翻译前后 DOM；通过移除词条确认恢复原文。
 5. **Service Worker / 多标签**
    - 执行 `chrome.runtime.reload()` 或重启 Service Worker；
-   - 打开第二个标签页验证翻译状态同步；
-   - 记录 `chrome.storage.session` 中 `miniTranslateTabState` 的持久化结果。
+   - 打开第二个标签页验证选区触发后菜单仍能正确出现；
+   - 记录 `chrome.storage.local` 中词库状态。
 
 ## 结果记录
 

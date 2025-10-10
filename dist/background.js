@@ -2,7 +2,6 @@ import {
   initializeBackground,
   handleAddTerm,
   handleRemoveTerm,
-  handleTogglePage,
   updateMenuForInfo
 } from './src/services/context-menu.js';
 import {
@@ -22,6 +21,10 @@ import { mapBaseUrlByModel } from './src/services/model-utils.js';
 
 let initialized = false;
 let aiApiClient = null;
+
+function canonicalizeTerm(term) {
+  return typeof term === 'string' ? term.trim().toLowerCase() : '';
+}
 
 // QA: 打印当前翻译配置上下文（model/baseUrl）
 function logCurrentTranslationContext(tag = '[qa] ctx') {
@@ -237,10 +240,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
         const vocabulary = await readVocabulary(chrome);
         const now = new Date().toISOString();
+        const termCanonical = canonicalizeTerm(term);
         let updated = false;
 
         const updatedVocabulary = vocabulary.map((item) => {
-          if (item.term !== term) {
+          if (canonicalizeTerm(item.term) !== termCanonical) {
             return item;
           }
           updated = true;
@@ -355,19 +359,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       })
       .catch((error) => {
         sendResponse({ ok: false, error: error.message || 'REMOVE_FAILED' });
-      });
-    return true;
-  }
-
-  if (message.type === 'QA_CONTEXT_TOGGLE') {
-    const tabId = sender?.tab?.id ?? null;
-    console.warn('[qa] toggle request', tabId);
-    handleTogglePage(chrome, tabId ?? 0)
-      .then((result) => {
-        sendResponse(result);
-      })
-      .catch((error) => {
-        sendResponse({ ok: false, error: error.message || 'TOGGLE_FAILED' });
       });
     return true;
   }
@@ -490,7 +481,8 @@ async function resolveTermState(tabId, term) {
     const result = await chrome.storage.local.get(['vocabulary']);
     const vocabulary = result.vocabulary || [];
     
-    const termEntry = vocabulary.find(item => item.term === term);
+    const termCanonical = canonicalizeTerm(term);
+    const termEntry = vocabulary.find((item) => canonicalizeTerm(item.term) === termCanonical);
     if (!termEntry) {
       return { applied: false, lastAction: null };
     }

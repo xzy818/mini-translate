@@ -15,7 +15,7 @@
 - [x] 集成测试通过
 
 ### 代码质量
-- [x] Story S1: 右键菜单与页面翻译开关实现
+- [x] Story S1: 右键菜单即时翻译实现
 - [x] Story S2: 词库存储与限制实现
 - [x] CI/CD 流水线配置完成
 - [x] 完整的测试套件
@@ -53,10 +53,9 @@ git push -u origin feat/s2-vocabulary-storage
 ## 🎯 验收标准
 
 ### Story S1 验收
-- [x] 三种右键菜单场景支持
-- [x] Background/Content script 架构
-- [x] 菜单响应时间 ≤500ms 设计
-- [x] Tab 翻译状态持久化
+- [x] 选中文本时动态呈现“添加/移除”两个菜单
+- [x] 未选中文本时隐藏扩展菜单
+- [x] Background/Content script 架构保持译文即时同步
 
 ### Story S2 验收
 - [x] chrome.storage.local 集成

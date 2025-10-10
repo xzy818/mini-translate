@@ -2,15 +2,15 @@
 
 ## 📋 Story 验收状态
 
-### Story S1: 右键菜单与页面翻译开关
-- [x] **需求实现**: 三种右键菜单场景已实现
+### Story S1: 右键菜单即时翻译动作
+- [x] **需求实现**: 菜单仅在选区出现并动态切换
   - [x] 原文选中 → `add & mini-translate`
-  - [x] 已翻译选中 → `remove from mini-translate`  
-  - [x] 任意位置 → `start/stop mini-translate`
-- [x] **技术实现**: Background/Content script 架构
+  - [x] 已翻译选中 → `remove from mini-translate`
+  - [x] 无选区 → 隐藏扩展菜单
+- [x] **技术实现**: Background/Content script 协同
 - [x] **性能要求**: 菜单响应 ≤500ms
-- [x] **状态管理**: Tab 翻译状态持久化
-- [x] **测试覆盖**: 22 个测试用例，100% 核心服务覆盖
+- [x] **状态管理**: 菜单上下文缓存，确保刷新及时
+- [x] **测试覆盖**: 22 个测试用例，核心场景覆盖
 
 ### Story S2: 词库存储与限制
 - [x] **存储实现**: chrome.storage.local 集成

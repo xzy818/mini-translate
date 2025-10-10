@@ -12,7 +12,6 @@ const mockBackgroundMessageHandler = () => {
     'REFRESH_CONTEXT_MENU',
     'QA_CONTEXT_ADD',
     'QA_CONTEXT_REMOVE', 
-    'QA_CONTEXT_TOGGLE',
     'QA_GET_STORAGE_STATE',
     'QA_APPLY_TERM',
     'QA_REMOVE_TERM',
@@ -155,7 +154,6 @@ describe('Background Message Routing Tests', () => {
         'REFRESH_CONTEXT_MENU',
         'QA_CONTEXT_ADD',
         'QA_CONTEXT_REMOVE',
-        'QA_CONTEXT_TOGGLE',
         'QA_GET_STORAGE_STATE'
       ];
 
@@ -174,7 +172,6 @@ describe('Background Message Routing Tests', () => {
         'REFRESH_CONTEXT_MENU',
         'QA_CONTEXT_ADD',
         'QA_CONTEXT_REMOVE',
-        'QA_CONTEXT_TOGGLE',
         'QA_GET_STORAGE_STATE',
         // 这些是缺失的消息类型
         'AI_API_CALL',
@@ -333,7 +330,6 @@ describe('Background Message Routing Tests', () => {
         'REFRESH_CONTEXT_MENU',
         'QA_CONTEXT_ADD',
         'QA_CONTEXT_REMOVE',
-        'QA_CONTEXT_TOGGLE',
         'QA_GET_STORAGE_STATE',
         'AI_API_CALL',
         'GET_AI_PROVIDERS',
@@ -349,12 +345,12 @@ describe('Background Message Routing Tests', () => {
     });
 
     it('should provide routing coverage report', () => {
-      const totalMessages = 13; // 所有消息类型
-      const handledMessages = 10; // 实际已实现的消息处理器数量
+      const totalMessages = 12; // 所有消息类型
+      const handledMessages = 9; // 实际已实现的消息处理器数量
       const coverage = (handledMessages / totalMessages) * 100;
 
       expect(coverage).toBeLessThan(100);
-      expect(coverage).toBeCloseTo(76.92, 1); // 10/13 = 76.92%
+      expect(coverage).toBeCloseTo(75, 1); // 9/12 = 75%
     });
   });
 

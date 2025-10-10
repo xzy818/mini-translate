@@ -1,6 +1,6 @@
 schema: 1
 story: 'E1.S1'
-story_title: 'Story S1 — 右键菜单与页面翻译开关'
+story_title: 'Story S1 — 右键菜单即时翻译'
 gate: CONCERNS
 status_reason: '缺少端到端验证与性能证据，风险尚未关闭'
 reviewer: 'Quinn (Test Architect)'
