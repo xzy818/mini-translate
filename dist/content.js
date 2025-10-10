@@ -1,6 +1,10 @@
 const vocabularyMap = new Map();
 const originalTextMap = new WeakMap();
 
+function canonicalizeTerm(term) {
+  return typeof term === 'string' ? term.trim().toLowerCase() : '';
+}
+
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -75,27 +79,20 @@ function applyVocabulary() {
 }
 
 function handleApplyTranslation(payload) {
-  vocabularyMap.set(payload.term, payload);
+  const canonical = canonicalizeTerm(payload.term);
+  if (!canonical) {
+    return;
+  }
+  vocabularyMap.set(canonical, { ...payload, term: payload.term });
   applyVocabulary();
 }
 
 function handleRemoveTranslation(payload) {
-  vocabularyMap.delete(payload.term);
-  applyVocabulary();
-}
-
-function handleTranslateAll(payload) {
-  vocabularyMap.clear();
-  (payload.vocabulary || []).forEach((item) => {
-    if (item?.term) {
-      vocabularyMap.set(item.term, item);
-    }
-  });
-  applyVocabulary();
-}
-
-function handleResetPage() {
-  vocabularyMap.clear();
+  const canonical = canonicalizeTerm(payload.term);
+  if (!canonical) {
+    return;
+  }
+  vocabularyMap.delete(canonical);
   applyVocabulary();
 }
 
@@ -107,12 +104,6 @@ chrome.runtime.onMessage.addListener((message) => {
       break;
     case 'REMOVE_TRANSLATION':
       handleRemoveTranslation(message.payload || {});
-      break;
-    case 'TRANSLATE_ALL':
-      handleTranslateAll(message.payload || {});
-      break;
-    case 'RESET_PAGE':
-      handleResetPage();
       break;
     default:
       break;
@@ -220,10 +211,6 @@ document.addEventListener('mt-qa-remove', (event) => {
   sendQaMessage('QA_CONTEXT_REMOVE', { selectionText: selection }).catch(() => {});
 });
 
-document.addEventListener('mt-qa-toggle', () => {
-  sendQaMessage('QA_CONTEXT_TOGGLE', {}).catch(() => {});
-});
-
 window.addEventListener('message', (event) => {
   if (event.source !== window || !event.data) return;
   const { qaAction, qaRequestId, payload } = event.data;
@@ -231,11 +218,9 @@ window.addEventListener('message', (event) => {
   let messageType = null;
   if (qaAction === 'add') messageType = 'QA_CONTEXT_ADD';
   else if (qaAction === 'remove') messageType = 'QA_CONTEXT_REMOVE';
-  else if (qaAction === 'toggle') messageType = 'QA_CONTEXT_TOGGLE';
   if (!messageType) return;
   const selectionText = (payload?.selectionText || readCurrentSelection()).trim();
-  const messagePayload = messageType === 'QA_CONTEXT_TOGGLE' ? {} : { selectionText };
-  sendQaMessage(messageType, messagePayload)
+  sendQaMessage(messageType, { selectionText })
     .then((result) => {
       window.postMessage({ qaResponse: qaAction, qaRequestId, success: true, result }, '*');
     })

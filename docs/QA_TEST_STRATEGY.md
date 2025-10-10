@@ -29,7 +29,7 @@
 **目标**: 确保所有消息类型都有对应的处理逻辑
 
 **覆盖的消息类型**:
-- ✅ 已实现: `SETTINGS_UPDATED`, `TEST_TRANSLATOR_SETTINGS`, `TRANSLATE_TERM`, `RETRY_TRANSLATION`, `SAVE_SETTINGS`, `REFRESH_CONTEXT_MENU`, `QA_CONTEXT_ADD`, `QA_CONTEXT_REMOVE`, `QA_CONTEXT_TOGGLE`, `QA_GET_STORAGE_STATE`
+- ✅ 已实现: `SETTINGS_UPDATED`, `TEST_TRANSLATOR_SETTINGS`, `TRANSLATE_TERM`, `RETRY_TRANSLATION`, `SAVE_SETTINGS`, `REFRESH_CONTEXT_MENU`, `QA_CONTEXT_ADD`, `QA_CONTEXT_REMOVE`, `QA_GET_STORAGE_STATE`
 - ❌ 缺失: `AI_API_CALL`, `GET_AI_PROVIDERS`, `GET_PROVIDER_MODELS`
 
 **测试方法**:
@@ -63,7 +63,7 @@ it('should have handlers for all required message types', () => {
 **目标**: 确保消息处理逻辑的完整性和质量
 
 **覆盖率指标**:
-- 消息处理器覆盖率: 76.92% (10/13)
+- 消息处理器覆盖率: 75% (9/12)
 - 关键消息类型覆盖率: 100% (已实现的消息类型)
 - 缺失消息类型: 3个 (AI_API_CALL, GET_AI_PROVIDERS, GET_PROVIDER_MODELS)
 

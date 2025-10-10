@@ -526,7 +526,6 @@ function initQaPanel(chromeLike, storage, notify) {
   const statusEl = document.getElementById('qa-status');
   const addBtn = document.getElementById('qa-add');
   const removeBtn = document.getElementById('qa-remove');
-  const toggleBtn = document.getElementById('qa-toggle');
 
   const showStatus = (message, tone = 'info') => {
     if (!statusEl) return;
@@ -585,43 +584,6 @@ function initQaPanel(chromeLike, storage, notify) {
         }
       } catch (error) {
         showStatus(`移除失败：${error.message}`, 'error');
-      }
-    });
-  }
-
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', async () => {
-      try {
-        const stateKey = 'miniTranslateTabState';
-        const current = await new Promise((resolve, reject) => {
-          chromeLike.storage.session.get({ [stateKey]: {} }, (items) => {
-            const error = chromeLike.runtime?.lastError;
-            if (error) {
-              reject(new Error(error.message));
-              return;
-            }
-            resolve(items[stateKey] || {});
-          });
-        });
-        const key = 'qa-global';
-        const nextEnabled = !current[key]?.enabled;
-        const nextState = {
-          ...current,
-          [key]: { enabled: nextEnabled, updatedAt: Date.now() }
-        };
-        await new Promise((resolve, reject) => {
-          chromeLike.storage.session.set({ [stateKey]: nextState }, () => {
-            const error = chromeLike.runtime?.lastError;
-            if (error) {
-              reject(new Error(error.message));
-              return;
-            }
-            resolve();
-          });
-        });
-        showStatus(nextEnabled ? '已开启页面翻译 (QA)' : '已关闭页面翻译 (QA)', 'info');
-      } catch (error) {
-        showStatus(`切换失败：${error.message}`, 'error');
       }
     });
   }

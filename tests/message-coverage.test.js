@@ -40,7 +40,6 @@ describe('Message Handler Coverage Tests', () => {
         'REFRESH_CONTEXT_MENU',
         'QA_CONTEXT_ADD',
         'QA_CONTEXT_REMOVE',
-        'QA_CONTEXT_TOGGLE',
         'QA_GET_STORAGE_STATE'
       ],
       // 缺失的消息处理
@@ -223,10 +222,10 @@ describe('Message Handler Coverage Tests', () => {
         ]
       };
 
-      expect(report.totalMessageTypes).toBe(13);
-      expect(report.implementedCount).toBe(10);
+      expect(report.totalMessageTypes).toBe(12);
+      expect(report.implementedCount).toBe(9);
       expect(report.missingCount).toBe(3);
-      expect(report.coverage).toBeCloseTo(76.92, 1);
+      expect(report.coverage).toBeCloseTo(75, 1);
       expect(report.criticalMissing).toEqual([
         'AI_API_CALL',
         'GET_AI_PROVIDERS',

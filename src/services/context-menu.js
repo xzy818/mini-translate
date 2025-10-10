@@ -3,10 +3,8 @@ import {
   removeVocabulary,
   readVocabulary,
   readSettings,
-  toggleTabState,
-  removeTabState,
-  readTabState,
-  MAX_VOCAB
+  MAX_VOCAB,
+  toCanonicalTerm
 } from './storage.js';
 import { validateTerm } from './vocab-core.js';
 import { translateText as translateTextDefault } from './translator.js';
@@ -224,17 +222,26 @@ export async function handleAddTerm(chromeLike, info, tabId) {
     ? translationResult.translation.trim() 
     : '';
 
-  const payload = {
+  const basePayload = {
     term: selectionText,
     translation,
     type: inferType(selectionText),
     status: translationResult.ok && translation ? 'active' : 'error'
   };
 
-  const upserted = await appendVocabulary(chromeLike, payload);
+  const upserted = await appendVocabulary(chromeLike, basePayload);
   if (upserted.error === 'LIMIT_EXCEEDED') {
     return { ok: false, reason: 'LIMIT_EXCEEDED', count: MAX_VOCAB };
   }
+  const vocabularyList = upserted.list || [];
+  const canonical = toCanonicalTerm(selectionText);
+  const storedEntry = vocabularyList.find((entry) => entry.canonical === canonical);
+  const payload = {
+    ...basePayload,
+    term: storedEntry?.term || selectionText,
+    translation: storedEntry?.translation ?? basePayload.translation,
+    status: storedEntry?.status ?? basePayload.status
+  };
   if (translationResult.ok) {
     if (Number.isInteger(tabId)) {
       await safeSendMessage(chromeLike, tabId, {
@@ -256,6 +263,9 @@ export async function handleRemoveTerm(chromeLike, info, tabId) {
   if (!term) {
     return { ok: false, reason: 'EMPTY_SELECTION' };
   }
+  const canonical = toCanonicalTerm(term);
+  const vocabulary = await readVocabulary(chromeLike);
+  const storedEntry = vocabulary.find((entry) => entry.canonical === canonical) || null;
   const removed = await removeVocabulary(chromeLike, term);
   if (!removed.removed) {
     return { ok: false, reason: 'NOT_FOUND' };
@@ -263,29 +273,13 @@ export async function handleRemoveTerm(chromeLike, info, tabId) {
   if (Number.isInteger(tabId)) {
     await safeSendMessage(chromeLike, tabId, {
       type: 'REMOVE_TRANSLATION',
-      payload: { term }
+      payload: { term: storedEntry?.term || term }
     });
   }
-  chromeLike.runtime.sendMessage({ type: 'VOCAB_UPDATED', payload: { removed: term } });
-  notify(chromeLike, `已移除词条：${term}`);
+  const removedLabel = storedEntry?.term || term;
+  chromeLike.runtime.sendMessage({ type: 'VOCAB_UPDATED', payload: { removed: removedLabel } });
+  notify(chromeLike, `已移除词条：${removedLabel}`);
   return { ok: true };
-}
-
-export async function handleTogglePage(chromeLike, tabId) {
-  const enabled = await toggleTabState(chromeLike, tabId);
-  const vocabulary = await readVocabulary(chromeLike);
-  if (Number.isInteger(tabId)) {
-    await safeSendMessage(chromeLike, tabId, {
-      type: enabled ? 'TRANSLATE_ALL' : 'RESET_PAGE',
-      payload: { vocabulary }
-    });
-  }
-  notify(
-    chromeLike,
-    enabled ? '已在当前页面启用 Mini Translate。' : '已在当前页面停用 Mini Translate。',
-    'Mini Translate'
-  );
-  return { ok: true, enabled };
 }
 
 function notify(chromeLike, message, title = 'Mini Translate') {
@@ -297,71 +291,44 @@ function notify(chromeLike, message, title = 'Mini Translate') {
   });
 }
 
-function buildToggleMenuTitle(enabled, vocabulary) {
-  const baseTitle = enabled ? 'stop mini-translate' : 'start mini-translate';
-  const latest = [...vocabulary]
-    .reverse()
-    .find((entry) => entry && entry.translation && entry.status !== 'error');
-  if (!latest) {
-    return baseTitle;
+function buildSelectionMenuTitle(selection, entry) {
+  if (!entry) {
+    return `add & mini-translate · 选中: ${selection}`;
   }
-  return `${baseTitle} · 最近词: ${latest.term}`;
-}
-
-function buildSelectionMenuTitle(term, exists, vocabulary) {
-  if (!exists) {
-    return `add & mini-translate · 选中: ${term}`;
-  }
-  const entry = vocabulary.find((item) => item.term === term);
-  const translation = entry?.translation ? ` → ${entry.translation}` : '';
-  return `remove from mini-translate · 选中: ${term}${translation}`;
+  const translation = entry.translation ? ` → ${entry.translation}` : '';
+  return `remove from mini-translate · 选中: ${selection}${translation}`;
 }
 
 async function resolveMenuContext(chromeLike, info, tabId) {
   const selection = (info.selectionText || '').trim();
+  if (!selection) {
+    return null;
+  }
+
   const vocabulary = await readVocabulary(chromeLike);
-  const states = await readTabState(chromeLike);
-  const tabEnabled = Number.isInteger(tabId) ? Boolean(states[tabId]?.enabled) : false;
+  const canonical = toCanonicalTerm(selection);
+  const existingEntry = vocabulary.find((entry) => entry.canonical === canonical) || null;
+  const title = buildSelectionMenuTitle(selection, existingEntry);
 
-  if (selection) {
-    const exists = vocabulary.some((entry) => entry.term === selection);
-    const title = buildSelectionMenuTitle(selection, exists, vocabulary);
-
-    if (!exists) {
-      return {
-        title,
-        execute: async () => {
-          const result = await handleAddTerm(chromeLike, info, tabId);
-          if (!result.ok) {
-            if (result.reason === 'LIMIT_EXCEEDED') {
-              notify(chromeLike, '词库已满 (500)，请删除后再添加。');
-            }
-          }
-        }
-      };
-    }
-
+  if (!existingEntry) {
     return {
       title,
       execute: async () => {
-        const result = await handleRemoveTerm(chromeLike, info, tabId);
-        if (!result.ok) {
-          notify(chromeLike, '未找到对应词条。');
+        const result = await handleAddTerm(chromeLike, info, tabId);
+        if (!result.ok && result.reason === 'LIMIT_EXCEEDED') {
+          notify(chromeLike, '词库已满 (500)，请删除后再添加。');
         }
       }
     };
   }
 
-  const title = buildToggleMenuTitle(tabEnabled, vocabulary);
   return {
     title,
     execute: async () => {
-      const targetTabId = Number.isInteger(tabId) ? tabId : info?.tabId ?? null;
-      if (!Number.isInteger(targetTabId)) {
-        notify(chromeLike, '无法识别当前页面，暂时无法切换。');
-        return;
+      const result = await handleRemoveTerm(chromeLike, info, tabId);
+      if (!result.ok) {
+        notify(chromeLike, '未找到对应词条。');
       }
-      await handleTogglePage(chromeLike, targetTabId);
     }
   };
 }
@@ -370,8 +337,9 @@ export async function createContextMenus(chromeLike) {
   chromeLike.contextMenus.removeAll(() => {
     chromeLike.contextMenus.create({
       id: MENU_ID,
-      title: 'start mini-translate',
-      contexts: ['all']
+      title: 'mini-translate',
+      contexts: ['selection'],
+      visible: false
     });
   });
 }
@@ -396,7 +364,6 @@ export function registerHandlers(chromeLike) {
   });
 
   chromeLike.tabs.onRemoved.addListener((tabId) => {
-    removeTabState(chromeLike, tabId);
     menuState.delete(tabId);
   });
 

@@ -2,13 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   readVocabulary,
   writeVocabulary,
-  writeSettings,
-  readTabState,
+  writeSettings
 } from '../src/services/storage.js';
 import {
   MENU_ID,
   createContextMenus,
   registerHandlers,
+  handleAddTerm,
   __setTranslateTextImplementation,
   __resetTranslateTextImplementation
 } from '../src/services/context-menu.js';
@@ -242,52 +242,35 @@ function fillVocabulary(chromeStub, count) {
     );
   });
 
-  it('shows last translation in toggle title when available', async () => {
+  it('updates existing entry when adding same term with different casing', async () => {
     await writeSettings(chromeStub, {
       model: 'gpt-4o-mini',
       apiKey: 'mock-key'
     });
-    await writeVocabulary(chromeStub, [
-      { term: 'apple', translation: '苹果', status: 'active' },
-      { term: 'banana', translation: '香蕉', status: 'error' },
-      { term: 'cat', translation: '猫', status: 'active' }
-    ]);
 
-    const info = { selectionText: '' };
-    const tab = { id: 5 };
+    const infoUpper = { selectionText: 'Agents' };
+    const tab = { id: 9 };
 
-    await dispatchSelection(chromeStub, info.selectionText, tab.id);
+    await handleAddTerm(chromeStub, infoUpper, tab.id);
+    await flushPromises();
 
-    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
-      MENU_ID,
-      expect.objectContaining({
-        title: expect.stringContaining('start mini-translate · 最近词: cat'),
-        visible: true
-      })
-    );
-  });
+    let vocab = await readVocabulary(chromeStub);
+    expect(vocab).toHaveLength(1);
+    expect(vocab[0].term).toBe('Agents');
+    expect(vocab[0].translation).toBe('Agents-译');
 
-  it('falls back to base title when no translations available', async () => {
-    await writeSettings(chromeStub, {
-      model: 'gpt-4o-mini',
-      apiKey: 'mock-key'
-    });
-    await writeVocabulary(chromeStub, [
-      { term: 'banana', translation: '', status: 'error' }
-    ]);
+    chromeStub.notifications.create.mockClear();
 
-    const info = { selectionText: '' };
-    const tab = { id: 6 };
+    const infoLower = { selectionText: 'agents' };
+    await handleAddTerm(chromeStub, infoLower, tab.id);
+    await flushPromises();
+    await flushPromises();
 
-    await dispatchSelection(chromeStub, info.selectionText, tab.id);
-
-    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
-      MENU_ID,
-      expect.objectContaining({
-        title: 'start mini-translate',
-        visible: true
-      })
-    );
+    vocab = await readVocabulary(chromeStub);
+    expect(vocab).toHaveLength(1);
+    expect(vocab[0].term).toBe('Agents');
+    expect(vocab[0].translation).toBe('agents-译');
+    expect(vocab[0].canonical).toBe('agents');
   });
 
   it('notifies user when translation settings are incomplete', async () => {
@@ -341,64 +324,12 @@ function fillVocabulary(chromeStub, count) {
     );
   });
 
-  it('shows start/stop based on tab state', async () => {
-    const info = { selectionText: '' };
-    const tab = { id: 3 };
-
-    await dispatchSelection(chromeStub, info.selectionText, tab.id);
-
-    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
-      MENU_ID,
-      expect.objectContaining({
-        title: expect.stringContaining('start mini-translate'),
-        visible: true
-      })
-    );
-
-    chromeStub.contextMenus.update.mockClear();
-
-    await chromeStub._onClicked(info, tab);
-    await flushPromises();
-
-    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Mini Translate',
-        message: '已在当前页面启用 Mini Translate。'
-      })
-    );
-
-    chromeStub.notifications.create.mockClear();
-
-    await dispatchSelection(chromeStub, info.selectionText, tab.id);
-
-    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
-      MENU_ID,
-      expect.objectContaining({
-        title: expect.stringContaining('stop mini-translate'),
-        visible: true
-      })
-    );
-
-    await chromeStub._onClicked(info, tab);
-    await flushPromises();
-
-    expect(chromeStub.notifications.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Mini Translate',
-        message: '已在当前页面停用 Mini Translate。'
-      })
-    );
-
-    const state = await readTabState(chromeStub);
-    expect(state[3].enabled).toBe(false);
-  });
-
-  it('hides menu when no valid action', async () => {
+  it('hides menu when selection is empty', async () => {
     await dispatchSelection(chromeStub, '', undefined);
 
     expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
       MENU_ID,
-      expect.objectContaining({ visible: true })
+      expect.objectContaining({ visible: false })
     );
   });
 });

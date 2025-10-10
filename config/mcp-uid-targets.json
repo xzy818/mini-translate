@@ -60,11 +60,6 @@
           "key": "options.qa-remove",
           "role": "button",
           "name": "QA 移除词条"
-        },
-        {
-          "key": "options.qa-toggle",
-          "role": "button",
-          "name": "QA 启停翻译"
         }
       ]
     },

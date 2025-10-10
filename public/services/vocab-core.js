@@ -1,5 +1,9 @@
 export const MAX_VOCAB = 500;
 
+function canonicalize(term) {
+  return typeof term === 'string' ? term.trim().toLowerCase() : '';
+}
+
 export function validateTerm(raw) {
   if (!raw || typeof raw.term !== 'string' || !raw.term.trim()) {
     return { ok: false, error: 'INVALID_TERM' };
@@ -7,6 +11,7 @@ export function validateTerm(raw) {
   const term = raw.term.trim();
   const item = {
     term,
+    canonical: canonicalize(term),
     translation: raw.translation || '',
     type: raw.type === 'phrase' ? 'phrase' : 'word',
     length: term.length,
@@ -17,20 +22,29 @@ export function validateTerm(raw) {
 }
 
 export function upsert(list, item) {
-  const idx = list.findIndex((x) => x.term === item.term);
+  const canonical = canonicalize(item.term);
+  const idx = list.findIndex((x) => canonicalize(x.term) === canonical);
   if (idx >= 0) {
     const next = list.slice();
-    next[idx] = item;
+    const existing = next[idx];
+    next[idx] = {
+      ...existing,
+      ...item,
+      term: existing.term,
+      canonical: canonicalize(existing.term)
+    };
     return { replaced: true, list: next };
   }
   if (list.length >= MAX_VOCAB) return { error: 'LIMIT_EXCEEDED', list };
-  return { inserted: true, list: [...list, item] };
+  return {
+    inserted: true,
+    list: [...list, { ...item, canonical }]
+  };
 }
 
 export function removeByTerm(list, term) {
-  const t = String(term || '').trim();
-  const next = list.filter((x) => x.term !== t);
+  const canonical = canonicalize(term);
+  const next = list.filter((x) => canonicalize(x.term) !== canonical);
   return { removed: next.length !== list.length, list: next };
 }
-
 
