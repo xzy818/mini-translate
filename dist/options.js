@@ -432,7 +432,7 @@ export function createImportExportController({
   };
 }
 
-function initSettings(chromeLike, notify) {
+export function initSettings(chromeLike, notify) {
   const settingsElements = {
     model: query('model'),
     key: query('key'),
@@ -493,7 +493,7 @@ function initSettings(chromeLike, notify) {
   return controller;
 }
 
-function initImportExport(storage, notify) {
+export function initImportExport(storage, notify) {
   const elements = {
     importTxt: query('import-txt'),
     importTxtInput: query('import-txt-input'),
@@ -508,7 +508,7 @@ function initImportExport(storage, notify) {
   return controller;
 }
 
-function initQaPanel(chromeLike, storage, notify) {
+export function initQaPanel(chromeLike, storage, notify) {
   if (!chromeLike || !chromeLike.runtime) {
     return;
   }
@@ -595,7 +595,7 @@ function initQaPanel(chromeLike, storage, notify) {
   }
 }
 
-function initVocabulary(chromeLike) {
+export function initVocabulary(chromeLike) {
   const elements = collectVocabularyElements();
   const fallbackData = window.__MINI_TRANSLATE_VOCAB__ || [];
   const storage = createStorageClient({ chromeLike, fallbackData });
@@ -603,17 +603,6 @@ function initVocabulary(chromeLike) {
   manager.init();
   window.__miniTranslateVocabularyManager = manager;
   return { storage, manager };
-}
-
-if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const chromeLike = typeof chrome !== 'undefined' ? chrome : null;
-    const notify = createToastNotifier(document);
-    const { storage } = initVocabulary(chromeLike);
-    initSettings(chromeLike, notify);
-    initImportExport(storage, notify);
-    initQaPanel(chromeLike, storage, notify);
-  });
 }
 
 export const __controllers = {
