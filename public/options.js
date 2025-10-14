@@ -167,6 +167,10 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     }
   }
 
+  // 测试状态管理
+  let isTestRunning = false;
+  let testTimeoutId = null;
+
   async function testConnection() {
     if (!hasChrome) {
       notify('当前环境不支持测试');
@@ -177,51 +181,93 @@ export function createSettingsController({ chromeLike, notify, elements }) {
       notify('测试失败：配置元素未找到');
       return;
     }
+
+    // 防抖：如果测试正在进行，忽略新的请求
+    if (isTestRunning) {
+      console.log('[test] 测试正在进行中，忽略重复请求');
+      return;
+    }
+
     const payload = {
       model: modelEl.value,
       apiKey: keyEl.value.trim()
     };
-    try {
-      const tryOnce = () =>
-        new Promise((resolve, reject) => {
-          chromeLike.runtime.sendMessage(
-            { type: 'TEST_TRANSLATOR_SETTINGS', payload },
-            (res) => {
-              const error = chromeLike.runtime?.lastError;
-              if (error) {
-                const msg = String(error.message || '');
-                // SW 回收或通道关闭，短暂重试一次
-                if (
-                  msg.includes('The message port closed') ||
-                  msg.includes('Receiving end does not exist')
-                ) {
-                  resolve({ ok: false, _transient: true, error: msg });
-                  return;
-                }
-                reject(new Error(msg));
-                return;
-              }
-              resolve(res);
-            }
-          );
-        });
 
-      let response = await tryOnce();
-      if (response?._transient) {
-        // 100ms 后重试一次
-        await new Promise((r) => setTimeout(r, 100));
-        response = await tryOnce();
-      }
-      if (response?.ok) {
+    // 设置测试状态
+    isTestRunning = true;
+    if (testEl) {
+      testEl.disabled = true;
+      testEl.textContent = '测试中...';
+    }
+
+    try {
+      console.log('[test] 开始测试');
+      const response = await sendTestMessage(payload);
+      if (response && response.ok) {
         notify('测试通过');
       } else {
-        const message = response?.error ? `测试失败: ${response.error}` : '测试失败';
-        notify(message);
+        notify(`测试失败: ${response?.error || '未知错误'}`);
       }
     } catch (error) {
-      console.error('测试异常', error);
-      notify('测试异常');
+      console.error('[test] 测试失败:', error);
+      const message = error.message ? `测试失败: ${error.message}` : '测试失败';
+      notify(message);
+    } finally {
+      // 恢复测试状态
+      isTestRunning = false;
+      if (testEl) {
+        testEl.disabled = false;
+        testEl.textContent = '测试';
+      }
     }
+  }
+
+  function sendTestMessage(payload) {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('请求超时'));
+      }, 20000); // 20秒超时，给足够时间完成测试
+      
+      // 监听存储变化来获取测试结果
+      const storageListener = (changes, namespace) => {
+        if (namespace === 'local' && changes.testResult) {
+          const result = changes.testResult.newValue;
+          if (result && result.timestamp > Date.now() - 25000) { // 25秒内的结果
+            clearTimeout(timeoutId);
+            chrome.storage.onChanged.removeListener(storageListener);
+            
+            if (result.success) {
+              resolve({ ok: true, message: '测试通过' });
+            } else {
+              reject(new Error(result.error || '测试失败'));
+            }
+          }
+        }
+      };
+      
+      chrome.storage.onChanged.addListener(storageListener);
+      
+      try {
+        chromeLike.runtime.sendMessage(
+          { type: 'TEST_TRANSLATOR_SETTINGS', payload },
+          (response) => {
+            const error = chromeLike.runtime?.lastError;
+            if (error) {
+              clearTimeout(timeoutId);
+              chrome.storage.onChanged.removeListener(storageListener);
+              reject(new Error(error.message));
+            } else {
+              // 立即响应表示测试已启动，等待存储变化获取结果
+              console.log('[test] 测试已启动，等待结果...');
+            }
+          }
+        );
+      } catch (error) {
+        clearTimeout(timeoutId);
+        chrome.storage.onChanged.removeListener(storageListener);
+        reject(error);
+      }
+    });
   }
 
   function toggleKeyVisibility() {
