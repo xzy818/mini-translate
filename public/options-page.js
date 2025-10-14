@@ -2,8 +2,7 @@ import {
   createToastNotifier,
   initSettings,
   initImportExport,
-  initVocabulary,
-  initQaPanel
+  initVocabulary
 } from './options.js';
 
 function bootstrapOptionsPage() {
@@ -12,7 +11,6 @@ function bootstrapOptionsPage() {
   const { storage } = initVocabulary(chromeLike);
   initSettings(chromeLike, notify);
   initImportExport(storage, notify);
-  initQaPanel(chromeLike, storage, notify);
 }
 
 document.addEventListener('DOMContentLoaded', bootstrapOptionsPage);
