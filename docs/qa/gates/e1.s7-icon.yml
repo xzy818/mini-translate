@@ -1,6 +1,6 @@
 schema: 1
 story: 'E1.S7'
-story_title: '蓝色双箭头图标'
+story_title: '白底蓝字 MT 图标'
 gate: PASS
 status_reason: 'SVG 源文件与 README/manifest 校验通过'
 reviewer: 'Quinn'
