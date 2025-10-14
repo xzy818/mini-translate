@@ -18,7 +18,7 @@ Blue "MT" lettermark on white rounded square used by the extension (generated vi
 
 ## Models & Settings
 
-Supported models (via Settings UI): `deepseek-v3`, `qwen-mt-turbo`, `qwen-mt-plus`, `gpt-4o-mini`.
+支持的模型通过“设置”页下拉动态提供（默认：`qwen-mt-turbo`）。完整清单见 `docs/SUPPORTED_MODELS.md`。
 
 Settings fields:
 - Model (select)
@@ -26,8 +26,8 @@ Settings fields:
 - API Key (masked, toggle show/hide)
 
 Notes:
-- From MV3 background, direct fetch to providers is supported with existing host permissions. A separate proxy is not required for typical setups.
-- The optional proxy guide has been archived; use it only if your network policy blocks direct calls.
+- MV3 背景脚本已内置针对各模型提供商的域名与接口映射，具备相应 host 权限后可直接访问，无需配置代理与自定义 Base URL。
+- 若网络策略限制直连，可自行准备代理，但非必要也非默认路径。
 
 ## Vocabulary Limit & Import/Export
 
@@ -75,7 +75,7 @@ Each GitHub Release includes the ZIP package and changelog.
 4. Load in Chrome:
    - Open Chrome and go to `chrome://extensions/`
    - Enable "Developer mode"
-   - Click "Load unpacked" and select the `public/` directory
+   - Click "Load unpacked" and select the `dist/` directory（请先执行上文打包步骤，`dist/` 中已包含运行所需的 `src/` 代码副本）
 
 ## 🧪 Testing
 
