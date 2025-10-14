@@ -234,7 +234,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
           const result = changes.testResult.newValue;
           if (result && result.timestamp > Date.now() - 25000) { // 25秒内的结果
             clearTimeout(timeoutId);
-            chrome.storage.onChanged.removeListener(storageListener);
+            chromeLike.storage.onChanged.removeListener(storageListener);
             
             if (result.success) {
               resolve({ ok: true, message: '测试通过' });
@@ -245,7 +245,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
         }
       };
       
-      chrome.storage.onChanged.addListener(storageListener);
+      chromeLike.storage.onChanged.addListener(storageListener);
       
       try {
         chromeLike.runtime.sendMessage(
@@ -254,7 +254,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
             const error = chromeLike.runtime?.lastError;
             if (error) {
               clearTimeout(timeoutId);
-              chrome.storage.onChanged.removeListener(storageListener);
+              chromeLike.storage.onChanged.removeListener(storageListener);
               reject(new Error(error.message));
             } else {
               // 立即响应表示测试已启动，等待存储变化获取结果
@@ -264,7 +264,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
         );
       } catch (error) {
         clearTimeout(timeoutId);
-        chrome.storage.onChanged.removeListener(storageListener);
+        chromeLike.storage.onChanged.removeListener(storageListener);
         reject(error);
       }
     });

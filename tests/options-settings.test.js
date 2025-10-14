@@ -27,6 +27,8 @@ function buildDom() {
 
 function createChromeStub({ settings = {} } = {}) {
   const store = { settings };
+  const listeners = [];
+  
   return {
     storage: {
       local: {
@@ -40,6 +42,22 @@ function createChromeStub({ settings = {} } = {}) {
         set(payload, cb) {
           Object.assign(store, payload);
           cb && cb();
+        }
+      },
+      onChanged: {
+        addListener: vi.fn((listener) => {
+          listeners.push(listener);
+        }),
+        removeListener: vi.fn((listener) => {
+          const index = listeners.indexOf(listener);
+          if (index > -1) {
+            listeners.splice(index, 1);
+          }
+        }),
+        hasListener: vi.fn((listener) => listeners.includes(listener)),
+        // 测试辅助方法：触发存储变化
+        triggerChange: (changes) => {
+          listeners.forEach(listener => listener(changes, 'local'));
         }
       }
     },
@@ -103,17 +121,50 @@ describe('Settings controller', () => {
 
   it('tests settings via runtime message', async () => {
     const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
-    await controller.testConnection();
+    
+    // 模拟测试成功：先发送消息，然后触发存储变化
+    chromeStub.runtime.sendMessage.mockImplementation((_message, cb) => {
+      cb({ ok: true, message: '测试已启动' });
+    });
+    
+    // 启动测试连接
+    const testPromise = controller.testConnection();
+    
+    // 立即触发存储变化通知测试成功
+    setTimeout(() => {
+      chromeStub.storage.onChanged.triggerChange({
+        'testResult': {
+          newValue: { success: true, timestamp: Date.now() }
+        }
+      });
+    }, 10);
+    
+    await testPromise;
     expect(chromeStub.runtime.sendMessage).toHaveBeenCalled();
     expect(notify).toHaveBeenCalledWith('测试通过');
   });
 
   it('notifies error message when runtime returns failure', async () => {
     chromeStub.runtime.sendMessage.mockImplementation((_message, cb) => {
-      cb({ ok: false, error: '认证失败' });
+      cb({ ok: true, message: '测试已启动' });
     });
+    
     const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
-    await controller.testConnection();
+    
+    // 启动测试连接
+    const testPromise = controller.testConnection();
+    
+    // 模拟存储变化通知测试失败
+    setTimeout(() => {
+      chromeStub.storage.onChanged.triggerChange({
+        'testResult': {
+          newValue: { ok: false, error: '认证失败', timestamp: Date.now() }
+        }
+      });
+    }, 10);
+    
+    await testPromise;
+    expect(chromeStub.runtime.sendMessage).toHaveBeenCalled();
     expect(notify).toHaveBeenCalledWith('测试失败: 认证失败');
   });
 
@@ -125,7 +176,7 @@ describe('Settings controller', () => {
     });
     const controller = createSettingsController({ chromeLike: chromeStub, notify, elements });
     await controller.testConnection();
-    expect(notify).toHaveBeenCalledWith('测试异常');
+    expect(notify).toHaveBeenCalledWith('测试失败: 网络错误');
   });
 
   // 新增：测试消息路由完整性
