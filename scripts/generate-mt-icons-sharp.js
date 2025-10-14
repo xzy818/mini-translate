@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 function createSVG(size) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
   <rect width="${size}" height="${size}" fill="white" rx="4"/>
-  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="${size * 0.4}" font-weight="bold" 
+  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="${size * 0.56}" font-weight="bold" letter-spacing="-1"
         text-anchor="middle" dominant-baseline="middle" fill="#2563eb">MT</text>
 </svg>`;
 }
