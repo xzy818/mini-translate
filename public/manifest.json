@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mini Translate",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2ixix9q5xODy7daBVsJTnxEbJ+YpYd7N/ITLjpSYlR1n19LauPIcfI6QwIpSaLIoViuWUkAPAgwvtiS8zC6UBBkxIX7MVcDlhNxCEYHGcLDokSh8WFlv0r5jAf0GlRNKmwaTYgXhuS+9YqB1KRAtL43SRQuBtJ5dtiN28LftwD4yM7H4eycoJuiX2obqo5fXXAtzUGhDAznSQiJAGGhybh45y9b57ExtARmwrLt3SJkU2XmmD7/VToglGIXp0tPsuvunC4wbxXROuEwdcJfvxeW6k7jVQHb3KS7iWK8wrZ1KV5VPEFqNEfcKNweByE5TWPDYSS6opwko+IXAMIFYmwIDAQAB",
   "description": "Translate selected terms and toggle page translation.",
   "permissions": [
