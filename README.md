@@ -2,9 +2,13 @@
 
 A mini translation plugin developed for Chrome that does not disrupt the reading experience and only translates a few unfamiliar words.
 
+## Purpose
+
+本插件开发目的是使用 AI 编程工具，实践 BMAD 开发流程，以及 UI 自动化测试等软件工程实践探索。
+
 ## Icon
 
-Blue double-arrow icon used by the extension:
+Blue "MT" lettermark on white rounded square used by the extension (generated via scripts/generate-mt-icons-sharp.js):
 
 <p>
   <img src="public/icons/icon-128.png" alt="Mini Translate Icon" width="128" height="128"/>
@@ -18,7 +22,7 @@ Supported models (via Settings UI): `deepseek-v3`, `qwen-mt-turbo`, `qwen-mt-plu
 
 Settings fields:
 - Model (select)
-- API Base URL (text)
+- API Base URL（内置，无需用户配置）
 - API Key (masked, toggle show/hide)
 
 Notes:
