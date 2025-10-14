@@ -33,3 +33,7 @@ tests/mcp/
 scripts/split-agents-*.js
 scripts/split-agents-*.mjs
 scripts/split-agents.cjs
+.npm-cache
+.npm
+.cache
+.pnpm-store
