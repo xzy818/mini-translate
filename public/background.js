@@ -167,6 +167,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     }
 
     console.warn('[qa:test] start', { model: config.model, apiBaseUrl: computedBase });
+    
+    // 立即发送响应，避免 Service Worker 被终止
+    try {
+      sendResponse({ ok: true, message: '测试已启动' });
+    } catch (e) {
+      console.warn('[qa:test] immediate response failed:', e);
+    }
+    
+    // 异步执行测试，但不依赖 sendResponse
     translateText({
       text: 'diagnostic check',
       model: config.model,
@@ -176,17 +185,33 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     })
       .then(() => {
         console.warn('[qa:test] success');
-        sendResponse({ ok: true });
+        // 通过存储 API 通知前端测试结果
+        chrome.storage.local.set({ 
+          testResult: { 
+            success: true, 
+            timestamp: Date.now(),
+            model: config.model 
+          } 
+        });
       })
       .catch((error) => {
         const message = error?.message || '测试失败';
         const label = error?.type === TRANSLATION_ERRORS.TIMEOUT ? '[qa:test] timeout' : '[qa:test] error';
-        // 将模型与URL也输出，方便在前端控制台直接看到
         console.error(label, { model: config.model, apiBaseUrl: computedBase }, error);
         console.warn(label, message);
-        sendResponse({ ok: false, error: message });
+        // 通过存储 API 通知前端测试结果
+        chrome.storage.local.set({ 
+          testResult: { 
+            success: false, 
+            error: message,
+            timestamp: Date.now(),
+            model: config.model 
+          } 
+        });
       });
-    return true;
+    
+    // 返回 false 表示同步响应
+    return false;
   }
 
   if (message.type === 'TRANSLATE_TERM') {
@@ -518,3 +543,35 @@ function waitForInitialization() {
 }
 
 setup();
+
+// Service Worker keep-alive 机制
+let keepAliveInterval;
+
+// 保持 Service Worker 活跃
+function keepAlive() {
+  if (keepAliveInterval) {
+    clearInterval(keepAliveInterval);
+  }
+  
+  // 每 20 秒发送一次 ping 保持活跃
+  keepAliveInterval = setInterval(() => {
+    chrome.runtime.getPlatformInfo(() => {
+      // 静默检查，不输出日志
+    });
+  }, 20000);
+}
+
+// 启动 keep-alive
+keepAlive();
+
+// 监听 Service Worker 启动
+chrome.runtime.onStartup.addListener(() => {
+  console.log('[background] Service Worker started');
+  keepAlive();
+});
+
+// 监听扩展安装/更新
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('[background] Extension installed/updated');
+  keepAlive();
+});
