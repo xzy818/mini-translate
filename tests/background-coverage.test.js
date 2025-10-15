@@ -49,6 +49,21 @@ function installChromeMock() {
     runtime: {
       onMessage: {
         addListener: (fn) => { onMessageHandler = fn; }
+      },
+      onInstalled: {
+        addListener: vi.fn()
+      },
+      onStartup: {
+        addListener: vi.fn()
+      },
+      reload: vi.fn(),
+      sendMessage: vi.fn(),
+      getPlatformInfo: vi.fn((cb) => cb?.({ os: 'mac', arch: 'x64', nacl_arch: 'x86-64' })),
+      lastError: null
+    },
+    contextMenus: {
+      onClicked: {
+        addListener: vi.fn()
       }
     },
     storage: {
@@ -63,6 +78,14 @@ function installChromeMock() {
           cb({});
         },
         set: (obj, cb) => { Object.assign(global.chrome.storage.local._bag, obj); cb && cb(); }
+      },
+      session: {
+        get: (keys, cb) => {
+          cb?.({});
+        },
+        set: (obj, cb) => {
+          cb?.();
+        }
       }
     }
   };
@@ -72,9 +95,8 @@ async function sendMessage(message) {
   return await new Promise((resolve) => {
     const sendResponse = (resp) => resolve(resp);
     const ret = onMessageHandler(message, {}, sendResponse);
-    if (ret !== true) {
-      // 同步响应的场景
-      // 已在 sendResponse 中 resolve
+    if (ret === false || ret === undefined) {
+      resolve(undefined);
     }
   });
 }
@@ -129,11 +151,7 @@ describe('public/background.js coverage (core paths)', () => {
   });
 
   it('returns false on unsupported message type', async () => {
-    const p = sendMessage({ type: 'UNKNOWN_TYPE' });
-    // onMessageHandler 对未知类型返回 false（无 sendResponse），这里期望 Promise 仍能 resolve 为 undefined
-    const resp = await p;
-    expect(resp).toBeUndefined();
+    const result = onMessageHandler({ type: 'UNKNOWN_TYPE' }, {}, () => {});
+    await expect(result).resolves.toBe(false);
   });
 });
-
-
