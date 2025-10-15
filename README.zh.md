@@ -129,8 +129,7 @@ mini-translate/
 │   └── integration.test.js # 集成测试
 └── docs/                  # 文档
     ├── prd.md            # 需求
-    ├── architecture.md   # 架构
-    └── stories/          # 用户故事
+    └── architecture.md   # 架构
 ```
 
 ### CI/CD
@@ -138,18 +137,6 @@ mini-translate/
 - CI：ESLint、单元/集成测试、构建校验、质量门禁
 - PR 检查：自动化质量检查与评论
 - 发布：打 Tag 后自动产出安装包
-
-## 📋 用户故事
-
-### S1：右键菜单与整页翻译
-- 词条增删
-- 整页翻译开关
-- 背景脚本状态管理
-
-### S2：词库存储与管理
-- storage.local 持久化
-- 500 条上限
-- 去重的 CRUD
 
 ## 🎯 质量指标
 

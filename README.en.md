@@ -129,8 +129,7 @@ mini-translate/
 │   └── integration.test.js # Integration tests
 └── docs/                  # Documentation
     ├── prd.md            # Product requirements
-    ├── architecture.md   # Technical architecture
-    └── stories/          # User stories
+    └── architecture.md   # Technical architecture
 ```
 
 ### CI/CD Pipeline
@@ -140,18 +139,6 @@ The project includes comprehensive CI/CD pipelines:
 - CI Pipeline: ESLint, unit/integration tests, build verification, quality gate
 - PR Check: Automated quality checks and PR comments
 - Release Pipeline: Automated releases on version tags, extension package creation
-
-## 📋 Stories
-
-### Story S1: Context Menu & Page Translation
-- Right-click menu for adding/removing vocabulary
-- Page translation toggle functionality
-- Background script state management
-
-### Story S2: Vocabulary Storage & Management
-- Chrome storage.local integration
-- 500-item vocabulary limit
-- CRUD operations with deduplication
 
 ## 🎯 Quality Metrics
 
