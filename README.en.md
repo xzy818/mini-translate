@@ -113,25 +113,6 @@ npm run validate
 
 ## 🔧 Development
 
-### Project Structure
-```
-mini-translate/
-├── public/                 # Chrome extension files
-│   ├── manifest.json      # Extension manifest
-│   ├── background.js      # Background service worker
-│   └── content.js         # Content script
-├── src/services/          # Core business logic
-│   ├── dom.js            # DOM helpers
-│   └── vocab-core.js     # Vocabulary management
-├── tests/                 # Test files
-│   ├── dom.test.js       # DOM helpers tests
-│   ├── vocab-core.test.js # Vocabulary tests
-│   └── integration.test.js # Integration tests
-└── docs/                  # Documentation
-    ├── prd.md            # Product requirements
-    └── architecture.md   # Technical architecture
-```
-
 ### CI/CD Pipeline
 
 The project includes comprehensive CI/CD pipelines:
@@ -140,12 +121,19 @@ The project includes comprehensive CI/CD pipelines:
 - PR Check: Automated quality checks and PR comments
 - Release Pipeline: Automated releases on version tags, extension package creation
 
-## 🎯 Quality Metrics
+## 📋 Stories
 
-- Test Coverage: 100% for core services
-- Total Tests: 22 tests across 5 files
-- Code Quality: ESLint compliant
-- Manifest: Chrome Manifest V3 compliant
+### Story S1: Context Menu & Page Translation
+- Right-click menu for adding/removing vocabulary
+- Page translation toggle functionality
+- Background script state management
+
+### Story S2: Vocabulary Storage & Management
+- Chrome storage.local integration
+- 500-item vocabulary limit
+- CRUD operations with deduplication
+
+
 
 ## 📄 License
 
@@ -163,6 +151,6 @@ ISC License
 
 - GitHub Repository: `https://github.com/xzy818/mini-translate`
 - Issues: `https://github.com/xzy818/mini-translate/issues`
-- Chrome Web Store (Coming soon)
+
 
 
