@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:diagnosis": "node scripts/run-translation-diagnosis-tests.js",
     "test:diagnosis:coverage": "node scripts/run-translation-diagnosis-tests.js --coverage",
     "test:diagnosis:pattern": "node scripts/run-translation-diagnosis-tests.js --pattern",
