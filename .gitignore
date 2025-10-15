@@ -37,3 +37,6 @@ scripts/split-agents.cjs
 .npm
 .cache
 .pnpm-store
+
+# Project test reports (keep locally, never commit)
+test-reports/
