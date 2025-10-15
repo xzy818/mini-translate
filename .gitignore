@@ -40,3 +40,5 @@ scripts/split-agents.cjs
 
 # Project test reports (keep locally, never commit)
 test-reports/
+docs/test-reports/
+docs/coverage/
