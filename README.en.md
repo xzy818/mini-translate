@@ -153,4 +153,3 @@ ISC License
 - Issues: `https://github.com/xzy818/mini-translate/issues`
 
 
-
