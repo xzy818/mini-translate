@@ -75,7 +75,11 @@ function createChromeStub() {
     },
     contextMenus: {
       removeAll: vi.fn((cb) => cb?.()),
-      create: vi.fn()
+      create: vi.fn(),
+      onClicked: {
+        addListener: vi.fn(),
+        removeListener: vi.fn()
+      }
     },
     storage: {
       local: {
@@ -169,6 +173,7 @@ async function dispatch(message, sender = {}) {
 }
 
 const originalEnv = { ...process.env };
+const originalChrome = global.chrome;
 
 describe('background QA helper message handling', () => {
   beforeEach(async () => {
@@ -182,6 +187,11 @@ describe('background QA helper message handling', () => {
   afterEach(() => {
     Object.assign(process.env, originalEnv);
     vi.clearAllMocks();
+    if (originalChrome === undefined) {
+      delete global.chrome;
+    } else {
+      global.chrome = originalChrome;
+    }
   });
 
   it('logs context when unknown QA message arrives', async () => {
@@ -208,4 +218,3 @@ describe('background QA helper message handling', () => {
     expect(resp).toEqual({ ok: true, reloaded: true });
   });
 });
-
