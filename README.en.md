@@ -121,19 +121,6 @@ The project includes comprehensive CI/CD pipelines:
 - PR Check: Automated quality checks and PR comments
 - Release Pipeline: Automated releases on version tags, extension package creation
 
-## 📋 Stories
-
-### Story S1: Context Menu & Page Translation
-- Right-click menu for adding/removing vocabulary
-- Page translation toggle functionality
-- Background script state management
-
-### Story S2: Vocabulary Storage & Management
-- Chrome storage.local integration
-- 500-item vocabulary limit
-- CRUD operations with deduplication
-
-
 
 ## 📄 License
 
