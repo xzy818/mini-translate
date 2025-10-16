@@ -1,3 +1,7 @@
+# Archived
+
+> 本文已归档。请查阅最新版本：`./qa-test-button-final-solution-v2.md`
+
 # 测试按钮异常问题 - 最终解决方案
 
 ## 问题现状

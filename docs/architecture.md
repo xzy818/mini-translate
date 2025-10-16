@@ -26,9 +26,9 @@ Chrome 插件由三个核心部分组成：
 ## 2. 运行流程
 ```
 用户右键 → Background 判断场景 →
-  - add & mini-translate: 读取选中文本 → 写入词库 → 发送 content-script 翻译命令
-  - remove from mini-translate: 通知 content-script 回退 → 更新词库
-content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换文本节点
+  - add & mini-translate: 读取选中文本 → 写入词库 → 发送 content script 翻译命令
+  - remove from mini-translate: 通知 content script 回退 → 更新词库
+content script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换文本节点
 翻译脚本命中词条 → 调用翻译服务（若无缓存）→ 更新显示并标记节点
 ```
 
@@ -41,7 +41,7 @@ content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
   - 使用 `Map` 缓存 `tabId -> menuContext`，避免重复读取词库。
   - 在 `chrome.tabs.onRemoved` 时清理缓存。
 - `messageRouter`
-  - 使用 `chrome.runtime.onMessage.addListener` 处理 content-script 的查询（如获取词库）。
+  - 使用 `chrome.runtime.onMessage.addListener` 处理 content script 的查询（如获取词库）。
 
 ### 3.2 Content Script
 - `domWalker`
@@ -80,9 +80,9 @@ content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
 - 导入导出按钮放在词表区域右上角，导入时给出浮层反馈。
 
 ## 5. 状态管理
-- **页面翻译状态**：background 中 `tabStateStore` 是权威数据；content-script 初始化时查询当前状态并执行对应动作。
-- **词库缓存**：content-script 在 `chrome.runtime.onMessage` 中监听 `VOCAB_UPDATED` 事件；Options 页面更新词库时发送事件。
-- **模型设置**：Options 保存后触发 `SETTINGS_UPDATED` 广播，background 与 content-script 可按需响应。
+- **页面翻译状态**：background 中 `tabStateStore` 是权威数据；content script 初始化时查询当前状态并执行对应动作。
+- **词库缓存**：content script 在 `chrome.runtime.onMessage` 中监听 `VOCAB_UPDATED` 事件；Options 页面更新词库时发送事件。
+- **模型设置**：Options 保存后触发 `SETTINGS_UPDATED` 广播，background 与 content script 可按需响应。
 
 ## 6. 错误处理
 - 翻译失败：
@@ -108,7 +108,7 @@ content-script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
   3. 更新 README Release 说明。
 
 ## 9. 开发注意事项
-- 避免在 content-script 中使用 `innerHTML` 直接写入，防止 XSS。
+- 避免在 content script 中使用 `innerHTML` 直接写入，防止 XSS。
 - 使用 ESBuild 或 Vite 打包可选，如无必要先采用原生结构。
 - 使用 TypeScript 可以增强类型安全（可视资源允许，若采用需在 PRD 中补充）。
 - 函数命名使用驼峰，文件夹以 kebab-case。

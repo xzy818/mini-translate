@@ -1,3 +1,7 @@
+# Archived
+
+> 本文已归档。请查阅现行方案：`./extension-loading-test-strategy-v2.md` 与 `./extension-loading-improvements-v3.md`
+
 # 完整的Chrome扩展加载测试策略 V3.0
 
 ## 漏测事故深度分析
