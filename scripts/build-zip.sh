@@ -6,6 +6,7 @@ cd "$ROOT_DIR"
 
 DIST_DIR="dist"
 ZIP_NAME="mini-translate-extension.zip"
+RELEASE_DIR="release"
 
 rm -rf "$DIST_DIR" "$ZIP_NAME"
 
@@ -37,7 +38,9 @@ fi
 
 (
   cd "$DIST_DIR"
-  zip -r "../$ZIP_NAME" . >/dev/null
+  mkdir -p "../$RELEASE_DIR"
+  zip -r "../$RELEASE_DIR/$ZIP_NAME" . >/dev/null
+  cp -f "../$RELEASE_DIR/$ZIP_NAME" "../$RELEASE_DIR/mini-translate-extension-latest.zip"
 )
 
-echo "Created $ZIP_NAME (load the unzipped dist/ directory for development)."
+echo "Created $RELEASE_DIR/$ZIP_NAME and updated $RELEASE_DIR/mini-translate-extension-latest.zip (load the unzipped dist/ directory for development)."

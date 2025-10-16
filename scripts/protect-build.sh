@@ -16,8 +16,8 @@ REQUIRED_FILES=(
     "dist/background.js"
     "dist/content.js"
     "dist/qa-bridge.js"
-    "dist/services/context-menu.js"
-    "dist/services/translator.js"
+    "dist/src/services/context-menu.js"
+    "dist/src/services/translator.js"
 )
 
 for file in "${REQUIRED_FILES[@]}"; do

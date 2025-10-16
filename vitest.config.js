@@ -29,12 +29,15 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
         'dist/',
         'test-reports/',
         'scripts/',
+        'docs/**',
+        // 排除非 *.test.js 的测试辅助脚本，避免拉低覆盖率
+        'tests/**/*.js',
         'tests/setup-*.js',
         'tests/*e2e*.test.js',
         'tests/complete-user-flow-e2e*.test.js',
