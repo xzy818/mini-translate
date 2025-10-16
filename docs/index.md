@@ -50,7 +50,7 @@
 - [E2.S5 质量门禁](./qa/gates/e2.s5-settings-ui.yml)
 - [E2.S6 质量门禁](./qa/gates/e2.s6-import-export.yml)
 - [E3.S8 质量门禁](./qa/gates/e3.s8-release-docs.yml)
-- [E3.S11 质量门禁（若有）](./qa/gates/e3.s11-qa-targeted-tab.yml)
+- [E3.S11 质量门禁](./qa/gates/e3.s11-qa-targeted-tab.yml)
 
 ### 测试计划
 - [Story QA 检查清单](./qa/story-qa-checklist.md)
