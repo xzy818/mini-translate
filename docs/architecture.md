@@ -1,11 +1,13 @@
 # mini-translate 技术架构设计
 
+> 注意：本文件的主要内容已迁移并以 `docs/TECHNICAL_ARCHITECTURE.md` 为“唯一真相（Single Source of Truth）”。如需最新与权威版本，请优先查阅 `docs/TECHNICAL_ARCHITECTURE.md`。本文件保留作为历史兼容入口，并逐步收敛删除。
+
 ## 1. 系统概览
 Chrome 插件由三个核心部分组成：
 1. **Background Service（`background.js`）**：
    - 负责注册 `chrome.contextMenus`、监听右键事件、转发翻译请求。
    - 计算选区对应的菜单标题与动作，并与 content script 同步翻译状态。
-2. **Content Script（`content-script.js`）**：
+2. **Content Script（`content.js`）**：
    - 注入到目标页面，执行 DOM 遍历、翻译替换、原文恢复。
    - 监听来自 background 的消息（开始/停止翻译、添加/移除词条）。
 3. **Options / 管理页（`options.html` + JS）**：

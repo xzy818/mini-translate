@@ -1,3 +1,7 @@
+# Archived
+
+> 本文已归档。请查阅最新版本：`./extension-loading-test-strategy-v2.md`
+
 # Chrome扩展加载测试策略
 
 ## 概述
