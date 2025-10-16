@@ -311,8 +311,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ## 📚 相关文档
 
 - [架构改进设计文档](./architecture/improvements.md)
-- [支持的模型列表](./SUPPORTED_MODELS.md)
-- [AI API 使用指南](AI_API_USAGE.md)
+- [支持的模型列表](../references/supported-models.md)
+- [AI API 使用指南](../guides/ai-api-usage.md)
 - [GitHub Issue #44](https://github.com/xzy818/mini-translate/issues/44)
 
 ## 🏷️ 标签

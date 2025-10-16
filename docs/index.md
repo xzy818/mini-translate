@@ -55,11 +55,13 @@
 - [Story QA 检查清单](./qa/story-qa-checklist.md)
 
 ## 📚 技术文档
-- [AI API 使用指南](./AI_API_USAGE.md)
-- [开发工作流](./DEVELOPMENT_WORKFLOW.md)
-- [支持的模型](./SUPPORTED_MODELS.md)
-- [故障排除指南](./TROUBLESHOOTING.md)
-- [词汇表规范](./vocabulary-spec.md)
+- Guides：
+  - [AI API 使用指南](./guides/ai-api-usage.md)
+  - [开发工作流](./guides/development-workflow.md)
+  - [故障排除指南](./guides/troubleshooting.md)
+- References：
+  - [支持的模型](./references/supported-models.md)
+  - [词汇表规范](./vocabulary-spec.md)
 - 设计与架构：
   - [技术架构（唯一真相）](./architecture/technical-architecture.md)
   - [架构改进计划](./architecture/improvements.md)
@@ -67,8 +69,8 @@
   - [组件库](./design/component-library.md)
 
 ## 📊 分析和报告
-- [QA 测试分析](./QA_TEST_ANALYSIS.md)
-- [实现计划](./IMPLEMENTATION_PLAN.md)
+- [QA 测试分析](./qa/QA_TEST_ANALYSIS.md)
+- [实现计划](./planning/implementation-plan.md)
 
 ---
 *最后更新: 2025-10-16*
