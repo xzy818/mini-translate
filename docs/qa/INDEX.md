@@ -23,6 +23,30 @@
 ## E2（管理界面）
 
 - S4 Vocabulary UI
+  - Test Design: ./assessments/e2.s4-test-design-20251016.md
+  - Trace: ./assessments/e2.s4-trace-20251016.md
+  - Gate: ../qa/gates/e2.s4-vocabulary-ui.yml
+
+- S5 Settings UI
+  - Test Design: ./assessments/e2.s5-test-design-20251016.md
+  - Trace: ./assessments/e2.s5-trace-20251016.md
+  - Gate: ../qa/gates/e2.s5-settings-ui.yml
+
+- S6 Import/Export
+  - Test Design: ./assessments/e2.s6-test-design-20251016.md
+  - Trace: ./assessments/e2.s6-trace-20251016.md
+  - Gate: ../qa/gates/e2.s6-import-export.yml
+
+## E3（发布与综合质量）
+
+- S8 Release Docs
+  - Test Design: ./assessments/e3.s8-test-design-20251016.md
+  - Trace: ./assessments/e3.s8-trace-20251016.md
+  - Gate: ../qa/gates/e3.s8-release-docs.yml
+
+## E2（管理界面）
+
+- S4 Vocabulary UI
   - Gate: ../qa/gates/e2.s4-vocabulary-ui.yml
 - S5 Settings UI
   - Gate: ../qa/gates/e2.s5-settings-ui.yml

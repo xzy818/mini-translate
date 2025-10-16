@@ -34,11 +34,21 @@
 - [E1.S7 测试设计](./qa/assessments/e1.s7-test-design-20250918.md)
 - [E3.S11 测试设计](./qa/assessments/e3.s11-test-design-20250929.md)
  - [E1.S12 测试设计](./qa/assessments/e1.s12-test-design-20251016.md)
+ - [E1.S2 测试设计](./qa/assessments/e1.s2-test-design-20251016.md)
+ - [E2.S4 测试设计](./qa/assessments/e2.s4-test-design-20251016.md)
+ - [E2.S5 测试设计](./qa/assessments/e2.s5-test-design-20251016.md)
+ - [E2.S6 测试设计](./qa/assessments/e2.s6-test-design-20251016.md)
+ - [E3.S8 测试设计](./qa/assessments/e3.s8-test-design-20251016.md)
 
 ### 需求追踪（Traceability）
 - [E1.S1 Trace](./qa/assessments/e1.s1-trace-20250919.md)
 - [E1.S3 Trace](./qa/assessments/e1.s3-trace-20250918.md)
  - [E1.S12 Trace](./qa/assessments/e1.s12-trace-20251016.md)
+ - [E1.S2 Trace](./qa/assessments/e1.s2-trace-20251016.md)
+ - [E2.S4 Trace](./qa/assessments/e2.s4-trace-20251016.md)
+ - [E2.S5 Trace](./qa/assessments/e2.s5-trace-20251016.md)
+ - [E2.S6 Trace](./qa/assessments/e2.s6-trace-20251016.md)
+ - [E3.S8 Trace](./qa/assessments/e3.s8-trace-20251016.md)
 
 ### 质量门禁
 - [E1.S1 质量门禁](./qa/gates/e1.s1-context-menu.yml)
