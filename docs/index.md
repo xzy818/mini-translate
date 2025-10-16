@@ -25,8 +25,6 @@
 - [Story S11: 综合质量方案](./stories/story-s11-qa-targeted-tab.md)
 - [Story S9: 弹窗配置](./stories/story-s9-popup-config.md)
 
-## 🐛 Issues
-
 ## 🧪 QA 和质量保证
 ### 总览
 - [QA 总览与评估矩阵](./qa/INDEX.md)
