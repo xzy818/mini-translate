@@ -1,6 +1,6 @@
-# mini-translate 技术架构设计
+# 技术架构设计（最新）
 
-> 注意：本文件的主要内容已迁移并以 `docs/TECHNICAL_ARCHITECTURE.md` 为“唯一真相（Single Source of Truth）”。如需最新与权威版本，请优先查阅 `docs/TECHNICAL_ARCHITECTURE.md`。本文件保留作为历史兼容入口，并逐步收敛删除。
+> 本文为架构“唯一真相（Single Source of Truth）”。本仓库仅保留此一份架构文档。
 
 ## 1. 系统概览
 Chrome 插件由三个核心部分组成：
