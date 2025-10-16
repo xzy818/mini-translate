@@ -29,7 +29,7 @@
   - [ ] 空文件导入 → 提示“空文件或格式无效”。
   - [ ] 非 JSON/TXT 文件 → 阻止导入、提示格式错误。
   - [ ] 超过 500 条 → 提示超限并拒绝。
-- [ ] **导出校验**：JSON/TXT 导出后，使用文件系统断言文件存在且内容符合 `docs/vocabulary-spec.md` 定义；校验导出的 JSON `version`、`items` 结构正确。
+- [ ] **导出校验**：JSON/TXT 导出后，使用文件系统断言文件存在且内容符合 `docs/references/vocabulary-spec.md` 定义；校验导出的 JSON `version`、`items` 结构正确。
 - [ ] **导入后统计**：导入完成后重新读取 Options 表格 → 校验计数器（`${count} / 500`）、分页、空状态更新；同时通过 Popup 查看统计同步。
 
 ## 3. Popup 与右键菜单（Stories S1 & S9）

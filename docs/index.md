@@ -72,7 +72,7 @@
   - [故障排除指南](./guides/troubleshooting.md)
 - References：
   - [支持的模型](./references/supported-models.md)
-  - [词汇表规范](./vocabulary-spec.md)
+  - [词汇表规范](./references/vocabulary-spec.md)
 - 设计与架构：
   - [技术架构](./architecture.md)
   - [设计系统](./design/design-system.md)

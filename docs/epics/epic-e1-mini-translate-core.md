@@ -10,7 +10,7 @@
 
 ## 依赖
 - 架构文档：`docs/architecture.md`
-- 词库规范：`docs/vocabulary-spec.md`
+- 词库规范：`docs/references/vocabulary-spec.md`
 
 ## 完成定义
 - 所有故事验收标准满足并通过 QA 检查。

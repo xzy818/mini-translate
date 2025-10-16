@@ -8,7 +8,7 @@
 - 批量导入词条，提高效率。
 
 ## 需求要点
-1. 支持 TXT/JSON 两种格式导入，遵循 `docs/vocabulary-spec.md`。
+1. 支持 TXT/JSON 两种格式导入，遵循 `docs/references/vocabulary-spec.md`。
 2. 导入流程校验格式、去重与 500 条上限，提供进度反馈。
 3. 导出 TXT：每行一个 `term`（按 `createdAt` 排序）。
 4. 导出 JSON：输出 `{ version, exportedAt, items }`。

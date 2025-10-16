@@ -10,7 +10,7 @@
 ## 需求要点
 1. 更新 README：模型支持、API 准备、词库上限、导入格式、安装说明、Release 包说明。
 2. 编写/更新打包脚本，生成 `mini-translate-extension.zip`（可直接在本地加载）。
-3. Release Checklist 执行（详见 `docs/vocabulary-spec.md`）。
+3. Release Checklist 执行（详见 `docs/references/vocabulary-spec.md`）。
 4. 发布 GitHub Release 时附上 ZIP 包与变更说明。
 5. 如需版本号，遵循 SemVer 管理。
 

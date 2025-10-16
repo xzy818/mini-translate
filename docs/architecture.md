@@ -60,7 +60,7 @@ content script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
   - `appendTerm(term)`: 去重（大小写敏感策略）并返回状态码。
   - `removeTerm(term)`: 删除指定原文。
   - `getSettings()` / `setSettings()`：读写 API 配置。
-- 数据结构详见 PO 文档（`docs/vocabulary-spec.md`）。
+- 数据结构详见 PO 文档（`docs/references/vocabulary-spec.md`）。
 
 ### 3.4 翻译服务
 - `translator.js`

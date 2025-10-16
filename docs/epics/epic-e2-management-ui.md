@@ -10,7 +10,7 @@
 
 ## 依赖
 - PRD：`docs/prd.md`
-- 词库规范：`docs/vocabulary-spec.md`
+- 词库规范：`docs/references/vocabulary-spec.md`
 
 ## 交互与配置要求（S5）
 

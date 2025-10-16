@@ -8,7 +8,7 @@
 - 防止数据过多导致性能下降或存储失控。
 
 ## 需求要点
-1. 词条 schema 参照 `docs/vocabulary-spec.md`。
+1. 词条 schema 参照 `docs/references/vocabulary-spec.md`。
 2. 存储使用 `chrome.storage.local`，提供 CRUD 接口。
 3. 添加词条时检测重复（原文 term 为键），去重策略明确。
 4. 总条目达到 500 时阻止继续添加／导入，并返回错误信息。
