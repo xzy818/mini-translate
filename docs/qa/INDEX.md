@@ -2,6 +2,9 @@
 
 > 说明：本页汇总各 Story 的四类评估产物（test-design / trace / risk / nfr），并标注生效版本（按日期最新）。如存在历史版本，请在对应文件顶部查看 Archived 提示。
 
+Priority 口径：P0（阻断/核心用户旅程/安全/数据风险）、P1（高频核心场景）、P2 其余。
+Coverage 口径：FULL（关键条件全覆盖）、PARTIAL（缺负向或边界）、NONE（未覆盖）。
+
 ## E1（Mini Translate 核心能力）
 
 - S1 Context Menu
@@ -43,6 +46,11 @@
   - Test Design: ./assessments/e3.s8-test-design-20251016.md
   - Trace: ./assessments/e3.s8-trace-20251016.md
   - Gate: ../qa/gates/e3.s8-release-docs.yml
+
+- S11 综合质量方案
+  - Test Design: ./assessments/e3.s11-test-design-20250929.md
+  - Trace: ./assessments/e3.s11-trace-20251016.md
+  - Gate: ../qa/gates/e3.s11-qa-targeted-tab.yml
 
 ## E2（管理界面）
 
