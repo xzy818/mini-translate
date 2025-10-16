@@ -16,6 +16,10 @@
   - Risk: ./assessments/e1.s3-risk-20250918.md
   - NFR: ./assessments/e1.s3-nfr-20250918.md
 
+- S12 Right-click State Switch
+  - Test Design: ./assessments/e1.s12-test-design-20251016.md
+  - Trace: ./assessments/e1.s12-trace-20251016.md
+
 ## E2（管理界面）
 
 - S4 Vocabulary UI

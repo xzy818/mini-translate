@@ -39,6 +39,7 @@
 ### 需求追踪（Traceability）
 - [E1.S1 Trace](./qa/assessments/e1.s1-trace-20250919.md)
 - [E1.S3 Trace](./qa/assessments/e1.s3-trace-20250918.md)
+ - [E1.S12 Trace](./qa/assessments/e1.s12-trace-20251016.md)
 
 ### 质量门禁
 - [E1.S1 质量门禁](./qa/gates/e1.s1-context-menu.yml)
