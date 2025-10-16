@@ -35,6 +35,7 @@
 - [E1.S3 测试设计](./qa/assessments/e1.s3-test-design-20250918.md)
 - [E1.S7 测试设计](./qa/assessments/e1.s7-test-design-20250918.md)
 - [E3.S11 测试设计](./qa/assessments/e3.s11-test-design-20250929.md)
+ - [E1.S12 测试设计](./qa/assessments/e1.s12-test-design-20251016.md)
 
 ### 需求追踪（Traceability）
 - [E1.S1 Trace](./qa/assessments/e1.s1-trace-20250919.md)
