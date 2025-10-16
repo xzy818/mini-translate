@@ -52,6 +52,11 @@ Coverage 口径：FULL（关键条件全覆盖）、PARTIAL（缺负向或边界
   - Trace: ./assessments/e3.s11-trace-20251016.md
   - Gate: ../qa/gates/e3.s11-qa-targeted-tab.yml
 
+- S9 弹窗配置
+  - Test Design: ./assessments/e3.s9-test-design-20251016.md
+  - Trace: ./assessments/e3.s9-trace-20251016.md
+  - Gate: ../qa/gates/e3.s9-popup-config.yml
+
 ## E2（管理界面）
 
 - S4 Vocabulary UI

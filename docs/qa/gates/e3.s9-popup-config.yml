@@ -1,0 +1,9 @@
+schema: 1
+story: 'E3.S9'
+story_title: '弹窗配置'
+gate: PASS
+status_reason: '具备最小可用的弹窗配置与导入导出入口，测试通过。'
+reviewer: 'Quinn (Test Architect)'
+updated: '2025-10-16T00:00:00Z'
+top_issues: []
+waiver: { active: false }
