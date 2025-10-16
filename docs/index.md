@@ -2,8 +2,8 @@
 
 ## 📋 项目概述
 - [产品需求文档 (PRD)](./prd.md) - 产品功能需求和用户场景
-- [技术架构文档](./TECHNICAL_ARCHITECTURE.md) - 系统架构和技术选型
-- [架构改进计划](./ARCHITECTURE_IMPROVEMENTS.md) - 架构优化和重构计划
+- [技术架构文档](./architecture/technical-architecture.md) - 系统架构和技术选型
+- [架构改进计划](./architecture/improvements.md) - 架构优化和重构计划
 
 ## 🎯 Epic 和 Story
 ### Epic E1: Mini Translate 核心能力
@@ -61,10 +61,10 @@
 - [故障排除指南](./TROUBLESHOOTING.md)
 - [词汇表规范](./vocabulary-spec.md)
 - 设计与架构：
-  - [技术架构（唯一真相）](./TECHNICAL_ARCHITECTURE.md)
-  - [架构改进计划](./ARCHITECTURE_IMPROVEMENTS.md)
-  - [设计系统](./DESIGN_SYSTEM.md)
-  - [组件库](./COMPONENT_LIBRARY.md)
+  - [技术架构（唯一真相）](./architecture/technical-architecture.md)
+  - [架构改进计划](./architecture/improvements.md)
+  - [设计系统](./design/design-system.md)
+  - [组件库](./design/component-library.md)
 
 ## 📊 分析和报告
 - [QA 测试分析](./QA_TEST_ANALYSIS.md)
