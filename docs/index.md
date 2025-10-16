@@ -2,7 +2,7 @@
 
 ## 📋 项目概述
 - [产品需求文档 (PRD)](./prd.md) - 产品功能需求和用户场景
-- [技术架构文档](./architecture.md) - 系统架构与技术选型（唯一）
+- [技术架构文档](./architecture.md) - 系统架构与技术选型
 
 ## 🎯 Epic 和 Story
 ### Epic E1: Mini Translate 核心能力
