@@ -2,8 +2,7 @@
 
 ## 📋 项目概述
 - [产品需求文档 (PRD)](./prd.md) - 产品功能需求和用户场景
-- [技术架构文档](./architecture/technical-architecture.md) - 系统架构和技术选型
-- [架构改进计划](./architecture/improvements.md) - 架构优化和重构计划
+- [技术架构文档](./architecture.md) - 系统架构与技术选型（唯一）
 
 ## 🎯 Epic 和 Story
 ### Epic E1: Mini Translate 核心能力
@@ -12,6 +11,7 @@
 - [Story S2: 词库存储与限制](./stories/story-s2-vocabulary-storage.md)
 - [Story S3: 翻译服务抽象](./stories/story-s3-translation-service.md)
 - [Story S7: 图标设计](./stories/story-s7-icon.md)
+- [Story S12: 右键状态切换](./stories/story-s12-right-click-state-switch.md)
 
 ### Epic E2: 管理界面
 - [Epic E2](./epics/epic-e2-management-ui.md)
@@ -49,7 +49,7 @@
 - [E2.S5 质量门禁](./qa/gates/e2.s5-settings-ui.yml)
 - [E2.S6 质量门禁](./qa/gates/e2.s6-import-export.yml)
 - [E3.S8 质量门禁](./qa/gates/e3.s8-release-docs.yml)
- - [E3.S11 质量门禁（若有）](./qa/gates/e3.s11-qa-targeted-tab.yml)
+- [E3.S11 质量门禁（若有）](./qa/gates/e3.s11-qa-targeted-tab.yml)
 
 ### 测试计划
 - [Story QA 检查清单](./qa/story-qa-checklist.md)
@@ -63,13 +63,11 @@
   - [支持的模型](./references/supported-models.md)
   - [词汇表规范](./vocabulary-spec.md)
 - 设计与架构：
-  - [技术架构（唯一真相）](./architecture/technical-architecture.md)
-  - [架构改进计划](./architecture/improvements.md)
+  - [技术架构](./architecture.md)
   - [设计系统](./design/design-system.md)
   - [组件库](./design/component-library.md)
 
 ## 📊 分析和报告
-- [QA 测试分析](./qa/QA_TEST_ANALYSIS.md)
 - [实现计划](./planning/implementation-plan.md)
 
 ---
