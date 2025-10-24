@@ -57,6 +57,29 @@ Coverage 口径：FULL（关键条件全覆盖）、PARTIAL（缺负向或边界
   - Trace: ./assessments/e3.s9-trace-20251016.md
   - Gate: ../qa/gates/e3.s9-popup-config.yml
 
+## E4（Google账号同步）
+
+- S10 Google认证
+  - Test Design: ./assessments/e4.s10-test-design-20250112.md
+  - Trace: ./assessments/e4.s10-trace-20250112.md
+  - Risk: ./assessments/e4.s10-risk-20250112.md
+  - NFR: ./assessments/e4.s10-nfr-20250112.md
+
+- S11 云端同步
+  - Test Design: ./assessments/e4.s11-test-design-20250112.md
+  - Trace: ./assessments/e4.s11-trace-20250112.md
+  - Risk: ./assessments/e4.s11-risk-20250112.md
+  - NFR: ./assessments/e4.s11-nfr-20250112.md
+
+- S12 冲突解决
+  - Test Design: ./assessments/e4.s12-test-design-20250112.md
+  - Trace: ./assessments/e4.s12-trace-20250112.md
+  - Risk: ./assessments/e4.s12-risk-20250112.md
+  - NFR: ./assessments/e4.s12-nfr-20250112.md
+
+- Google同步测试设计
+  - 综合测试设计: ./google-sync-test-design.md
+
 ## E2（管理界面）
 
 - S4 Vocabulary UI

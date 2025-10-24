@@ -5,6 +5,9 @@ import {
   importFromTxt,
   importFromJson
 } from '../src/services/vocab-io.js';
+import { googleAuthService } from '../src/services/google-auth.js';
+import { cloudSyncService } from '../src/services/cloud-sync.js';
+import { conflictResolverService } from '../src/services/conflict-resolver.js';
 
 const PAGE_SELECTORS = {
   counter: 'vocab-counter',
@@ -651,6 +654,171 @@ export function initVocabulary(chromeLike) {
   return { storage, manager };
 }
 
+export function initCloudSync(notify) {
+  const loginBtn = query('google-login');
+  const logoutBtn = query('google-logout');
+  const syncNowBtn = query('sync-now');
+  const syncSettingsBtn = query('sync-settings');
+  const authStatus = query('auth-status');
+  const syncStatusBadge = query('sync-status-badge');
+  const syncInfo = query('sync-info');
+  const lastSyncTime = query('last-sync-time');
+  const syncStatusText = query('sync-status-text');
+
+  // 更新UI状态
+  function updateAuthStatus(isAuthenticated) {
+    if (authStatus) {
+      const statusDot = authStatus.querySelector('.status-dot');
+      if (isAuthenticated) {
+        authStatus.textContent = '已登录';
+        if (statusDot) statusDot.className = 'status-dot success';
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'inline-block';
+        if (syncNowBtn) syncNowBtn.style.display = 'inline-block';
+        if (syncSettingsBtn) syncSettingsBtn.style.display = 'inline-block';
+        if (syncInfo) syncInfo.style.display = 'block';
+      } else {
+        authStatus.textContent = '未登录';
+        if (statusDot) statusDot.className = 'status-dot';
+        if (loginBtn) loginBtn.style.display = 'inline-block';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        if (syncNowBtn) syncNowBtn.style.display = 'none';
+        if (syncSettingsBtn) syncSettingsBtn.style.display = 'none';
+        if (syncInfo) syncInfo.style.display = 'none';
+      }
+    }
+  }
+
+  function updateSyncStatus(status, lastSync = null) {
+    if (syncStatusBadge) {
+      const statusDot = syncStatusBadge.querySelector('.status-dot');
+      switch (status) {
+        case 'synced':
+          syncStatusBadge.textContent = '已同步';
+          if (statusDot) statusDot.className = 'status-dot success';
+          break;
+        case 'syncing':
+          syncStatusBadge.textContent = '同步中';
+          if (statusDot) statusDot.className = 'status-dot warning';
+          break;
+        case 'error':
+          syncStatusBadge.textContent = '同步失败';
+          if (statusDot) statusDot.className = 'status-dot error';
+          break;
+        default:
+          syncStatusBadge.textContent = '未同步';
+          if (statusDot) statusDot.className = 'status-dot';
+      }
+    }
+
+    if (syncStatusText) {
+      syncStatusText.textContent = status === 'synced' ? '正常' : 
+                                  status === 'syncing' ? '同步中' :
+                                  status === 'error' ? '失败' : '未知';
+    }
+
+    if (lastSyncTime && lastSync) {
+      lastSyncTime.textContent = new Date(lastSync).toLocaleString('zh-CN');
+    }
+  }
+
+  // 检查认证状态
+  async function checkAuthStatus() {
+    try {
+      const isAuthenticated = await googleAuthService.getAuthStatus();
+      updateAuthStatus(isAuthenticated);
+      return isAuthenticated;
+    } catch (error) {
+      console.error('检查认证状态失败:', error);
+      updateAuthStatus(false);
+      return false;
+    }
+  }
+
+  // Google登录
+  if (loginBtn) {
+    loginBtn.addEventListener('click', async () => {
+      try {
+        loginBtn.disabled = true;
+        loginBtn.textContent = '登录中...';
+        
+        const token = await googleAuthService.authenticate();
+        if (token) {
+          updateAuthStatus(true);
+          notify('success', 'Google账号登录成功！');
+        }
+      } catch (error) {
+        console.error('Google登录失败:', error);
+        notify('error', `登录失败: ${error.message}`);
+        updateAuthStatus(false);
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登录Google账号';
+      }
+    });
+  }
+
+  // Google登出
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        logoutBtn.disabled = true;
+        logoutBtn.textContent = '登出中...';
+        
+        await googleAuthService.logout();
+        updateAuthStatus(false);
+        updateSyncStatus('not-synced');
+        notify('success', '已退出Google账号');
+      } catch (error) {
+        console.error('Google登出失败:', error);
+        notify('error', `登出失败: ${error.message}`);
+      } finally {
+        logoutBtn.disabled = false;
+        logoutBtn.textContent = '退出登录';
+      }
+    });
+  }
+
+  // 立即同步
+  if (syncNowBtn) {
+    syncNowBtn.addEventListener('click', async () => {
+      try {
+        syncNowBtn.disabled = true;
+        syncNowBtn.textContent = '同步中...';
+        updateSyncStatus('syncing');
+        
+        await cloudSyncService.syncData();
+        updateSyncStatus('synced', Date.now());
+        notify('success', '数据同步完成！');
+      } catch (error) {
+        console.error('同步失败:', error);
+        updateSyncStatus('error');
+        notify('error', `同步失败: ${error.message}`);
+      } finally {
+        syncNowBtn.disabled = false;
+        syncNowBtn.textContent = '立即同步';
+      }
+    });
+  }
+
+  // 同步设置
+  if (syncSettingsBtn) {
+    syncSettingsBtn.addEventListener('click', () => {
+      notify('info', '同步设置功能开发中...');
+      // TODO: 实现同步设置对话框
+    });
+  }
+
+  // 监听认证状态变化
+  googleAuthService.onSignInChanged((account) => {
+    console.log('认证状态变化:', account);
+    checkAuthStatus();
+  });
+
+  // 初始化时检查状态
+  checkAuthStatus();
+}
+
 export const __controllers = {
   createSettingsController,
   createImportExportController,
@@ -658,5 +826,6 @@ export const __controllers = {
   initImportExport,
   initVocabulary,
   initQaPanel,
+  initCloudSync,
   createToastNotifier
 };

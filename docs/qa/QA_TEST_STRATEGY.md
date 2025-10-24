@@ -31,6 +31,7 @@
 **覆盖的消息类型**:
 - ✅ 已实现: `SETTINGS_UPDATED`, `TEST_TRANSLATOR_SETTINGS`, `TRANSLATE_TERM`, `RETRY_TRANSLATION`, `SAVE_SETTINGS`, `REFRESH_CONTEXT_MENU`, `QA_CONTEXT_ADD`, `QA_CONTEXT_REMOVE`, `QA_GET_STORAGE_STATE`
 - ❌ 缺失: `AI_API_CALL`, `GET_AI_PROVIDERS`, `GET_PROVIDER_MODELS`
+- 🆕 新增: `GOOGLE_AUTH_LOGIN`, `GOOGLE_AUTH_LOGOUT`, `GOOGLE_AUTH_STATUS`, `SYNC_DATA`, `SYNC_CONFLICT_RESOLVE`, `SYNC_STATUS_UPDATE`
 
 **测试方法**:
 ```javascript
@@ -57,6 +58,12 @@ it('should have handlers for all required message types', () => {
 3. **新旧配置页面兼容性**:
    - 旧页面 (options.html) vs 新页面 (ai-config.html)
    - 消息类型差异验证
+
+4. **Google同步功能测试**:
+   - Google账号登录/登出流程
+   - 数据同步触发和状态更新
+   - 冲突检测和解决机制
+   - 离线/在线状态切换
 
 #### 2.3 消息处理覆盖率测试
 
@@ -148,12 +155,65 @@ describe('Complete Configuration Flow', () => {
 describe('Message Handler Coverage Report', () => {
   it('should generate comprehensive coverage report', () => {
     const report = {
-      totalMessageTypes: 13,
-      implementedCount: 10,
+      totalMessageTypes: 19, // 更新为包含Google同步消息
+      implementedCount: 16,
       missingCount: 3,
-      coverage: 76.92
+      coverage: 84.21
     };
-    expect(report.coverage).toBeCloseTo(76.92, 1);
+    expect(report.coverage).toBeCloseTo(84.21, 1);
+  });
+});
+```
+
+### 5. Google同步功能测试 (google-sync.test.js)
+
+**测试内容**:
+- Google账号认证流程
+- 数据同步机制
+- 冲突解决策略
+- 存储配额管理
+
+**关键测试点**:
+```javascript
+describe('Google Authentication', () => {
+  it('should handle Google login flow', async () => {
+    const authResult = await googleAuth.authenticate();
+    expect(authResult.success).toBe(true);
+    expect(authResult.userInfo).toHaveProperty('email');
+  });
+
+  it('should handle authentication errors', async () => {
+    mockChrome.identity.getAuthToken.mockRejectedValue(new Error('Auth failed'));
+    const result = await googleAuth.authenticate();
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('Auth failed');
+  });
+});
+
+describe('Data Synchronization', () => {
+  it('should sync vocabulary data across devices', async () => {
+    const localData = { vocabulary: [...], lastModified: Date.now() };
+    const syncResult = await cloudSync.syncData(localData);
+    expect(syncResult.success).toBe(true);
+    expect(syncResult.syncedItems).toBeGreaterThan(0);
+  });
+
+  it('should detect and resolve conflicts', async () => {
+    const conflictData = {
+      local: { word: 'test', translation: '测试', version: 1 },
+      remote: { word: 'test', translation: '试验', version: 2 }
+    };
+    const resolution = await conflictResolver.resolveConflicts(conflictData);
+    expect(resolution.strategy).toBe('timestamp_priority');
+    expect(resolution.resolvedData).toBeDefined();
+  });
+});
+
+describe('Storage Quota Management', () => {
+  it('should compress data when approaching quota limit', async () => {
+    const largeData = generateLargeVocabularyData(); // 生成接近100KB的数据
+    const compressedData = await cloudSync.compressData(largeData);
+    expect(compressedData.size).toBeLessThan(100 * 1024); // 100KB
   });
 });
 ```
@@ -171,6 +231,7 @@ npx vitest run tests/ai-config.test.js
 npx vitest run tests/background-message-routing.test.js
 npx vitest run tests/e2e-config-flow.test.js
 npx vitest run tests/message-coverage.test.js
+npx vitest run tests/google-sync.test.js
 
 # 运行综合测试套件
 node tests/run-comprehensive-tests.js
@@ -232,6 +293,9 @@ jobs:
 - [ ] 修复缺失的消息处理器 (AI_API_CALL, GET_AI_PROVIDERS, GET_PROVIDER_MODELS)
 - [ ] 建立消息路由完整性检查机制
 - [ ] 添加消息处理性能测试
+- [ ] 实现Google同步功能测试 (google-sync.test.js)
+- [ ] 添加Chrome Identity API模拟测试
+- [ ] 建立chrome.storage.sync测试环境
 
 ### 2. 中期改进 (1-2月)
 

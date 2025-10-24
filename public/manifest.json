@@ -10,13 +10,18 @@
     "scripting",
     "activeTab",
     "notifications",
-    "tabs"
+    "tabs",
+    "identity"
   ],
   "host_permissions": [
     "https://api.openai.com/*",
     "https://dashscope.aliyuncs.com/*",
     "https://api.deepseek.com/*"
   ],
+  "oauth2": {
+    "client_id": "YOUR_CLIENT_ID",
+    "scopes": ["openid", "email", "profile"]
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
