@@ -12,12 +12,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
 
-console.log('🔧 完整修复background.js Service Worker兼容性...\n');
+console.warn('🔧 完整修复background.js Service Worker兼容性...\n');
 
 const backgroundPath = join(projectRoot, 'dist', 'background.js');
 let backgroundCode = readFileSync(backgroundPath, 'utf8');
 
-console.log('📖 读取background.js文件...');
+console.warn('📖 读取background.js文件...');
 
 // 移除所有import语句（包括多行）
 backgroundCode = backgroundCode.replace(/import\s+{[^}]+}\s+from\s+['"][^'"]+['"];?\n?/g, '');
@@ -36,20 +36,20 @@ if (!backgroundCode.startsWith('importScripts')) {
   backgroundCode = importScripts + '\n\n' + backgroundCode;
 }
 
-console.log('📝 生成修复后的代码...');
+console.warn('📝 生成修复后的代码...');
 
 // 备份原文件
 const backupPath = backgroundPath + '.backup2';
 writeFileSync(backupPath, readFileSync(backgroundPath, 'utf8'));
-console.log(`💾 备份原文件到: ${backupPath}`);
+console.warn(`💾 备份原文件到: ${backupPath}`);
 
 // 写入修复后的文件
 writeFileSync(backgroundPath, backgroundCode);
-console.log('✅ 修复完成！');
+console.warn('✅ 修复完成！');
 
-console.log('\n📊 修复摘要:');
-console.log('- 移除了所有ES6 import语句');
-console.log('- 添加了importScripts语句');
-console.log(`- 文件大小: ${backgroundCode.length} 字符`);
+console.warn('\n📊 修复摘要:');
+console.warn('- 移除了所有ES6 import语句');
+console.warn('- 添加了importScripts语句');
+console.warn(`- 文件大小: ${backgroundCode.length} 字符`);
 
-console.log('\n🎉 Service Worker兼容性修复完成！');
+console.warn('\n🎉 Service Worker兼容性修复完成！');

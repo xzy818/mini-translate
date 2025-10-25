@@ -244,7 +244,7 @@ describe('真实Chrome扩展集成测试', () => {
       
       try {
         backgroundContent = readFileSync(backgroundPath, 'utf8');
-      } catch (error) {
+      } catch (_) {
         console.warn('无法读取dist/background.js，使用模拟数据');
         backgroundContent = 'importScripts("./src/services/context-menu.js");';
       }
@@ -266,7 +266,7 @@ describe('真实Chrome扩展集成测试', () => {
       
       try {
         backgroundContent = readFileSync(backgroundPath, 'utf8');
-      } catch (error) {
+      } catch (_) {
         console.warn('无法读取dist/background.js，使用模拟数据');
         backgroundContent = 'importScripts("./src/services/context-menu.js");\nimportScripts("./src/services/translator.js");';
       }

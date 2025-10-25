@@ -12,7 +12,7 @@ try {
   const manifestPath = join(projectRoot, 'public', 'manifest.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   
-  console.log('🔍 Validating Chrome Extension Manifest...');
+  console.warn('🔍 Validating Chrome Extension Manifest...');
   
   // 必需字段检查
   const requiredFields = ['manifest_version', 'name', 'version', 'permissions'];
@@ -45,10 +45,10 @@ try {
     throw new Error('Background service worker must be defined');
   }
   
-  console.log('✅ Manifest validation passed');
-  console.log(`📦 Extension: ${manifest.name} v${manifest.version}`);
-  console.log(`🔧 Manifest Version: ${manifest.manifest_version}`);
-  console.log(`🔑 Permissions: ${manifest.permissions.join(', ')}`);
+  console.warn('✅ Manifest validation passed');
+  console.warn(`📦 Extension: ${manifest.name} v${manifest.version}`);
+  console.warn(`🔧 Manifest Version: ${manifest.manifest_version}`);
+  console.warn(`🔑 Permissions: ${manifest.permissions.join(', ')}`);
   
 } catch (error) {
   console.error('❌ Manifest validation failed:', error.message);

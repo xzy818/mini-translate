@@ -9,7 +9,8 @@ import { execSync } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
-console.log('🧪 开始运行综合测试套件...\n');
+// eslint-disable-next-line no-console
+    console.log('🧪 开始运行综合测试套件...\n');
 
 // 测试配置
 const testConfig = {
@@ -30,18 +31,23 @@ const testConfig = {
 
 // 运行测试函数
 function runTests() {
-  console.log('📋 测试计划:');
+  // eslint-disable-next-line no-console
+    console.log('📋 测试计划:');
   testConfig.testFiles.forEach((file, index) => {
+    // eslint-disable-next-line no-console
     console.log(`  ${index + 1}. ${file}`);
   });
-  console.log('');
+  // eslint-disable-next-line no-console
+    console.log('');
 
   try {
     // 运行所有测试
+    // eslint-disable-next-line no-console
     console.log('🚀 运行测试套件...');
     const testCommand = `npx vitest run ${testConfig.testFiles.join(' ')} --reporter=verbose`;
     execSync(testCommand, { stdio: 'inherit' });
     
+    // eslint-disable-next-line no-console
     console.log('\n✅ 所有测试通过！');
     return true;
   } catch (error) {
@@ -52,7 +58,8 @@ function runTests() {
 
 // 生成测试报告
 function generateTestReport() {
-  console.log('\n📊 生成测试报告...');
+  // eslint-disable-next-line no-console
+    console.log('\n📊 生成测试报告...');
   
   const report = {
     timestamp: new Date().toISOString(),
@@ -86,18 +93,26 @@ function generateTestReport() {
     }
   };
 
-  console.log('\n📈 测试覆盖率报告:');
-  console.log(`  消息处理器覆盖率: ${report.coverage.messageHandlers.coverage}%`);
-  console.log(`  已实现处理器: ${report.coverage.messageHandlers.implemented}/${report.coverage.messageHandlers.total}`);
-  console.log(`  缺失处理器: ${report.coverage.messageHandlers.missing.length}`);
+  // eslint-disable-next-line no-console
+    console.log('\n📈 测试覆盖率报告:');
+  // eslint-disable-next-line no-console
+    console.log(`  消息处理器覆盖率: ${report.coverage.messageHandlers.coverage}%`);
+  // eslint-disable-next-line no-console
+    console.log(`  已实现处理器: ${report.coverage.messageHandlers.implemented}/${report.coverage.messageHandlers.total}`);
+  // eslint-disable-next-line no-console
+    console.log(`  缺失处理器: ${report.coverage.messageHandlers.missing.length}`);
   
-  console.log('\n🚨 关键问题:');
+  // eslint-disable-next-line no-console
+    console.log('\n🚨 关键问题:');
   report.coverage.criticalIssues.forEach((issue, index) => {
+    // eslint-disable-next-line no-console
     console.log(`  ${index + 1}. ${issue}`);
   });
   
-  console.log('\n💡 改进建议:');
+  // eslint-disable-next-line no-console
+    console.log('\n💡 改进建议:');
   report.coverage.recommendations.forEach((rec, index) => {
+    // eslint-disable-next-line no-console
     console.log(`  ${index + 1}. ${rec}`);
   });
 
@@ -106,7 +121,8 @@ function generateTestReport() {
 
 // 验证测试文件存在性
 function validateTestFiles() {
-  console.log('🔍 验证测试文件...');
+  // eslint-disable-next-line no-console
+    console.log('🔍 验证测试文件...');
   
   const missingFiles = testConfig.testFiles.filter(file => !existsSync(file));
   
@@ -116,14 +132,17 @@ function validateTestFiles() {
     return false;
   }
   
-  console.log('✅ 所有测试文件存在');
+  // eslint-disable-next-line no-console
+    console.log('✅ 所有测试文件存在');
   return true;
 }
 
 // 主函数
 function main() {
-  console.log('🎯 Mini Translate 综合测试套件');
-  console.log('================================\n');
+  // eslint-disable-next-line no-console
+    console.log('🎯 Mini Translate 综合测试套件');
+  // eslint-disable-next-line no-console
+    console.log('================================\n');
   
   // 验证测试文件
   if (!validateTestFiles()) {
@@ -134,6 +153,7 @@ function main() {
   const testPassed = runTests();
   
   if (!testPassed) {
+    // eslint-disable-next-line no-console
     console.log('\n❌ 测试套件执行失败');
     process.exit(1);
   }
@@ -141,17 +161,27 @@ function main() {
   // 生成报告
   const report = generateTestReport();
   
-  console.log('\n🎉 综合测试套件执行完成！');
-  console.log('📋 测试总结:');
-  console.log(`  - 测试套件数量: ${report.testSuites}`);
-  console.log(`  - 消息处理器覆盖率: ${report.coverage.messageHandlers.coverage}%`);
-  console.log(`  - 关键问题数量: ${report.coverage.criticalIssues.length}`);
-  console.log(`  - 改进建议数量: ${report.coverage.recommendations.length}`);
+  // eslint-disable-next-line no-console
+    console.log('\n🎉 综合测试套件执行完成！');
+  // eslint-disable-next-line no-console
+    console.log('📋 测试总结:');
+  // eslint-disable-next-line no-console
+    console.log(`  - 测试套件数量: ${report.testSuites}`);
+  // eslint-disable-next-line no-console
+    console.log(`  - 消息处理器覆盖率: ${report.coverage.messageHandlers.coverage}%`);
+  // eslint-disable-next-line no-console
+    console.log(`  - 关键问题数量: ${report.coverage.criticalIssues.length}`);
+  // eslint-disable-next-line no-console
+    console.log(`  - 改进建议数量: ${report.coverage.recommendations.length}`);
   
-  console.log('\n📝 下一步行动:');
-  console.log('  1. 修复缺失的消息处理器');
-  console.log('  2. 实施改进建议');
-  console.log('  3. 建立持续监控机制');
+  // eslint-disable-next-line no-console
+    console.log('\n📝 下一步行动:');
+  // eslint-disable-next-line no-console
+    console.log('  1. 修复缺失的消息处理器');
+  // eslint-disable-next-line no-console
+    console.log('  2. 实施改进建议');
+  // eslint-disable-next-line no-console
+    console.log('  3. 建立持续监控机制');
 }
 
 // 执行主函数

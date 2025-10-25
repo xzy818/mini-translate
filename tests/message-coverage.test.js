@@ -11,7 +11,7 @@ describe('Message Handler Coverage Tests', () => {
     // 读取background.js代码进行分析
     try {
       backgroundCode = readFileSync(join(process.cwd(), 'public/background.js'), 'utf8');
-    } catch (error) {
+    } catch (_) {
       // 如果文件不存在，使用模拟代码
       backgroundCode = `
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

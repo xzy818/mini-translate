@@ -20,7 +20,7 @@ async function render() {
         .png({ compressionLevel: 9 })
         .toFile(outfile);
       // eslint-disable-next-line no-console
-      console.log(`Generated ${outfile}`);
+      console.warn(`Generated ${outfile}`);
     })
   );
 }

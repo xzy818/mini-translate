@@ -7,32 +7,32 @@
 
 import { translateText } from '../src/services/translator.js';
 
-console.log('🔍 QA 最终验证开始...\n');
+console.warn('🔍 QA 最终验证开始...\n');
 
 // 检查环境变量
 const qwenKey = process.env.TEST_QWEN_KEY;
 
 if (!qwenKey) {
-  console.log('❌ 未检测到 TEST_QWEN_KEY 环境变量');
-  console.log('请设置：export TEST_QWEN_KEY="your-qwen-key"');
+  console.warn('❌ 未检测到 TEST_QWEN_KEY 环境变量');
+  console.warn('请设置：export TEST_QWEN_KEY="your-qwen-key"');
   process.exit(1);
 }
 
-console.log(`✅ 检测到 Qwen Key`);
-console.log(`🔑 Key 格式：${qwenKey.substring(0, 8)}...${qwenKey.substring(qwenKey.length - 4)}`);
+console.warn(`✅ 检测到 Qwen Key`);
+console.warn(`🔑 Key 格式：${qwenKey.substring(0, 8)}...${qwenKey.substring(qwenKey.length - 4)}`);
 
 // 验证 Key 格式
 if (!qwenKey.startsWith('sk-')) {
-  console.log('⚠️  警告：Key 格式可能不正确，应该以 "sk-" 开头');
+  console.warn('⚠️  警告：Key 格式可能不正确，应该以 "sk-" 开头');
   process.exit(1);
 }
 
 if (qwenKey.length < 20) {
-  console.log('⚠️  警告：Key 长度较短，可能不是有效的 API Key');
+  console.warn('⚠️  警告：Key 长度较短，可能不是有效的 API Key');
   process.exit(1);
 }
 
-console.log('\n🧪 开始最终验证测试...');
+console.warn('\n🧪 开始最终验证测试...');
 
 // 测试用例
 const testCases = [
@@ -64,9 +64,9 @@ async function runFinalVerification() {
   const results = [];
 
   for (const testCase of testCases) {
-    console.log(`\n📝 测试: ${testCase.name}`);
-    console.log(`描述: ${testCase.description}`);
-    console.log(`输入: "${testCase.text}"`);
+    console.warn(`\n📝 测试: ${testCase.name}`);
+    console.warn(`描述: ${testCase.description}`);
+    console.warn(`输入: "${testCase.text}"`);
     
     try {
       const config = {
@@ -76,15 +76,15 @@ async function runFinalVerification() {
         apiBaseUrl: 'https://dashscope.aliyuncs.com'
       };
 
-      console.log('🔄 正在调用翻译API...');
+      console.warn('🔄 正在调用翻译API...');
       const startTime = Date.now();
       const result = await translateText(config);
       const endTime = Date.now();
       const responseTime = endTime - startTime;
       
       if (result && result.trim()) {
-        console.log(`✅ 翻译成功: "${result}"`);
-        console.log(`⏱️  响应时间: ${responseTime}ms`);
+        console.warn(`✅ 翻译成功: "${result}"`);
+        console.warn(`⏱️  响应时间: ${responseTime}ms`);
         
         // 记录结果
         results.push({
@@ -97,7 +97,7 @@ async function runFinalVerification() {
         
         passedTests++;
       } else {
-        console.log('❌ 翻译返回空结果');
+        console.warn('❌ 翻译返回空结果');
         results.push({
           test: testCase.name,
           input: testCase.text,
@@ -107,19 +107,19 @@ async function runFinalVerification() {
         });
       }
     } catch (error) {
-      console.log(`❌ 翻译失败: ${error.message}`);
+      console.warn(`❌ 翻译失败: ${error.message}`);
       
       // 分析失败原因
       if (error.message.includes('401')) {
-        console.log('🔑 问题：API Key 无效或过期');
+        console.warn('🔑 问题：API Key 无效或过期');
       } else if (error.message.includes('403')) {
-        console.log('🚫 问题：API Key 权限不足');
+        console.warn('🚫 问题：API Key 权限不足');
       } else if (error.message.includes('429')) {
-        console.log('⏱️  问题：API 调用频率限制');
+        console.warn('⏱️  问题：API 调用频率限制');
       } else if (error.message.includes('timeout')) {
-        console.log('🌐 问题：网络连接超时');
+        console.warn('🌐 问题：网络连接超时');
       } else {
-        console.log(`🔍 其他问题：${error.message}`);
+        console.warn(`🔍 其他问题：${error.message}`);
       }
       
       results.push({
@@ -133,15 +133,15 @@ async function runFinalVerification() {
   }
 
   // 生成测试报告
-  console.log('\n📊 最终验证结果');
-  console.log(`✅ 通过测试: ${passedTests}/${totalTests}`);
-  console.log(`❌ 失败测试: ${totalTests - passedTests}/${totalTests}`);
+  console.warn('\n📊 最终验证结果');
+  console.warn(`✅ 通过测试: ${passedTests}/${totalTests}`);
+  console.warn(`❌ 失败测试: ${totalTests - passedTests}/${totalTests}`);
   
   // 计算平均响应时间
   const successfulTests = results.filter(r => r.status === 'success');
   if (successfulTests.length > 0) {
     const avgResponseTime = successfulTests.reduce((sum, r) => sum + r.responseTime, 0) / successfulTests.length;
-    console.log(`⏱️  平均响应时间: ${Math.round(avgResponseTime)}ms`);
+    console.warn(`⏱️  平均响应时间: ${Math.round(avgResponseTime)}ms`);
   }
   
   // 保存详细结果
@@ -160,13 +160,13 @@ async function runFinalVerification() {
   const fs = await import('fs');
   const reportPath = 'test-reports/qa-final-verification-report.json';
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-  console.log(`📄 详细报告已保存到: ${reportPath}`);
+  console.warn(`📄 详细报告已保存到: ${reportPath}`);
   
   if (passedTests === totalTests) {
-    console.log('\n🎉 所有测试通过！翻译功能验证成功！');
+    console.warn('\n🎉 所有测试通过！翻译功能验证成功！');
     return true;
   } else {
-    console.log('\n⚠️  部分测试失败，需要进一步分析');
+    console.warn('\n⚠️  部分测试失败，需要进一步分析');
     return false;
   }
 }
@@ -175,10 +175,10 @@ async function runFinalVerification() {
 runFinalVerification()
   .then(success => {
     if (success) {
-      console.log('\n✅ QA 最终验证完成 - 翻译功能正常');
+      console.warn('\n✅ QA 最终验证完成 - 翻译功能正常');
       process.exit(0);
     } else {
-      console.log('\n❌ QA 最终验证完成 - 存在问题需要修复');
+      console.warn('\n❌ QA 最终验证完成 - 存在问题需要修复');
       process.exit(1);
     }
   })

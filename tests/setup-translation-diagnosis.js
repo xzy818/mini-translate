@@ -65,7 +65,7 @@ global.chrome = {
 };
 
 // Mock fetch with 安全日志记录
-const originalFetch = global.fetch;
+const _unused = global.fetch;
 global.fetch = vi.fn().mockImplementation(async (url, options) => {
   // 记录请求但不包含真实 Key
   const maskedOptions = { ...options };
@@ -76,7 +76,8 @@ global.fetch = vi.fn().mockImplementation(async (url, options) => {
     }
   }
   
-  console.log('[Test] API Request:', {
+  // eslint-disable-next-line no-console
+    console.log('[Test] API Request:', {
     url,
     method: maskedOptions.method,
     headers: maskedOptions.headers

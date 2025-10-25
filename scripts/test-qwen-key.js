@@ -8,18 +8,18 @@
 import { spawn } from 'child_process';
 import path from 'path';
 
-console.log('🔍 开始 Qwen Key 验证测试...\n');
+console.warn('🔍 开始 Qwen Key 验证测试...\n');
 
 // 检查环境变量
 const qwenKey = process.env.TEST_QWEN_KEY;
 if (!qwenKey) {
   console.error('❌ 错误：未设置 TEST_QWEN_KEY 环境变量');
-  console.log('请设置：export TEST_QWEN_KEY="your-qwen-key"');
+  console.warn('请设置：export TEST_QWEN_KEY="your-qwen-key"');
   process.exit(1);
 }
 
-console.log(`✅ Qwen Key 已设置（已掩码处理）`);
-console.log(`🔑 Key 格式：${qwenKey.substring(0, 8)}...${qwenKey.substring(qwenKey.length - 4)}`);
+console.warn(`✅ Qwen Key 已设置（已掩码处理）`);
+console.warn(`🔑 Key 格式：${qwenKey.substring(0, 8)}...${qwenKey.substring(qwenKey.length - 4)}`);
 
 // 运行简化的测试
 const testProcess = spawn('npm', ['test', '--', '--run', 'qwen-key-verification'], {
@@ -35,7 +35,7 @@ let errorOutput = '';
 testProcess.stdout.on('data', (data) => {
   const text = data.toString();
   output += text;
-  console.log(text);
+  console.warn(text);
 });
 
 testProcess.stderr.on('data', (data) => {
@@ -45,11 +45,11 @@ testProcess.stderr.on('data', (data) => {
 });
 
 testProcess.on('close', (code) => {
-  console.log('\n📊 测试完成');
+  console.warn('\n📊 测试完成');
   if (code === 0) {
-    console.log('✅ Qwen Key 验证成功！');
+    console.warn('✅ Qwen Key 验证成功！');
   } else {
-    console.log('❌ Qwen Key 验证失败，请检查 Key 是否正确');
+    console.warn('❌ Qwen Key 验证失败，请检查 Key 是否正确');
   }
   process.exit(code);
 });

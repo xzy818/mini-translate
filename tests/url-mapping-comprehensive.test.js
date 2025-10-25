@@ -3,7 +3,7 @@
  * 专门测试mapBaseUrlByModel函数和URL构建逻辑
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('URL映射逻辑综合测试', () => {
   let mapBaseUrlByModel;

@@ -276,7 +276,8 @@ describe('网页翻译失败诊断', () => {
       // 在测试前设置临时 Key
       const testKey = process.env.TEST_DEEPSEEK_KEY || 'test-key';
       if (testKey === 'test-key') {
-        console.log('跳过真实 API 测试：未提供 TEST_DEEPSEEK_KEY 环境变量');
+        // eslint-disable-next-line no-console
+    console.log('跳过真实 API 测试：未提供 TEST_DEEPSEEK_KEY 环境变量');
         return;
       }
 
@@ -294,9 +295,11 @@ describe('网页翻译失败诊断', () => {
         const result = await translateText(config);
         expect(result).toBeDefined();
         expect(typeof result).toBe('string');
-        console.log('真实 API 测试成功，翻译结果:', result);
-      } catch (error) {
-        console.log('真实 API 测试失败:', error.message);
+        // eslint-disable-next-line no-console
+    console.log('真实 API 测试成功，翻译结果:', result);
+      } catch (_) {
+        // eslint-disable-next-line no-console
+    console.log('真实 API 测试失败:', error.message);
         // 记录失败但不暴露 Key
         expect(error.message).not.toContain(testKey);
       } finally {
@@ -327,7 +330,7 @@ describe('网页翻译失败诊断', () => {
 
       try {
         await translateText(config);
-      } catch (error) {
+      } catch (_) {
         // 验证错误日志不包含真实 Key
         const errorCalls = consoleSpy.error.mock.calls;
         errorCalls.forEach(call => {

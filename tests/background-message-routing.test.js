@@ -26,7 +26,8 @@ const mockBackgroundMessageHandler = () => {
   // 模拟消息处理函数
   const createMessageHandler = (type) => {
     return vi.fn((message, sender, sendResponse) => {
-      console.log(`[qa] message received ${message.type}`);
+      // eslint-disable-next-line no-console
+    console.log(`[qa] message received ${message.type}`);
       
       switch (type) {
         case 'SETTINGS_UPDATED': {

@@ -172,7 +172,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   // 测试状态管理
   let isTestRunning = false;
-  let testTimeoutId = null;
+  let _ = null;
 
   async function testConnection() {
     if (!hasChrome) {
@@ -187,7 +187,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
     // 防抖：如果测试正在进行，忽略新的请求
     if (isTestRunning) {
-      console.log('[test] 测试正在进行中，忽略重复请求');
+      console.warn('[test] 测试正在进行中，忽略重复请求');
       return;
     }
 
@@ -204,7 +204,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     }
 
     try {
-      console.log('[test] 开始测试');
+      console.warn('[test] 开始测试');
       const response = await sendTestMessage(payload);
       if (response && response.ok) {
         notify('测试通过');
@@ -261,7 +261,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
               reject(new Error(error.message));
             } else {
               // 立即响应表示测试已启动，等待存储变化获取结果
-              console.log('[test] 测试已启动，等待结果...');
+              console.warn('[test] 测试已启动，等待结果...');
             }
           }
         );
@@ -811,7 +811,7 @@ export function initCloudSync(notify) {
 
   // 监听认证状态变化
   googleAuthService.onSignInChanged((account) => {
-    console.log('认证状态变化:', account);
+    console.warn('认证状态变化:', account);
     checkAuthStatus();
   });
 

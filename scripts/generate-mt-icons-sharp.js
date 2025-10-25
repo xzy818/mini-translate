@@ -23,7 +23,7 @@ async function generatePNGIcons() {
     path.join(__dirname, '..', 'public', 'icons')
   ];
 
-  console.log('开始生成MT图标...');
+  console.warn('开始生成MT图标...');
 
   for (const outputDir of outputDirs) {
     // 确保目录存在
@@ -34,7 +34,7 @@ async function generatePNGIcons() {
     // 生成SVG文件
     const svgContent = createSVG(128);
     fs.writeFileSync(path.join(outputDir, 'icon.svg'), svgContent);
-    console.log(`✓ 生成 ${outputDir}/icon.svg`);
+    console.warn(`✓ 生成 ${outputDir}/icon.svg`);
 
     // 为每个尺寸生成PNG
     for (const size of sizes) {
@@ -46,14 +46,14 @@ async function generatePNGIcons() {
           .resize(size, size)
           .toFile(path.join(outputDir, `icon-${size}.png`));
         
-        console.log(`✓ 生成 ${outputDir}/icon-${size}.png`);
+        console.warn(`✓ 生成 ${outputDir}/icon-${size}.png`);
       } catch (error) {
         console.error(`生成 ${size}x${size} 图标时出错:`, error.message);
       }
     }
   }
 
-  console.log('MT图标生成完成！');
+  console.warn('MT图标生成完成！');
 }
 
 // 运行生成函数

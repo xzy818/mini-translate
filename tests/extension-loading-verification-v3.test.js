@@ -40,7 +40,8 @@ let testResults = {
  */
 function logTest(name, passed, message = '') {
   const status = passed ? '✅ PASS' : '❌ FAIL';
-  console.log(`${status} ${name}${message ? ': ' + message : ''}`);
+  // eslint-disable-next-line no-console
+    console.log(`${status} ${name}${message ? ': ' + message : ''}`);
   
   if (passed) {
     testResults.passed++;
@@ -55,6 +56,7 @@ function logTest(name, passed, message = '') {
  */
 async function startChromeWithExtension() {
   return new Promise((resolve, reject) => {
+    // eslint-disable-next-line no-console
     console.log('🚀 Starting Chrome with extension for L3 verification...');
     
     // 清理旧的Chrome进程
@@ -87,11 +89,13 @@ async function startChromeWithExtension() {
     testResults.chromeProcess = chromeProcess;
     
     chromeProcess.stdout.on('data', (data) => {
-      console.log(`Chrome: ${data}`);
+      // eslint-disable-next-line no-console
+    console.log(`Chrome: ${data}`);
     });
     
     chromeProcess.stderr.on('data', (data) => {
-      console.log(`Chrome Error: ${data}`);
+      // eslint-disable-next-line no-console
+    console.log(`Chrome Error: ${data}`);
     });
     
     // 等待Chrome启动
@@ -103,6 +107,7 @@ async function startChromeWithExtension() {
 
 async function stopChrome() {
   if (testResults.chromeProcess) {
+    // eslint-disable-next-line no-console
     console.log('🛑 Stopping Chrome...');
     testResults.chromeProcess.kill();
     testResults.chromeProcess = null;
@@ -112,9 +117,11 @@ async function stopChrome() {
   try {
     const { exec } = await import('child_process');
     exec('pkill -f "Google Chrome for Testing"', (error) => {
-      if (error) console.log('Chrome cleanup error:', error.message);
+      if (error) // eslint-disable-next-line no-console
+    console.log('Chrome cleanup error:', error.message);
     });
-  } catch (error) {
+  } catch (_) {
+    // eslint-disable-next-line no-console
     console.log('Chrome cleanup error:', error.message);
   }
 }
@@ -124,7 +131,7 @@ async function getChromeDebugInfo() {
     const response = await fetch(`http://localhost:${TEST_CONFIG.chromeDebugPort}/json`);
     const data = await response.json();
     return data;
-  } catch (error) {
+  } catch (_) {
     return null;
   }
 }
@@ -164,7 +171,8 @@ async function getExtensionId() {
  * L3: 扩展加载验证测试
  */
 async function testChromeStartupAndExtensionLoading() {
-  console.log('\n🌐 L3: Testing Chrome Startup and Extension Loading...');
+  // eslint-disable-next-line no-console
+    console.log('\n🌐 L3: Testing Chrome Startup and Extension Loading...');
   
   try {
     await startChromeWithExtension();
@@ -178,14 +186,15 @@ async function testChromeStartupAndExtensionLoading() {
     logTest('Chrome debug port accessible', chromeStarted, chromeStarted ? '' : 'Chrome debug port not accessible');
     
     return chromeStarted;
-  } catch (error) {
+  } catch (_) {
     logTest('Chrome startup and extension loading', false, `Error: ${error.message}`);
     return false;
   }
 }
 
 async function testExtensionIdRetrieval() {
-  console.log('\n🆔 L3: Testing Extension ID Retrieval...');
+  // eslint-disable-next-line no-console
+    console.log('\n🆔 L3: Testing Extension ID Retrieval...');
   
   try {
     const extensionId = await getExtensionId();
@@ -198,14 +207,15 @@ async function testExtensionIdRetrieval() {
     }
     
     return extensionIdFound;
-  } catch (error) {
+  } catch (_) {
     logTest('Extension ID retrieval', false, `Error: ${error.message}`);
     return false;
   }
 }
 
 async function testServiceWorkerRegistration() {
-  console.log('\n⚙️ L3: Testing Service Worker Registration...');
+  // eslint-disable-next-line no-console
+    console.log('\n⚙️ L3: Testing Service Worker Registration...');
   
   try {
     const serviceWorkers = await getChromeServiceWorkers();
@@ -221,14 +231,15 @@ async function testServiceWorkerRegistration() {
     }
     
     return swRegistered;
-  } catch (error) {
+  } catch (_) {
     logTest('Service Worker registration', false, `Error: ${error.message}`);
     return false;
   }
 }
 
 async function testExtensionPermissionsAndConfig() {
-  console.log('\n🔐 L3: Testing Extension Permissions and Configuration...');
+  // eslint-disable-next-line no-console
+    console.log('\n🔐 L3: Testing Extension Permissions and Configuration...');
   
   try {
     const extensions = await getChromeExtensions();
@@ -245,14 +256,15 @@ async function testExtensionPermissionsAndConfig() {
     }
     
     return extensionFound;
-  } catch (error) {
+  } catch (_) {
     logTest('Extension permissions and config', false, `Error: ${error.message}`);
     return false;
   }
 }
 
 async function testExtensionLoadingErrors() {
-  console.log('\n🚨 L3: Testing Extension Loading Errors...');
+  // eslint-disable-next-line no-console
+    console.log('\n🚨 L3: Testing Extension Loading Errors...');
   
   try {
     // 检查Chrome日志中的错误
@@ -274,7 +286,8 @@ async function testExtensionLoadingErrors() {
       if (hasErrors) {
         logTest('Extension loading errors found', false, `Errors: ${errorLines.length} error lines`);
         errorLines.slice(0, 3).forEach(line => {
-          console.log(`  - ${line}`);
+          // eslint-disable-next-line no-console
+    console.log(`  - ${line}`);
         });
       } else {
         logTest('No extension loading errors', true, 'Clean loading');
@@ -284,7 +297,7 @@ async function testExtensionLoadingErrors() {
     }
     
     return !hasErrors;
-  } catch (error) {
+  } catch (_) {
     logTest('Extension loading error analysis', false, `Error: ${error.message}`);
     return false;
   }
@@ -294,11 +307,13 @@ async function testExtensionLoadingErrors() {
  * 主测试执行函数
  */
 async function runExtensionLoadingVerificationTestsV3() {
-  console.log('🧪 Starting Chrome Extension Loading Verification Tests V3.0...\n');
+  // eslint-disable-next-line no-console
+    console.log('🧪 Starting Chrome Extension Loading Verification Tests V3.0...\n');
   
   // 检查dist目录是否存在
   const distExists = existsSync(TEST_CONFIG.distPath);
   if (!distExists) {
+    // eslint-disable-next-line no-console
     console.log('❌ dist/ directory not found. Please run "npm run build" first.');
     process.exit(1);
   }
@@ -319,7 +334,7 @@ async function runExtensionLoadingVerificationTestsV3() {
       try {
         const result = await test.fn();
         if (!result) allTestsPassed = false;
-      } catch (error) {
+      } catch (_) {
         logTest(test.name, false, `Test execution error: ${error.message}`);
         allTestsPassed = false;
       }
@@ -331,26 +346,35 @@ async function runExtensionLoadingVerificationTestsV3() {
   }
   
   // 输出测试结果摘要
-  console.log('\n📊 L3 Extension Loading Verification Results V3.0:');
-  console.log(`✅ Passed: ${testResults.passed}`);
-  console.log(`❌ Failed: ${testResults.failed}`);
-  console.log(`📈 Success Rate: ${((testResults.passed / (testResults.passed + testResults.failed)) * 100).toFixed(1)}%`);
+  // eslint-disable-next-line no-console
+    console.log('\n📊 L3 Extension Loading Verification Results V3.0:');
+  // eslint-disable-next-line no-console
+    console.log(`✅ Passed: ${testResults.passed}`);
+  // eslint-disable-next-line no-console
+    console.log(`❌ Failed: ${testResults.failed}`);
+  // eslint-disable-next-line no-console
+    console.log(`📈 Success Rate: ${((testResults.passed / (testResults.passed + testResults.failed)) * 100).toFixed(1)}%`);
   
   if (testResults.extensionId) {
+    // eslint-disable-next-line no-console
     console.log(`🆔 Extension ID: ${testResults.extensionId}`);
   }
   
   if (testResults.errors.length > 0) {
+    // eslint-disable-next-line no-console
     console.log('\n🚨 Failed Tests:');
     testResults.errors.forEach(error => {
-      console.log(`  - ${error.name}: ${error.message}`);
+      // eslint-disable-next-line no-console
+    console.log(`  - ${error.name}: ${error.message}`);
     });
   }
   
   if (allTestsPassed) {
+    // eslint-disable-next-line no-console
     console.log('\n🎉 All L3 extension loading verification tests V3.0 passed!');
     // 移除process.exit，让vitest处理
   } else {
+    // eslint-disable-next-line no-console
     console.log('\n💥 Some L3 tests failed. Extension loading verification failed.');
     // 移除process.exit，让vitest处理
   }
@@ -358,13 +382,15 @@ async function runExtensionLoadingVerificationTestsV3() {
 
 // 处理进程退出
 process.on('SIGINT', async () => {
-  console.log('\n🛑 Received SIGINT, cleaning up...');
+  // eslint-disable-next-line no-console
+    console.log('\n🛑 Received SIGINT, cleaning up...');
   await stopChrome();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('\n🛑 Received SIGTERM, cleaning up...');
+  // eslint-disable-next-line no-console
+    console.log('\n🛑 Received SIGTERM, cleaning up...');
   await stopChrome();
   process.exit(0);
 });

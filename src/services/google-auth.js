@@ -33,7 +33,7 @@ class GoogleAuthService {
       // 设置认证状态监听器
       this.setupAuthListeners();
       
-      console.log('Google认证服务已初始化');
+      console.warn('Google认证服务已初始化');
     } catch (error) {
       console.error('初始化Google认证服务失败:', error);
     }
@@ -44,7 +44,7 @@ class GoogleAuthService {
    */
   async authenticate() {
     try {
-      console.log('开始Google认证...');
+      console.warn('开始Google认证...');
       
       // 检查OAuth配置
       const config = oauthConfig.getOAuthConfig();
@@ -68,7 +68,7 @@ class GoogleAuthService {
         // 通知认证状态变化
         this.notifyAuthStateChange(true);
         
-        console.log('Google认证成功');
+        console.warn('Google认证成功');
         return true;
       } else {
         throw new Error('认证失败：未获取到访问令牌');
@@ -121,7 +121,7 @@ class GoogleAuthService {
       }
       
       this.userInfo = await response.json();
-      console.log('用户信息已获取:', this.userInfo);
+      console.warn('用户信息已获取:', this.userInfo);
       
     } catch (error) {
       console.error('获取用户信息失败:', error);
@@ -143,13 +143,13 @@ class GoogleAuthService {
         // 获取用户信息
         await this.fetchUserInfo();
         
-        console.log('用户已认证');
+        console.warn('用户已认证');
       } else {
         this.isAuthenticated = false;
         this.accessToken = null;
         this.userInfo = null;
         
-        console.log('用户未认证');
+        console.warn('用户未认证');
       }
       
     } catch (error) {
@@ -172,7 +172,7 @@ class GoogleAuthService {
    */
   async logout() {
     try {
-      console.log('开始用户登出...');
+      console.warn('开始用户登出...');
       
       if (this.accessToken) {
         // 撤销访问令牌
@@ -190,7 +190,7 @@ class GoogleAuthService {
       // 通知认证状态变化
       this.notifyAuthStateChange(false);
       
-      console.log('用户登出成功');
+      console.warn('用户登出成功');
       return true;
       
     } catch (error) {
@@ -218,7 +218,7 @@ class GoogleAuthService {
       const revokeUrl = `https://accounts.google.com/o/oauth2/revoke?token=${token}`;
       await fetch(revokeUrl);
       
-      console.log('访问令牌已撤销');
+      console.warn('访问令牌已撤销');
       
     } catch (error) {
       console.error('撤销访问令牌失败:', error);
@@ -233,7 +233,7 @@ class GoogleAuthService {
     try {
       // 监听Chrome Identity API的认证状态变化
       chrome.identity.onSignInChanged.addListener((account, signedIn) => {
-        console.log('认证状态变化:', { account, signedIn });
+        console.warn('认证状态变化:', { account, signedIn });
         
         if (signedIn) {
           this.checkAuthStatus();
@@ -321,9 +321,9 @@ class GoogleAuthService {
           this.accessToken = accessToken;
           this.userInfo = userInfo;
           
-          console.log('认证状态已加载');
+          console.warn('认证状态已加载');
         } else {
-          console.log('认证状态已过期，需要重新认证');
+          console.warn('认证状态已过期，需要重新认证');
           await this.clearAuthState();
         }
       }
@@ -359,7 +359,7 @@ class GoogleAuthService {
    */
   async refreshToken() {
     try {
-      console.log('刷新访问令牌...');
+      console.warn('刷新访问令牌...');
       
       // 获取新的访问令牌
       const newToken = await this.getAuthToken(true);
@@ -370,7 +370,7 @@ class GoogleAuthService {
         // 保存新的认证状态
         await this.saveAuthState();
         
-        console.log('访问令牌已刷新');
+        console.warn('访问令牌已刷新');
         return true;
       }
       

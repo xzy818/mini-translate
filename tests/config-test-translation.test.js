@@ -38,7 +38,8 @@ describe('配置管理测试翻译诊断', () => {
         const result = validateTranslationConfig(config);
         expect(result.isValid).toBe(false);
         expect(result.errors.length).toBeGreaterThan(0);
-        console.log(`配置 ${index + 1} 验证失败:`, result.errors);
+        // eslint-disable-next-line no-console
+    console.log(`配置 ${index + 1} 验证失败:`, result.errors);
       });
     });
 
@@ -92,7 +93,8 @@ describe('配置管理测试翻译诊断', () => {
       modelMappings.forEach(({ model, expectedUrl }) => {
         const mappedUrl = mapBaseUrlByModel(model);
         expect(mappedUrl).toBe(expectedUrl);
-        console.log(`模型 ${model} 映射到: ${mappedUrl}`);
+        // eslint-disable-next-line no-console
+    console.log(`模型 ${model} 映射到: ${mappedUrl}`);
       });
     });
   });
@@ -255,7 +257,8 @@ describe('配置管理测试翻译诊断', () => {
     it('应该能够使用临时 Key 进行真实配置测试', async () => {
       const testKey = process.env.TEST_DEEPSEEK_KEY || 'test-key';
       if (testKey === 'test-key') {
-        console.log('跳过真实配置测试：未提供 TEST_DEEPSEEK_KEY 环境变量');
+        // eslint-disable-next-line no-console
+    console.log('跳过真实配置测试：未提供 TEST_DEEPSEEK_KEY 环境变量');
         return;
       }
 
@@ -272,9 +275,11 @@ describe('配置管理测试翻译诊断', () => {
         const result = await translateText(config);
         expect(result).toBeDefined();
         expect(typeof result).toBe('string');
-        console.log('真实配置测试成功，翻译结果:', result);
-      } catch (error) {
-        console.log('真实配置测试失败:', error.message);
+        // eslint-disable-next-line no-console
+    console.log('真实配置测试成功，翻译结果:', result);
+      } catch (_) {
+        // eslint-disable-next-line no-console
+    console.log('真实配置测试失败:', error.message);
         // 确保错误消息不包含真实 Key
         expect(error.message).not.toContain(testKey);
       } finally {
@@ -312,7 +317,8 @@ describe('配置管理测试翻译诊断', () => {
 
       for (const config of testConfigs) {
         if (!config.key || config.key === 'test-key') {
-          console.log(`跳过 ${config.name} 测试：未提供对应环境变量`);
+          // eslint-disable-next-line no-console
+    console.log(`跳过 ${config.name} 测试：未提供对应环境变量`);
           continue;
         }
 
@@ -326,10 +332,12 @@ describe('配置管理测试翻译诊断', () => {
             apiBaseUrl: config.apiBaseUrl
           });
 
-          console.log(`${config.name} 测试成功:`, result);
+          // eslint-disable-next-line no-console
+    console.log(`${config.name} 测试成功:`, result);
           expect(result).toBeDefined();
-        } catch (error) {
-          console.log(`${config.name} 测试失败:`, error.message);
+        } catch (_) {
+          // eslint-disable-next-line no-console
+    console.log(`${config.name} 测试失败:`, error.message);
           // 确保错误消息不包含真实 Key
           expect(error.message).not.toContain(config.key);
         }
@@ -360,7 +368,7 @@ describe('配置管理测试翻译诊断', () => {
 
       try {
         await translateText(config);
-      } catch (error) {
+      } catch (_) {
         // 验证错误日志不包含真实 Key
         const errorCalls = consoleSpy.error.mock.calls;
         errorCalls.forEach(call => {
@@ -417,8 +425,9 @@ describe('配置管理测试翻译诊断', () => {
 
         try {
           await translateText(config);
-        } catch (error) {
-          console.log(`${scenario.name} 场景:`, {
+        } catch (_) {
+          // eslint-disable-next-line no-console
+    console.log(`${scenario.name} 场景:`, {
             status: scenario.status,
             cause: scenario.expectedCause,
             error: error.message

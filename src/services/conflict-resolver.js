@@ -28,7 +28,7 @@ class ConflictResolverService {
    */
   async resolveConflicts(localData, cloudData, conflicts) {
     try {
-      console.log(`开始解决 ${conflicts.length} 个数据冲突...`);
+      console.warn(`开始解决 ${conflicts.length} 个数据冲突...`);
       
       const resolvedData = { ...localData };
       
@@ -39,7 +39,7 @@ class ConflictResolverService {
         this.applyResolution(resolvedData, conflict, resolution);
       }
       
-      console.log('所有冲突已解决');
+      console.warn('所有冲突已解决');
       return resolvedData;
       
     } catch (error) {
@@ -274,7 +274,7 @@ class ConflictResolverService {
    */
   async showConflictUI(conflict) {
     try {
-      console.log('显示冲突解决UI...');
+      console.warn('显示冲突解决UI...');
       
       // 创建冲突解决对话框
       const dialog = this.createConflictDialog(conflict);
@@ -390,7 +390,7 @@ class ConflictResolverService {
    */
   async detectConflicts(localData, cloudData) {
     try {
-      console.log('检测数据冲突...');
+      console.warn('检测数据冲突...');
       
       const conflicts = [];
       
@@ -415,7 +415,7 @@ class ConflictResolverService {
       );
       conflicts.push(...preferencesConflicts);
       
-      console.log(`检测到 ${conflicts.length} 个冲突`);
+      console.warn(`检测到 ${conflicts.length} 个冲突`);
       return conflicts;
       
     } catch (error) {
@@ -546,12 +546,12 @@ class ConflictResolverService {
    */
   async rollbackConflictResolution(historyEntry) {
     try {
-      console.log('回滚冲突解决...');
+      console.warn('回滚冲突解决...');
       
       // 这里可以实现回滚逻辑
       // 具体实现取决于冲突类型和解决方式
       
-      console.log('冲突解决已回滚');
+      console.warn('冲突解决已回滚');
       
     } catch (error) {
       console.error('回滚冲突解决失败:', error);

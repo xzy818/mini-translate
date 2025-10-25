@@ -35,7 +35,7 @@ class CloudSyncService {
       // 设置自动同步
       this.setupAutoSync();
       
-      console.log('云端同步服务已初始化');
+      console.warn('云端同步服务已初始化');
     } catch (error) {
       console.error('初始化云端同步服务失败:', error);
     }
@@ -46,13 +46,13 @@ class CloudSyncService {
    */
   async syncData() {
     if (this.isSyncing) {
-      console.log('同步正在进行中，跳过此次同步请求');
+      console.warn('同步正在进行中，跳过此次同步请求');
       return;
     }
 
     try {
       this.isSyncing = true;
-      console.log('开始云端数据同步...');
+      console.warn('开始云端数据同步...');
       
       // 检查认证状态
       if (!googleAuthService.isUserAuthenticated()) {
@@ -69,13 +69,13 @@ class CloudSyncService {
       const conflicts = await this.detectConflicts(localData, cloudData);
       
       if (conflicts.length > 0) {
-        console.log(`检测到 ${conflicts.length} 个数据冲突`);
+        console.warn(`检测到 ${conflicts.length} 个数据冲突`);
         // 处理冲突
         const resolvedData = await this.resolveConflicts(localData, cloudData, conflicts);
         await this.uploadData(resolvedData);
         await this.saveLocalData(resolvedData);
       } else {
-        console.log('未检测到冲突，执行数据合并');
+        console.warn('未检测到冲突，执行数据合并');
         // 合并数据
         const mergedData = await this.mergeData(localData, cloudData);
         await this.uploadData(mergedData);
@@ -89,7 +89,7 @@ class CloudSyncService {
       // 重置重试计数
       this.retryCount = 0;
       
-      console.log('云端数据同步完成');
+      console.warn('云端数据同步完成');
       
       // 通知同步完成
       this.notifySyncComplete(true);
@@ -231,7 +231,7 @@ class CloudSyncService {
    */
   async detectConflicts(localData, cloudData) {
     try {
-      console.log('检测数据冲突...');
+      console.warn('检测数据冲突...');
       
       const conflicts = [];
       
@@ -249,7 +249,7 @@ class CloudSyncService {
       );
       conflicts.push(...settingsConflicts);
       
-      console.log(`检测到 ${conflicts.length} 个冲突`);
+      console.warn(`检测到 ${conflicts.length} 个冲突`);
       return conflicts;
       
     } catch (error) {
@@ -314,7 +314,7 @@ class CloudSyncService {
    */
   async resolveConflicts(localData, cloudData, conflicts) {
     try {
-      console.log('解决数据冲突...');
+      console.warn('解决数据冲突...');
       
       // 使用冲突解决服务
       const resolvedData = await conflictResolverService.resolveConflicts(
@@ -336,7 +336,7 @@ class CloudSyncService {
    */
   async mergeData(localData, cloudData) {
     try {
-      console.log('合并数据...');
+      console.warn('合并数据...');
       
       // 选择更新的数据源
       const useLocal = localData.lastModified > cloudData.lastModified;
@@ -399,7 +399,7 @@ class CloudSyncService {
    */
   async uploadData(data) {
     try {
-      console.log('上传数据到云端...');
+      console.warn('上传数据到云端...');
       
       // 压缩数据
       const compressedData = await this.compressData(data);
@@ -410,7 +410,7 @@ class CloudSyncService {
       // 上传到Google Drive作为备份
       await this.uploadToGoogleDrive(compressedData);
       
-      console.log('数据上传完成');
+      console.warn('数据上传完成');
       
     } catch (error) {
       console.error('上传数据失败:', error);
@@ -434,7 +434,7 @@ class CloudSyncService {
       };
       
       await chrome.storage.sync.set(syncData);
-      console.log('数据已上传到Chrome同步存储');
+      console.warn('数据已上传到Chrome同步存储');
       
     } catch (error) {
       console.error('上传到Chrome同步存储失败:', error);
@@ -479,7 +479,7 @@ class CloudSyncService {
         throw new Error(`上传到Google Drive失败: ${response.status}`);
       }
       
-      console.log('数据已上传到Google Drive');
+      console.warn('数据已上传到Google Drive');
       
     } catch (error) {
       console.error('上传到Google Drive失败:', error);
@@ -498,7 +498,7 @@ class CloudSyncService {
         userPreferences: data.userPreferences
       });
       
-      console.log('本地数据已保存');
+      console.warn('本地数据已保存');
       
     } catch (error) {
       console.error('保存本地数据失败:', error);
@@ -543,7 +543,7 @@ class CloudSyncService {
     this.retryCount++;
     
     if (this.retryCount < this.maxRetries) {
-      console.log(`将在 ${this.retryDelay}ms 后重试同步 (${this.retryCount}/${this.maxRetries})`);
+      console.warn(`将在 ${this.retryDelay}ms 后重试同步 (${this.retryCount}/${this.maxRetries})`);
       
       setTimeout(() => {
         this.syncData().catch(err => {
@@ -629,7 +629,7 @@ class CloudSyncService {
    * 强制同步
    */
   async forceSync() {
-    console.log('强制同步数据...');
+    console.warn('强制同步数据...');
     this.retryCount = 0;
     return await this.syncData();
   }

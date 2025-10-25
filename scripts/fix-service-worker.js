@@ -13,13 +13,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
 
-console.log('🔧 修复Service Worker兼容性问题...\n');
+console.warn('🔧 修复Service Worker兼容性问题...\n');
 
 // 读取background.js
 const backgroundPath = join(projectRoot, 'dist', 'background.js');
 const backgroundCode = readFileSync(backgroundPath, 'utf8');
 
-console.log('📖 读取background.js文件...');
+console.warn('📖 读取background.js文件...');
 
 // 提取import语句
 const importRegex = /import\s+{([^}]+)}\s+from\s+['"]([^'"]+)['"];?/g;
@@ -57,9 +57,9 @@ while ((match = importScriptsRegex.exec(backgroundCode)) !== null) {
   });
 }
 
-console.log(`📦 发现 ${importStatements.length} 个import语句:`);
+console.warn(`📦 发现 ${importStatements.length} 个import语句:`);
 importStatements.forEach((imp, index) => {
-  console.log(`  ${index + 1}. ${imp.type} from '${imp.module}'`);
+  console.warn(`  ${index + 1}. ${imp.type} from '${imp.module}'`);
 });
 
 // 生成importScripts语句
@@ -73,24 +73,24 @@ modifiedCode = modifiedCode.replace(/import\s+.*?from\s+['"][^'"]+['"];?\n?/g, '
 // 在文件开头添加importScripts
 modifiedCode = importScriptsCode + '\n\n' + modifiedCode;
 
-console.log('\n📝 生成修复后的代码...');
-console.log('添加的importScripts:');
+console.warn('\n📝 生成修复后的代码...');
+console.warn('添加的importScripts:');
 importStatements.forEach(imp => {
-  console.log(`  importScripts('${imp.module}');`);
+  console.warn(`  importScripts('${imp.module}');`);
 });
 
 // 备份原文件
 const backupPath = backgroundPath + '.backup';
 writeFileSync(backupPath, backgroundCode);
-console.log(`\n💾 备份原文件到: ${backupPath}`);
+console.warn(`\n💾 备份原文件到: ${backupPath}`);
 
 // 写入修复后的文件
 writeFileSync(backgroundPath, modifiedCode);
-console.log('✅ 修复完成！');
+console.warn('✅ 修复完成！');
 
-console.log('\n📊 修复摘要:');
-console.log(`- 移除了 ${importStatements.length} 个ES6 import语句`);
-console.log(`- 添加了 ${importStatements.length} 个importScripts语句`);
-console.log(`- 文件大小: ${backgroundCode.length} → ${modifiedCode.length} 字符`);
+console.warn('\n📊 修复摘要:');
+console.warn(`- 移除了 ${importStatements.length} 个ES6 import语句`);
+console.warn(`- 添加了 ${importStatements.length} 个importScripts语句`);
+console.warn(`- 文件大小: ${backgroundCode.length} → ${modifiedCode.length} 字符`);
 
-console.log('\n🎉 Service Worker兼容性修复完成！');
+console.warn('\n🎉 Service Worker兼容性修复完成！');

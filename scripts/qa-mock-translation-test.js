@@ -7,7 +7,7 @@
 
 import { translateText } from '../src/services/translator.js';
 
-console.log('🔍 QA 模拟翻译功能测试开始...\n');
+console.warn('🔍 QA 模拟翻译功能测试开始...\n');
 
 // 测试用例
 const testCases = [
@@ -38,7 +38,7 @@ const mockApiResponses = {
 // 模拟fetch函数
 const originalFetch = global.fetch;
 global.fetch = async (url, options) => {
-  console.log(`🔄 模拟API调用: ${url}`);
+  console.warn(`🔄 模拟API调用: ${url}`);
   
   // 解析请求体
   const body = JSON.parse(options.body);
@@ -65,11 +65,11 @@ async function runMockTranslationTests() {
   let passedTests = 0;
   let totalTests = testCases.length;
 
-  console.log('🧪 开始模拟翻译测试...\n');
+  console.warn('🧪 开始模拟翻译测试...\n');
 
   for (const testCase of testCases) {
-    console.log(`📝 测试: ${testCase.name}`);
-    console.log(`输入: "${testCase.text}"`);
+    console.warn(`📝 测试: ${testCase.name}`);
+    console.warn(`输入: "${testCase.text}"`);
     
     try {
       const config = {
@@ -79,38 +79,38 @@ async function runMockTranslationTests() {
         apiBaseUrl: 'https://dashscope.aliyuncs.com'
       };
 
-      console.log('🔄 正在调用翻译API...');
+      console.warn('🔄 正在调用翻译API...');
       const result = await translateText(config);
       
       if (result && result.trim()) {
-        console.log(`✅ 翻译成功: "${result}"`);
+        console.warn(`✅ 翻译成功: "${result}"`);
         
         // 检查翻译质量（简单检查）
         if (result && result.trim()) {
-          console.log('✅ 翻译结果符合预期');
+          console.warn('✅ 翻译结果符合预期');
           passedTests++;
         } else {
-          console.log('⚠️  翻译结果可能不符合预期');
+          console.warn('⚠️  翻译结果可能不符合预期');
         }
       } else {
-        console.log('❌ 翻译返回空结果');
+        console.warn('❌ 翻译返回空结果');
       }
     } catch (error) {
-      console.log(`❌ 翻译失败: ${error.message}`);
+      console.warn(`❌ 翻译失败: ${error.message}`);
     }
     
-    console.log('---');
+    console.warn('---');
   }
 
-  console.log('\n📊 测试结果汇总');
-  console.log(`✅ 通过测试: ${passedTests}/${totalTests}`);
-  console.log(`❌ 失败测试: ${totalTests - passedTests}/${totalTests}`);
+  console.warn('\n📊 测试结果汇总');
+  console.warn(`✅ 通过测试: ${passedTests}/${totalTests}`);
+  console.warn(`❌ 失败测试: ${totalTests - passedTests}/${totalTests}`);
   
   if (passedTests === totalTests) {
-    console.log('🎉 所有模拟翻译测试通过！');
+    console.warn('🎉 所有模拟翻译测试通过！');
     return true;
   } else {
-    console.log('⚠️  部分测试失败，需要进一步分析');
+    console.warn('⚠️  部分测试失败，需要进一步分析');
     return false;
   }
 }
@@ -125,11 +125,11 @@ runMockTranslationTests()
   .then(success => {
     restoreFetch();
     if (success) {
-      console.log('\n✅ QA 模拟翻译测试完成 - 所有测试通过');
-      console.log('💡 翻译逻辑工作正常，问题在于API密钥');
+      console.warn('\n✅ QA 模拟翻译测试完成 - 所有测试通过');
+      console.warn('💡 翻译逻辑工作正常，问题在于API密钥');
       process.exit(0);
     } else {
-      console.log('\n❌ QA 模拟翻译测试完成 - 存在失败测试');
+      console.warn('\n❌ QA 模拟翻译测试完成 - 存在失败测试');
       process.exit(1);
     }
   })

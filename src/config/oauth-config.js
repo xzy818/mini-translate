@@ -134,7 +134,7 @@ class OAuthConfig {
         this.conflictResolution = { ...this.conflictResolution, ...newConfig.conflictResolution };
       }
       
-      console.log('OAuth配置已更新');
+      console.warn('OAuth配置已更新');
       
     } catch (error) {
       console.error('更新OAuth配置失败:', error);
@@ -176,7 +176,7 @@ class OAuthConfig {
       maxConflicts: 10
     };
     
-    console.log('OAuth配置已重置');
+    console.warn('OAuth配置已重置');
   }
 }
 

@@ -142,7 +142,7 @@ function notifySelectionChange(nextText) {
         }
       }
     });
-  } catch (e) {
+  } catch (_) {
     // 忽略在上下文无效期间的异常
   }
 }

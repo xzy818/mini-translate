@@ -7,7 +7,7 @@
 
 import { execSync } from 'node:child_process';
 
-console.log('🔍 简化时序测试开始...\n');
+console.warn('🔍 简化时序测试开始...\n');
 
 class SimpleTimingTester {
   constructor() {
@@ -15,26 +15,26 @@ class SimpleTimingTester {
   }
 
   async testColdStartScenario() {
-    console.log('🧪 测试冷启动场景...');
+    console.warn('🧪 测试冷启动场景...');
     
     try {
       // 1. 检查Service Worker状态
-      console.log('📝 步骤1: 检查Service Worker状态');
+      console.warn('📝 步骤1: 检查Service Worker状态');
       const swStatus = await this.checkServiceWorkerStatus();
-      console.log(`   Service Worker状态: ${swStatus ? '活跃' : '休眠'}`);
+      console.warn(`   Service Worker状态: ${swStatus ? '活跃' : '休眠'}`);
 
       // 2. 模拟快速翻译请求
-      console.log('📝 步骤2: 模拟快速翻译请求');
+      console.warn('📝 步骤2: 模拟快速翻译请求');
       const rapidRequest = await this.simulateRapidRequest();
-      console.log(`   快速请求结果: ${rapidRequest.success ? '成功' : '失败'}`);
+      console.warn(`   快速请求结果: ${rapidRequest.success ? '成功' : '失败'}`);
       if (!rapidRequest.success) {
-        console.log(`   失败原因: ${rapidRequest.error}`);
+        console.warn(`   失败原因: ${rapidRequest.error}`);
       }
 
       // 3. 测试重试机制
-      console.log('📝 步骤3: 测试重试机制');
+      console.warn('📝 步骤3: 测试重试机制');
       const retryResult = await this.testRetryMechanism();
-      console.log(`   重试结果: ${retryResult.success ? '成功' : '失败'}`);
+      console.warn(`   重试结果: ${retryResult.success ? '成功' : '失败'}`);
 
       this.testResults.push({
         test: 'cold-start-scenario',
@@ -62,7 +62,7 @@ class SimpleTimingTester {
       const result = execSync('curl -s "http://localhost:9223/json" | grep -c "background_page"', { encoding: 'utf8' });
       return parseInt(result.trim()) > 0;
     } catch (error) {
-      console.log('   无法检查SW状态，假设为活跃');
+      console.warn('   无法检查SW状态，假设为活跃');
       return true;
     }
   }
@@ -106,7 +106,7 @@ class SimpleTimingTester {
       let lastError = null;
       
       for (let i = 0; i < retryAttempts; i++) {
-        console.log(`   重试 ${i + 1}/${retryAttempts}...`);
+        console.warn(`   重试 ${i + 1}/${retryAttempts}...`);
         
         // 模拟重试延迟
         await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
@@ -139,23 +139,23 @@ class SimpleTimingTester {
   }
 
   async testHandshakeTiming() {
-    console.log('\n🧪 测试握手时序...');
+    console.warn('\n🧪 测试握手时序...');
     
     try {
       // 1. 测试握手延迟
-      console.log('📝 步骤1: 测试握手延迟');
+      console.warn('📝 步骤1: 测试握手延迟');
       const handshakeDelay = await this.measureHandshakeDelay();
-      console.log(`   握手延迟: ${handshakeDelay}ms`);
+      console.warn(`   握手延迟: ${handshakeDelay}ms`);
 
       // 2. 测试注入时序
-      console.log('📝 步骤2: 测试注入时序');
+      console.warn('📝 步骤2: 测试注入时序');
       const injectionTiming = await this.testInjectionTiming();
-      console.log(`   注入时序: ${injectionTiming.success ? '正常' : '异常'}`);
+      console.warn(`   注入时序: ${injectionTiming.success ? '正常' : '异常'}`);
 
       // 3. 测试消息队列
-      console.log('📝 步骤3: 测试消息队列');
+      console.warn('📝 步骤3: 测试消息队列');
       const queueTest = await this.testMessageQueue();
-      console.log(`   消息队列: ${queueTest.success ? '正常' : '异常'}`);
+      console.warn(`   消息队列: ${queueTest.success ? '正常' : '异常'}`);
 
       this.testResults.push({
         test: 'handshake-timing',
@@ -207,13 +207,13 @@ class SimpleTimingTester {
   }
 
   async testRealTranslationFlow() {
-    console.log('\n🧪 测试真实翻译流程...');
+    console.warn('\n🧪 测试真实翻译流程...');
     
     try {
       // 检查是否有真实API密钥
       const qwenKey = process.env.TEST_QWEN_KEY;
       if (!qwenKey) {
-        console.log('⚠️  未设置TEST_QWEN_KEY，跳过真实API测试');
+        console.warn('⚠️  未设置TEST_QWEN_KEY，跳过真实API测试');
         this.testResults.push({
           test: 'real-translation-flow',
           passed: true,
@@ -222,13 +222,13 @@ class SimpleTimingTester {
         return;
       }
 
-      console.log('📝 步骤1: 测试真实API调用');
+      console.warn('📝 步骤1: 测试真实API调用');
       const apiTest = await this.testRealAPI();
-      console.log(`   API测试: ${apiTest.success ? '成功' : '失败'}`);
+      console.warn(`   API测试: ${apiTest.success ? '成功' : '失败'}`);
 
-      console.log('📝 步骤2: 测试网络延迟');
+      console.warn('📝 步骤2: 测试网络延迟');
       const networkTest = await this.testNetworkLatency();
-      console.log(`   网络测试: ${networkTest.success ? '成功' : '失败'}`);
+      console.warn(`   网络测试: ${networkTest.success ? '成功' : '失败'}`);
 
       this.testResults.push({
         test: 'real-translation-flow',
@@ -288,7 +288,7 @@ class SimpleTimingTester {
   }
 
   async runAllTests() {
-    console.log('🎯 专门测试"首次翻译失败，重试后成功"问题\n');
+    console.warn('🎯 专门测试"首次翻译失败，重试后成功"问题\n');
     
     await this.testColdStartScenario();
     await this.testHandshakeTiming();
@@ -298,41 +298,41 @@ class SimpleTimingTester {
   }
 
   printResults() {
-    console.log('\n📊 时序测试结果汇总');
-    console.log('='.repeat(50));
+    console.warn('\n📊 时序测试结果汇总');
+    console.warn('='.repeat(50));
     
     const passed = this.testResults.filter(r => r.passed).length;
     const total = this.testResults.length;
     
     this.testResults.forEach(result => {
       const status = result.passed ? '✅' : '❌';
-      console.log(`${status} ${result.test}: ${result.passed ? '通过' : '失败'}`);
+      console.warn(`${status} ${result.test}: ${result.passed ? '通过' : '失败'}`);
       
       if (result.error) {
-        console.log(`   错误: ${result.error}`);
+        console.warn(`   错误: ${result.error}`);
       }
       
       if (result.details && !result.details.skipped) {
-        console.log(`   详情: ${JSON.stringify(result.details, null, 2)}`);
+        console.warn(`   详情: ${JSON.stringify(result.details, null, 2)}`);
       }
     });
     
-    console.log('\n📈 测试统计:');
-    console.log(`   总测试数: ${total}`);
-    console.log(`   通过数: ${passed}`);
-    console.log(`   失败数: ${total - passed}`);
-    console.log(`   通过率: ${((passed / total) * 100).toFixed(1)}%`);
+    console.warn('\n📈 测试统计:');
+    console.warn(`   总测试数: ${total}`);
+    console.warn(`   通过数: ${passed}`);
+    console.warn(`   失败数: ${total - passed}`);
+    console.warn(`   通过率: ${((passed / total) * 100).toFixed(1)}%`);
     
     if (passed === total) {
-      console.log('\n🎉 所有时序测试通过！');
+      console.warn('\n🎉 所有时序测试通过！');
     } else {
-      console.log('\n⚠️  发现时序问题，需要修复！');
+      console.warn('\n⚠️  发现时序问题，需要修复！');
       
       // 分析失败原因
       const failedTests = this.testResults.filter(r => !r.passed);
-      console.log('\n🔍 失败原因分析:');
+      console.warn('\n🔍 失败原因分析:');
       failedTests.forEach(test => {
-        console.log(`   - ${test.test}: ${test.error || '未知错误'}`);
+        console.warn(`   - ${test.test}: ${test.error || '未知错误'}`);
       });
     }
   }

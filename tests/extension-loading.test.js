@@ -46,7 +46,8 @@ let testResults = {
  */
 function logTest(name, passed, message = '') {
   const status = passed ? '✅ PASS' : '❌ FAIL';
-  console.log(`${status} ${name}${message ? ': ' + message : ''}`);
+  // eslint-disable-next-line no-console
+    console.log(`${status} ${name}${message ? ': ' + message : ''}`);
   
   if (passed) {
     testResults.passed++;
@@ -113,7 +114,8 @@ function checkImportPaths(code, basePath, description) {
 
 // TC-FI-001: 文件完整性检查
 function testFileIntegrity() {
-  console.log('\n📁 Testing File Integrity...');
+  // eslint-disable-next-line no-console
+    console.log('\n📁 Testing File Integrity...');
   
   let allFilesExist = true;
   
@@ -134,7 +136,8 @@ function testFileIntegrity() {
 
 // TC-MF-001: Manifest语法验证
 function testManifestSyntax() {
-  console.log('\n📋 Testing Manifest Syntax...');
+  // eslint-disable-next-line no-console
+    console.log('\n📋 Testing Manifest Syntax...');
   
   const manifestExists = checkFileExists(TEST_CONFIG.manifestPath, 'Manifest file exists');
   if (!manifestExists) return false;
@@ -147,7 +150,8 @@ function testManifestSyntax() {
 
 // TC-MF-002: Manifest必需字段检查
 function testManifestRequiredFields() {
-  console.log('\n🔍 Testing Manifest Required Fields...');
+  // eslint-disable-next-line no-console
+    console.log('\n🔍 Testing Manifest Required Fields...');
   
   try {
     const manifest = JSON.parse(readFileSync(TEST_CONFIG.manifestPath, 'utf8'));
@@ -177,7 +181,8 @@ function testManifestRequiredFields() {
 
 // TC-MF-003: Service Worker配置检查
 function testServiceWorkerConfiguration() {
-  console.log('\n⚙️ Testing Service Worker Configuration...');
+  // eslint-disable-next-line no-console
+    console.log('\n⚙️ Testing Service Worker Configuration...');
   
   try {
     const manifest = JSON.parse(readFileSync(TEST_CONFIG.manifestPath, 'utf8'));
@@ -209,7 +214,8 @@ function testServiceWorkerConfiguration() {
 
 // TC-SW-001: Service Worker模块导入检查
 function testServiceWorkerImports() {
-  console.log('\n📦 Testing Service Worker Module Imports...');
+  // eslint-disable-next-line no-console
+    console.log('\n📦 Testing Service Worker Module Imports...');
   
   const backgroundExists = checkFileExists(TEST_CONFIG.backgroundPath, 'Background script exists');
   if (!backgroundExists) return false;
@@ -241,7 +247,8 @@ function testServiceWorkerImports() {
 
 // TC-SW-002: Service Worker语法兼容性检查
 function testServiceWorkerSyntaxCompatibility() {
-  console.log('\n🔧 Testing Service Worker Syntax Compatibility...');
+  // eslint-disable-next-line no-console
+    console.log('\n🔧 Testing Service Worker Syntax Compatibility...');
   
   try {
     const backgroundCode = readFileSync(TEST_CONFIG.backgroundPath, 'utf8');
@@ -267,7 +274,8 @@ function testServiceWorkerSyntaxCompatibility() {
 
 // TC-EL-001: 扩展加载状态模拟检查
 function testExtensionLoadingStatus() {
-  console.log('\n🚀 Testing Extension Loading Status...');
+  // eslint-disable-next-line no-console
+    console.log('\n🚀 Testing Extension Loading Status...');
   
   // 模拟检查扩展基本信息
   try {
@@ -299,11 +307,13 @@ function testExtensionLoadingStatus() {
  * 主测试执行函数
  */
 async function runExtensionLoadingTests() {
-  console.log('🧪 Starting Chrome Extension Loading Tests...\n');
+  // eslint-disable-next-line no-console
+    console.log('🧪 Starting Chrome Extension Loading Tests...\n');
   
   // 检查dist目录是否存在
   const distExists = existsSync(TEST_CONFIG.distPath);
   if (!distExists) {
+    // eslint-disable-next-line no-console
     console.log('❌ dist/ directory not found. Please run "npm run build" first.');
     process.exit(1);
   }
@@ -332,22 +342,30 @@ async function runExtensionLoadingTests() {
   }
   
   // 输出测试结果摘要
-  console.log('\n📊 Test Results Summary:');
-  console.log(`✅ Passed: ${testResults.passed}`);
-  console.log(`❌ Failed: ${testResults.failed}`);
-  console.log(`📈 Success Rate: ${((testResults.passed / (testResults.passed + testResults.failed)) * 100).toFixed(1)}%`);
+  // eslint-disable-next-line no-console
+    console.log('\n📊 Test Results Summary:');
+  // eslint-disable-next-line no-console
+    console.log(`✅ Passed: ${testResults.passed}`);
+  // eslint-disable-next-line no-console
+    console.log(`❌ Failed: ${testResults.failed}`);
+  // eslint-disable-next-line no-console
+    console.log(`📈 Success Rate: ${((testResults.passed / (testResults.passed + testResults.failed)) * 100).toFixed(1)}%`);
   
   if (testResults.errors.length > 0) {
+    // eslint-disable-next-line no-console
     console.log('\n🚨 Failed Tests:');
     testResults.errors.forEach(error => {
-      console.log(`  - ${error.name}: ${error.message}`);
+      // eslint-disable-next-line no-console
+    console.log(`  - ${error.name}: ${error.message}`);
     });
   }
   
   if (allTestsPassed) {
+    // eslint-disable-next-line no-console
     console.log('\n🎉 All extension loading tests passed!');
     // 移除process.exit，让vitest处理
   } else {
+    // eslint-disable-next-line no-console
     console.log('\n💥 Some tests failed. Please fix the issues before proceeding.');
     // 移除process.exit，让vitest处理
   }

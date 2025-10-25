@@ -67,7 +67,7 @@ self.addEventListener('unhandledrejection', (event) => {
       return;
     }
     console.error('[qa] unhandled rejection', reason);
-  } catch (e) {
+  } catch (_) {
     console.error('[qa] unhandled rejection');
   }
   event?.preventDefault?.();
@@ -171,7 +171,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     // 立即发送响应，避免 Service Worker 被终止
     try {
       sendResponse({ ok: true, message: '测试已启动' });
-    } catch (e) {
+    } catch (_) {
       console.warn('[qa:test] immediate response failed:', e);
     }
     
@@ -344,7 +344,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     try {
       initializeBackground(chrome);
       sendResponse({ ok: true });
-    } catch (e) {
+    } catch (_) {
       sendResponse({ ok: false, error: e.message });
     }
     return true; // 保持一致
@@ -566,12 +566,12 @@ keepAlive();
 
 // 监听 Service Worker 启动
 chrome.runtime.onStartup.addListener(() => {
-  console.log('[background] Service Worker started');
+  console.warn('[background] Service Worker started');
   keepAlive();
 });
 
 // 监听扩展安装/更新
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('[background] Extension installed/updated');
+  console.warn('[background] Extension installed/updated');
   keepAlive();
 });

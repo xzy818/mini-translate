@@ -349,7 +349,8 @@ describe('生词表重新翻译失败诊断', () => {
     it('应该能够使用临时 Key 进行真实重试测试', async () => {
       const testKey = process.env.TEST_DEEPSEEK_KEY || 'test-key';
       if (testKey === 'test-key') {
-        console.log('跳过真实 API 重试测试：未提供 TEST_DEEPSEEK_KEY 环境变量');
+        // eslint-disable-next-line no-console
+    console.log('跳过真实 API 重试测试：未提供 TEST_DEEPSEEK_KEY 环境变量');
         return;
       }
 
@@ -408,10 +409,12 @@ describe('生词表重新翻译失败诊断', () => {
           const data = await response.json();
           const translation = data.choices[0].message.content.trim();
 
-          console.log('真实重试测试成功，翻译结果:', translation);
+          // eslint-disable-next-line no-console
+    console.log('真实重试测试成功，翻译结果:', translation);
           sendResponse({ ok: true, translation });
         } catch (error) {
-          console.log('真实重试测试失败:', error.message);
+          // eslint-disable-next-line no-console
+    console.log('真实重试测试失败:', error.message);
           // 确保错误消息不包含真实 Key
           expect(error.message).not.toContain(testKey);
           sendResponse({ ok: false, error: error.message || '重新翻译失败' });

@@ -20,7 +20,7 @@ const mockChrome = {
 global.chrome = mockChrome;
 
 // Mock DOM
-const mockDOM = () => {
+const _unused = () => {
   document.body.innerHTML = `
     <div id="vocab-counter">0/500</div>
     <div id="vocab-empty-state" style="display: none;">暂无词条</div>
