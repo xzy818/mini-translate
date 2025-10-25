@@ -16,6 +16,7 @@ Chrome 插件由四个核心部分组成：
    - 直接操作 `chrome.storage.local` 和 `chrome.storage.sync`。
    - 与弹窗共享控制器/模块，作为完整的管理入口。
    - 提供 Google 账号登录状态显示和同步设置。
+   - 支持批量删除词条：提供全选复选框、行内复选框、批量删除按钮，支持用户快速批处理删除词条。
 4. **弹窗快捷面板（`popup.html` + JS）**：
    - 点击扩展图标后出现，提供与 Options 页面相同的核心操作。
    - 复用词库与配置控制器，展示精简 UI 并支持导入导出。
@@ -73,6 +74,7 @@ content script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
   - `setVocabulary(list)`: 写前校验条目与上限。
   - `appendTerm(term)`: 去重（大小写敏感策略）并返回状态码。
   - `removeTerm(term)`: 删除指定原文。
+  - `removeTerms(terms)`: 批量删除指定原文列表。
   - `getSettings()` / `setSettings()`：读写 API 配置。
   - `syncVocabulary()`: 同步词库到云端。
   - `resolveConflicts()`: 处理数据冲突。
@@ -112,6 +114,7 @@ content script 接收到指令 → 初始化词库缓存 → 遍历 DOM 替换�
 ## 4. UI 与交互
 - Options/弹窗 使用原生 Web 组件或轻量框架（默认为原生）。
 - 词库表顶部显示计数（`n/500`），超限后禁用添加按钮。
+- 词库表支持批量删除：提供全选复选框、行内复选框、批量删除按钮，支持用户快速批处理删除词条。
 - API 设置模块提供：模型下拉、Base URL、Key（星号遮挡 + 查看按钮）。
 - 导入导出按钮放在词表区域右上角，导入时给出浮层反馈。
 - Google 同步模块：

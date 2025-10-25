@@ -248,6 +248,23 @@ class ChromeStorageClient {
     return { removed: true, list: next };
   }
 
+  async removeTerms(terms) {
+    const current = await this.getVocabulary();
+    const next = current.filter((item) => !terms.includes(item.term));
+    if (next.length === current.length) {
+      return { removed: false, list: current };
+    }
+    await this.setVocabulary(next);
+    try {
+      if (this.chrome.runtime && typeof this.chrome.runtime.sendMessage === 'function') {
+        this.chrome.runtime.sendMessage({ type: 'VOCAB_UPDATED', payload: { removed: terms } });
+      }
+    } catch (error) {
+      console.warn('VOCAB_UPDATED message failed', error);
+    }
+    return { removed: true, list: next };
+  }
+
   subscribe(callback) {
     if (!this.chrome?.storage?.onChanged?.addListener) {
       return () => {};
@@ -287,6 +304,14 @@ class MemoryStorageClient {
 
   async removeTerm(term) {
     const next = this.list.filter((item) => item.term !== term);
+    const removed = next.length !== this.list.length;
+    this.list = next;
+    this.listeners.forEach((listener) => listener([...this.list]));
+    return { removed, list: [...this.list] };
+  }
+
+  async removeTerms(terms) {
+    const next = this.list.filter((item) => !terms.includes(item.term));
     const removed = next.length !== this.list.length;
     this.list = next;
     this.listeners.forEach((listener) => listener([...this.list]));
@@ -447,6 +472,16 @@ export function createVocabularyManager({
     items.forEach((item) => {
       const row = document.createElement('tr');
       row.dataset.term = item.term;
+      
+      // 添加复选框
+      const checkboxCell = document.createElement('td');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'vocab-checkbox';
+      checkbox.dataset.term = item.term;
+      checkboxCell.appendChild(checkbox);
+      row.appendChild(checkboxCell);
+      
       row.appendChild(createCell(item.term || '—'));
       row.appendChild(createCell(item.translation || '—'));
       row.appendChild(createCell(item.type === 'phrase' ? '短语' : '单词'));
@@ -546,6 +581,32 @@ export function createVocabularyManager({
       }
     });
 
+    // 全选复选框事件
+    const selectAllCheckbox = document.getElementById('select-all');
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener('change', (e) => {
+        const checkboxes = document.querySelectorAll('.vocab-checkbox');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = e.target.checked;
+        });
+        updateBatchDeleteButton();
+      });
+    }
+
+    // 批量删除按钮事件
+    const batchDeleteButton = document.getElementById('batch-delete');
+    if (batchDeleteButton) {
+      batchDeleteButton.addEventListener('click', handleBatchDelete);
+    }
+
+    // 单个复选框事件
+    document.addEventListener('change', (e) => {
+      if (e.target.classList.contains('vocab-checkbox')) {
+        updateBatchDeleteButton();
+        updateSelectAllCheckbox();
+      }
+    });
+
     if (storage && typeof storage.subscribe === 'function') {
       unsubscribe = storage.subscribe((list) => {
         state.items = list;
@@ -555,6 +616,61 @@ export function createVocabularyManager({
         }
         render();
       });
+    }
+  }
+
+  function updateBatchDeleteButton() {
+    const batchDeleteButton = document.getElementById('batch-delete');
+    if (batchDeleteButton) {
+      const checkedBoxes = document.querySelectorAll('.vocab-checkbox:checked');
+      if (checkedBoxes.length > 0) {
+        batchDeleteButton.style.display = 'inline-block';
+        batchDeleteButton.textContent = `批量删除 (${checkedBoxes.length})`;
+      } else {
+        batchDeleteButton.style.display = 'none';
+      }
+    }
+  }
+
+  function updateSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    if (selectAllCheckbox) {
+      const checkboxes = document.querySelectorAll('.vocab-checkbox');
+      const checkedBoxes = document.querySelectorAll('.vocab-checkbox:checked');
+      selectAllCheckbox.checked = checkboxes.length > 0 && checkboxes.length === checkedBoxes.length;
+      selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < checkboxes.length;
+    }
+  }
+
+  async function handleBatchDelete() {
+    const checkedBoxes = document.querySelectorAll('.vocab-checkbox:checked');
+    if (checkedBoxes.length === 0) return;
+    
+    const terms = Array.from(checkedBoxes).map(checkbox => checkbox.dataset.term);
+    const ok = confirmFn(`确定要删除选中的 ${terms.length} 个词条吗？该操作不可恢复。`);
+    if (!ok) return;
+    
+    try {
+      const result = await storage.removeTerms(terms);
+      if (!result.removed) {
+        showAlert('未找到对应词条，可能已被其他页面删除。', 'info');
+        state.items = state.items.filter((item) => !terms.includes(item.term));
+      } else {
+        showAlert(`已删除 ${terms.length} 个词条。`, 'success');
+        state.items = normalizeList(result.list);
+      }
+      if (!state.items.length) {
+        state.page = 1;
+      } else {
+        const { totalPages } = paginate(state.items, state.page, pageSize);
+        if (state.page > totalPages) {
+          state.page = totalPages;
+        }
+      }
+      render();
+    } catch (error) {
+      console.error('批量删除词条失败', error);
+      showAlert('批量删除失败，请稍后再试。', 'error');
     }
   }
 

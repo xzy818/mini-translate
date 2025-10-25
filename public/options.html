@@ -320,6 +320,9 @@
         <table class="vocab-table">
           <thead>
             <tr>
+              <th scope="col">
+                <input type="checkbox" id="select-all" />
+              </th>
               <th scope="col">原文</th>
               <th scope="col">译文</th>
               <th scope="col">类型</th>
@@ -336,6 +339,7 @@
         <button type="button" class="btn btn-secondary" id="vocab-prev">上一页</button>
         <span class="page-info" id="vocab-page-info">第 1 / 1 页</span>
         <button type="button" class="btn btn-secondary" id="vocab-next">下一页</button>
+        <button type="button" class="btn btn-danger" id="batch-delete" style="display: none;">批量删除</button>
       </footer>
     </section>
 
