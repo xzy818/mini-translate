@@ -13,6 +13,7 @@
     "build": "bash scripts/build-zip.sh",
     "dev": "vitest --watch",
     "lint": "eslint .",
+    "lint:ci": "eslint . -f json -o eslint-report.json && node scripts/generate-eslint-html.js",
     "render:icons": "node scripts/render-icons.js",
     "lint:fix": "eslint . --fix",
     "validate": "npm run lint && npm run test"
