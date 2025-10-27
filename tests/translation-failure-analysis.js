@@ -4,7 +4,6 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 /**
  * 失败根因分析器
@@ -406,7 +405,6 @@ export class ReportGenerator {
 }
 
 export default TranslationFailureAnalyzer;
-
 
 
 

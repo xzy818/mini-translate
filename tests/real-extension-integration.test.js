@@ -3,6 +3,7 @@
  * 测试完整的扩展流程，包括URL映射、消息路由、Service Worker等
  */
 
+/* eslint-disable no-unused-vars */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';

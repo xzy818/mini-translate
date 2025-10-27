@@ -6,8 +6,7 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { existsSync } from 'fs';
 
 // eslint-disable-next-line no-console
     console.log('🧪 开始运行综合测试套件...\n');

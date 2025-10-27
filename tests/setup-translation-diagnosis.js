@@ -81,7 +81,6 @@ global.chrome = {
 global.jest = vi;
 
 // Mock fetch with 安全日志记录
-const _unused = global.fetch;
 global.fetch = vi.fn().mockImplementation(async (url, options) => {
   // 记录请求但不包含真实 Key
   const maskedOptions = { ...options };

@@ -10,7 +10,7 @@ import {
   __setTranslateTextImplementation,
   __resetTranslateTextImplementation
 } from '../src/services/context-menu.js';
-import { setTemporaryKey, getTemporaryKey, clearTemporaryKeys, maskKey } from './setup-translation-diagnosis.js';
+import { setTemporaryKey, getTemporaryKey, clearTemporaryKeys } from './setup-translation-diagnosis.js';
 
 describe('网页翻译失败诊断', () => {
   let consoleSpy;

@@ -3,6 +3,7 @@
  * 测试从用户操作到翻译结果的完整流程
  */
 
+/* eslint-disable no-unused-vars */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';

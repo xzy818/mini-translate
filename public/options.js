@@ -7,7 +7,6 @@ import {
 } from '../src/services/vocab-io.js';
 import { googleAuthService } from '../src/services/google-auth.js';
 import { cloudSyncService } from '../src/services/cloud-sync.js';
-import { conflictResolverService } from '../src/services/conflict-resolver.js';
 
 const PAGE_SELECTORS = {
   counter: 'vocab-counter',
@@ -89,22 +88,6 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   const hasChrome = Boolean(chromeLike?.storage?.local);
 
-  // 根据模型自动匹配默认 Base URL（用户可自行修改）
-  function getDefaultBaseUrlByModel(model) {
-    switch (model) {
-      case 'deepseek-v3':
-        return 'https://api.deepseek.com';
-      case 'qwen-mt-turbo':
-      case 'qwen-mt-plus':
-        // 兼容 OpenAI 风格路径，内部会在请求时补齐 /v1/chat/completions
-        return 'https://dashscope.aliyuncs.com/compatible-mode';
-      case 'gpt-4o-mini':
-        return 'https://api.openai.com';
-      default:
-        return '';
-    }
-  }
-
   async function load() {
     if (!hasChrome) return;
     if (!modelEl || !keyEl) {
@@ -172,7 +155,6 @@ export function createSettingsController({ chromeLike, notify, elements }) {
 
   // 测试状态管理
   let isTestRunning = false;
-  let _ = null;
 
   async function testConnection() {
     if (!hasChrome) {
@@ -495,7 +477,7 @@ export function initSettings(chromeLike, notify) {
   // 动态构建模型下拉（按提供商分组；当总数>10时使用optgroup）
   try {
     const build = async () => {
-      const { getAllSupportedModels, MODEL_PROVIDERS } = await import('../src/config/model-providers.js');
+      const { MODEL_PROVIDERS } = await import('../src/config/model-providers.js');
       const select = settingsElements.model;
       if (!select) return;
       // 清理除第一个占位项以外的所有项

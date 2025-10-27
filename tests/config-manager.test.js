@@ -60,7 +60,6 @@ const createChromeStub = ({
         _bag: bag,
         get: vi.fn((keys, cb) => {
           if (chromeStub.runtime.lastError) {
-            const err = chromeStub.runtime.lastError;
             chromeStub.runtime.lastError = null;
             return cb({});
           }
@@ -205,4 +204,3 @@ describe('ConfigManager queries/clear operations', () => {
     expect(stats.initialized).toBe(true);
   });
 });
-

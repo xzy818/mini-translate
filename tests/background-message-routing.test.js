@@ -107,40 +107,13 @@ const mockBackgroundMessageHandler = () => {
   };
 };
 
-// 模拟Chrome API
-const mockChromeAPI = () => {
-  return {
-    runtime: {
-      onMessage: {
-        addListener: vi.fn(),
-        removeListener: vi.fn()
-      },
-      sendMessage: vi.fn(),
-      lastError: null
-    },
-    storage: {
-      local: {
-        get: vi.fn(),
-        set: vi.fn()
-      }
-    },
-    contextMenus: {
-      create: vi.fn(),
-      remove: vi.fn(),
-      removeAll: vi.fn()
-    }
-  };
-};
-
 describe('Background Message Routing Tests', () => {
   let messageHandler;
-  let chromeAPI;
   let sendResponse;
 
   beforeEach(() => {
     vi.clearAllMocks();
     messageHandler = mockBackgroundMessageHandler();
-    chromeAPI = mockChromeAPI();
     sendResponse = vi.fn();
   });
 

@@ -90,7 +90,7 @@ describe('生词表重新翻译失败诊断', () => {
             });
           });
 
-          const { model, apiKey } = settings;
+          const { apiKey } = settings;
           const apiBaseUrl = 'https://api.deepseek.com'; // 模拟映射逻辑
 
           if (!model || !apiKey || !apiBaseUrl) {
@@ -380,7 +380,7 @@ describe('生词表重新翻译失败诊断', () => {
             });
           });
 
-          const { model, apiKey } = settings;
+          const { apiKey } = settings;
           const apiBaseUrl = 'https://api.deepseek.com';
 
           // 真实 API 调用

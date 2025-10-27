@@ -197,19 +197,7 @@ describe('配置管理测试翻译诊断', () => {
 
   describe('后台配置测试消息处理', () => {
     it('应该处理 TEST_TRANSLATOR_SETTINGS 消息', async () => {
-      const mockChrome = {
-        storage: {
-          local: {
-            get: vi.fn(),
-            set: vi.fn()
-          }
-        },
-        runtime: {
-          sendMessage: vi.fn()
-        }
-      };
-
-      // Mock 配置验证
+     // Mock 配置验证
       const config = {
         model: 'deepseek-v3',
         apiKey: 'test-key',

@@ -6,7 +6,7 @@
  * 在真实Chrome环境中验证扩展实际加载和注册
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';

@@ -81,12 +81,11 @@ const mockAIApiFrontend = () => {
 };
 
 describe('AI Config Page Integration Tests', () => {
-  let mockDOM;
   let mockAIApi;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockDOM = mockAIConfigDOM();
+    mockAIConfigDOM();
     mockAIApi = mockAIApiFrontend();
   });
 
