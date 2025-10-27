@@ -290,17 +290,21 @@ class CloudSyncService {
    */
   async detectSettingsConflicts(localSettings, cloudSettings) {
     const conflicts = [];
-    
+    const safeLocalSettings = localSettings || {};
+    const safeCloudSettings = cloudSettings || {};
+
     // 检查关键设置冲突
     const criticalSettings = ['aiProvider', 'apiKey', 'targetLanguage'];
     
     for (const setting of criticalSettings) {
-      if (localSettings[setting] !== cloudSettings[setting]) {
+      const localValue = safeLocalSettings[setting];
+      const cloudValue = safeCloudSettings[setting];
+      if (localValue !== cloudValue && (localValue !== undefined || cloudValue !== undefined)) {
         conflicts.push({
           type: 'settings',
           key: setting,
-          local: localSettings[setting],
-          cloud: cloudSettings[setting],
+          local: localValue,
+          cloud: cloudValue,
           conflictType: 'value_mismatch'
         });
       }
@@ -414,6 +418,35 @@ class CloudSyncService {
       
     } catch (error) {
       console.error('上传数据失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 从Chrome同步存储下载数据
+   */
+  async downloadData() {
+    try {
+      console.warn('从Chrome同步存储下载数据...');
+
+      if (!chrome?.storage?.sync?.get) {
+        throw new Error('Chrome 同步存储不可用');
+      }
+
+      const { syncKeys } = OAuthConfig.storage;
+      const response = await chrome.storage.sync.get([
+        syncKeys.vocabulary,
+        syncKeys.settings,
+        syncKeys.syncMetadata
+      ]);
+
+      return {
+        vocabulary: response[syncKeys.vocabulary] || { items: [] },
+        settings: response[syncKeys.settings] || {},
+        syncMetadata: response[syncKeys.syncMetadata] || {}
+      };
+    } catch (error) {
+      console.error('从Chrome同步存储下载数据失败:', error);
       throw error;
     }
   }
@@ -636,7 +669,7 @@ class CloudSyncService {
 }
 
 // 创建单例实例
-const cloudSyncService = new CloudSyncService();
+export const cloudSyncService = new CloudSyncService();
 
 // 导出服务实例
 export default cloudSyncService;

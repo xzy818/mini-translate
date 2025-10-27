@@ -20,7 +20,7 @@ const mockChrome = {
 global.chrome = mockChrome;
 
 // Mock DOM
-const _unused = () => {
+const mockDOM = () => {
   document.body.innerHTML = `
     <div id="vocab-counter">0/500</div>
     <div id="vocab-empty-state" style="display: none;">暂无词条</div>
@@ -64,8 +64,14 @@ describe('批量删除功能测试', () => {
       { term: 'test', translation: '测试', type: 'word', createdAt: Date.now() }
     ];
 
-    mockChrome.storage.local.get.mockResolvedValue({ vocabulary: mockVocabulary });
-    mockChrome.storage.local.set.mockResolvedValue();
+    mockChrome.storage.local.get.mockImplementation((defaults, callback) => {
+      callback({ miniTranslateVocabulary: mockVocabulary });
+    });
+    mockChrome.storage.local.set.mockImplementation((payload, callback) => {
+      if (typeof callback === 'function') {
+        callback();
+      }
+    });
 
     // 动态导入模块
     const { createStorageClient, createVocabularyManager } = await import('../public/vocab-ui.js');
@@ -100,8 +106,8 @@ describe('批量删除功能测试', () => {
     checkboxes[1].checked = true;
 
     // 触发change事件
-    checkboxes[0].dispatchEvent(new Event('change'));
-    checkboxes[1].dispatchEvent(new Event('change'));
+    checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
+    checkboxes[1].dispatchEvent(new Event('change', { bubbles: true }));
 
     // 等待批量删除按钮显示
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -132,8 +138,14 @@ describe('批量删除功能测试', () => {
       { term: 'world', translation: '世界', type: 'word', createdAt: Date.now() }
     ];
 
-    mockChrome.storage.local.get.mockResolvedValue({ vocabulary: mockVocabulary });
-    mockChrome.storage.local.set.mockResolvedValue();
+    mockChrome.storage.local.get.mockImplementation((defaults, callback) => {
+      callback({ miniTranslateVocabulary: mockVocabulary });
+    });
+    mockChrome.storage.local.set.mockImplementation((payload, callback) => {
+      if (typeof callback === 'function') {
+        callback();
+      }
+    });
 
     const { createStorageClient, createVocabularyManager } = await import('../public/vocab-ui.js');
     
@@ -179,8 +191,14 @@ describe('批量删除功能测试', () => {
       { term: 'hello', translation: '你好', type: 'word', createdAt: Date.now() }
     ];
 
-    mockChrome.storage.local.get.mockResolvedValue({ vocabulary: mockVocabulary });
-    mockChrome.storage.local.set.mockResolvedValue();
+    mockChrome.storage.local.get.mockImplementation((defaults, callback) => {
+      callback({ miniTranslateVocabulary: mockVocabulary });
+    });
+    mockChrome.storage.local.set.mockImplementation((payload, callback) => {
+      if (typeof callback === 'function') {
+        callback();
+      }
+    });
 
     const { createStorageClient, createVocabularyManager } = await import('../public/vocab-ui.js');
     
@@ -215,11 +233,11 @@ describe('批量删除功能测试', () => {
     expect(checkbox).toBeTruthy();
     
     checkbox.checked = true;
-    checkbox.dispatchEvent(new Event('change'));
+    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
 
     // 等待事件处理完成
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    expect(batchDeleteBtn.style.display).toBe('');
+    expect(batchDeleteBtn.style.display).toBe('inline-block');
   });
 });

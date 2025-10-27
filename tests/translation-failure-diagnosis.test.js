@@ -297,7 +297,7 @@ describe('网页翻译失败诊断', () => {
         expect(typeof result).toBe('string');
         // eslint-disable-next-line no-console
     console.log('真实 API 测试成功，翻译结果:', result);
-      } catch (_) {
+      } catch (error) {
         // eslint-disable-next-line no-console
     console.log('真实 API 测试失败:', error.message);
         // 记录失败但不暴露 Key

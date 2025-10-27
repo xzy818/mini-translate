@@ -69,7 +69,7 @@ class GoogleAuthService {
         this.notifyAuthStateChange(true);
         
         console.warn('Google认证成功');
-        return true;
+        return token;
       } else {
         throw new Error('认证失败：未获取到访问令牌');
       }
@@ -164,6 +164,7 @@ class GoogleAuthService {
    * 获取认证状态
    */
   async getAuthStatus() {
+    await this.checkAuthStatus();
     return this.isAuthenticated;
   }
 
@@ -174,10 +175,24 @@ class GoogleAuthService {
     try {
       console.warn('开始用户登出...');
       
-      if (this.accessToken) {
-        // 撤销访问令牌
-        await this.revokeToken(this.accessToken);
+      let token = this.accessToken;
+      if (!token) {
+        try {
+          token = await this.getAuthToken(false);
+        } catch (error) {
+          console.warn('读取访问令牌失败:', error.message);
+        }
       }
+
+      if (!token) {
+        console.warn('没有可撤销的访问令牌');
+        await this.clearAuthState();
+        this.notifyAuthStateChange(false);
+        return false;
+      }
+
+      // 撤销访问令牌
+      await this.revokeToken(token);
       
       // 清除本地状态
       this.isAuthenticated = false;
@@ -256,6 +271,11 @@ class GoogleAuthService {
   onSignInChanged(callback) {
     if (typeof callback === 'function') {
       this.authListeners.push(callback);
+      try {
+        chrome.identity?.onSignInChanged?.addListener?.(callback);
+      } catch (error) {
+        console.error('注册Chrome认证监听器失败:', error);
+      }
     }
   }
 
@@ -284,6 +304,11 @@ class GoogleAuthService {
         timestamp: Date.now()
       };
       
+      if (!chrome?.storage?.local?.set) {
+        console.warn('storage.local.set 不可用，跳过保存认证状态');
+        return;
+      }
+
       await chrome.storage.local.set({ authState });
       
     } catch (error) {
@@ -296,6 +321,11 @@ class GoogleAuthService {
    */
   async clearAuthState() {
     try {
+      if (!chrome?.storage?.local?.remove) {
+        console.warn('storage.local.remove 不可用，跳过清理认证状态');
+        return;
+      }
+
       await chrome.storage.local.remove(['authState']);
       
     } catch (error) {
@@ -308,6 +338,11 @@ class GoogleAuthService {
    */
   async loadAuthState() {
     try {
+      if (!chrome?.storage?.local?.get) {
+        console.warn('storage.local.get 不可用，无法加载认证状态');
+        return;
+      }
+
       const result = await chrome.storage.local.get(['authState']);
       
       if (result.authState) {
@@ -453,7 +488,7 @@ class GoogleAuthService {
 }
 
 // 创建单例实例
-const googleAuthService = new GoogleAuthService();
+export const googleAuthService = new GoogleAuthService();
 
 // 导出服务实例
 export default googleAuthService;

@@ -120,7 +120,7 @@ async function stopChrome() {
       if (error) // eslint-disable-next-line no-console
     console.log('Chrome cleanup error:', error.message);
     });
-  } catch (_) {
+  } catch (error) {
     // eslint-disable-next-line no-console
     console.log('Chrome cleanup error:', error.message);
   }
@@ -186,7 +186,7 @@ async function testChromeStartupAndExtensionLoading() {
     logTest('Chrome debug port accessible', chromeStarted, chromeStarted ? '' : 'Chrome debug port not accessible');
     
     return chromeStarted;
-  } catch (_) {
+  } catch (error) {
     logTest('Chrome startup and extension loading', false, `Error: ${error.message}`);
     return false;
   }
@@ -207,7 +207,7 @@ async function testExtensionIdRetrieval() {
     }
     
     return extensionIdFound;
-  } catch (_) {
+  } catch (error) {
     logTest('Extension ID retrieval', false, `Error: ${error.message}`);
     return false;
   }
@@ -231,7 +231,7 @@ async function testServiceWorkerRegistration() {
     }
     
     return swRegistered;
-  } catch (_) {
+  } catch (error) {
     logTest('Service Worker registration', false, `Error: ${error.message}`);
     return false;
   }
@@ -256,7 +256,7 @@ async function testExtensionPermissionsAndConfig() {
     }
     
     return extensionFound;
-  } catch (_) {
+  } catch (error) {
     logTest('Extension permissions and config', false, `Error: ${error.message}`);
     return false;
   }
@@ -297,7 +297,7 @@ async function testExtensionLoadingErrors() {
     }
     
     return !hasErrors;
-  } catch (_) {
+  } catch (error) {
     logTest('Extension loading error analysis', false, `Error: ${error.message}`);
     return false;
   }
@@ -334,7 +334,7 @@ async function runExtensionLoadingVerificationTestsV3() {
       try {
         const result = await test.fn();
         if (!result) allTestsPassed = false;
-      } catch (_) {
+      } catch (error) {
         logTest(test.name, false, `Test execution error: ${error.message}`);
         allTestsPassed = false;
       }

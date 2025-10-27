@@ -14,8 +14,21 @@ describe('GoogleAuthService', () => {
       },
       runtime: {
         lastError: null
+      },
+      storage: {
+        local: {
+          get: jest.fn().mockResolvedValue({}),
+          set: jest.fn().mockResolvedValue(),
+          remove: jest.fn().mockResolvedValue()
+        }
       }
     };
+
+    // 重置认证服务状态，避免测试之间相互影响
+    googleAuthService.isAuthenticated = false;
+    googleAuthService.accessToken = null;
+    googleAuthService.userInfo = null;
+    googleAuthService.authListeners = [];
   });
 
   afterEach(() => {

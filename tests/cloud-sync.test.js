@@ -1,5 +1,7 @@
 // tests/cloud-sync.test.js
+import { vi } from 'vitest';
 import { cloudSyncService } from '../src/services/cloud-sync.js';
+import { googleAuthService } from '../src/services/google-auth.js';
 
 describe('CloudSyncService', () => {
   beforeEach(() => {
@@ -7,19 +9,26 @@ describe('CloudSyncService', () => {
     global.chrome = {
       storage: {
         local: {
-          get: jest.fn(),
-          set: jest.fn()
+          get: jest.fn().mockResolvedValue({}),
+          set: jest.fn().mockResolvedValue(),
+          remove: jest.fn().mockResolvedValue()
         },
         sync: {
-          get: jest.fn(),
-          set: jest.fn()
+          get: jest.fn().mockResolvedValue({}),
+          set: jest.fn().mockResolvedValue()
         }
       }
     };
+
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+
+    googleAuthService.isUserAuthenticated = jest.fn(() => true);
+    googleAuthService.getAccessToken = jest.fn(() => 'mock-access-token');
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('syncData', () => {
@@ -42,20 +51,21 @@ describe('CloudSyncService', () => {
       chrome.storage.local.get.mockResolvedValue(mockLocalData);
       chrome.storage.sync.get.mockResolvedValue(mockCloudData);
 
-      // Mock the service methods
-      cloudSyncService.detectConflicts = jest.fn().mockResolvedValue([]);
-      cloudSyncService.mergeData = jest.fn().mockResolvedValue({
+      const detectSpy = vi.spyOn(cloudSyncService, 'detectConflicts').mockResolvedValue([]);
+      const mergeSpy = vi.spyOn(cloudSyncService, 'mergeData').mockResolvedValue({
         vocabulary: {
           items: [...mockLocalData.vocabulary.items, ...mockCloudData.vocabulary.items]
         }
       });
-      cloudSyncService.uploadData = jest.fn().mockResolvedValue();
-      cloudSyncService.downloadData = jest.fn().mockResolvedValue(mockCloudData);
+      const uploadSpy = vi.spyOn(cloudSyncService, 'uploadData').mockResolvedValue();
+      const getCloudSpy = vi.spyOn(cloudSyncService, 'getCloudData').mockResolvedValue(mockCloudData);
 
       await cloudSyncService.syncData();
 
-      expect(cloudSyncService.detectConflicts).toHaveBeenCalled();
-      expect(cloudSyncService.mergeData).toHaveBeenCalled();
+      expect(detectSpy).toHaveBeenCalled();
+      expect(mergeSpy).toHaveBeenCalled();
+      expect(uploadSpy).toHaveBeenCalled();
+      expect(getCloudSpy).toHaveBeenCalled();
     });
   });
 
@@ -139,10 +149,16 @@ describe('CloudSyncService', () => {
           items: [
             { term: 'cloud', translation: '云端', lastModified: Date.now() }
           ]
-        }
+        },
+        settings: { theme: 'dark' },
+        syncMetadata: { lastModified: Date.now(), source: 'chrome.sync' }
       };
 
-      chrome.storage.sync.get.mockResolvedValue(mockCloudData);
+      chrome.storage.sync.get.mockResolvedValue({
+        vocabulary: mockCloudData.vocabulary,
+        settings: mockCloudData.settings,
+        syncMetadata: mockCloudData.syncMetadata
+      });
       const downloadedData = await cloudSyncService.downloadData();
       expect(downloadedData).toEqual(mockCloudData);
     });

@@ -171,8 +171,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     // 立即发送响应，避免 Service Worker 被终止
     try {
       sendResponse({ ok: true, message: '测试已启动' });
-    } catch (_) {
-      console.warn('[qa:test] immediate response failed:', e);
+    } catch (error) {
+      console.warn('[qa:test] immediate response failed:', error);
     }
     
     // 异步执行测试，但不依赖 sendResponse
@@ -344,8 +344,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     try {
       initializeBackground(chrome);
       sendResponse({ ok: true });
-    } catch (_) {
-      sendResponse({ ok: false, error: e.message });
+    } catch (error) {
+      sendResponse({ ok: false, error: error.message });
     }
     return true; // 保持一致
   }

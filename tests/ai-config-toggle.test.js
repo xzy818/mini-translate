@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // 模拟 DOM 环境
-const _unused = () => {
+const mockDOM = () => {
   const mockElement = {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),

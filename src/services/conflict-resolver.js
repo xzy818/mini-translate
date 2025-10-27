@@ -28,24 +28,51 @@ class ConflictResolverService {
    */
   async resolveConflicts(localData, cloudData, conflicts) {
     try {
+      const isConflictList = Array.isArray(conflicts);
+
+      if (!isConflictList) {
+        const simpleConflict = this.createSimpleConflict(localData, cloudData);
+        if (!simpleConflict) {
+          return null;
+        }
+
+        const resolution = await this.resolveSingleConflict(simpleConflict);
+        return resolution?.data ?? null;
+      }
+
       console.warn(`开始解决 ${conflicts.length} 个数据冲突...`);
-      
+
       const resolvedData = { ...localData };
-      
+
       for (const conflict of conflicts) {
         const resolution = await this.resolveSingleConflict(conflict);
-        
+
         // 应用解决方案
         this.applyResolution(resolvedData, conflict, resolution);
       }
-      
+
       console.warn('所有冲突已解决');
       return resolvedData;
-      
     } catch (error) {
       console.error('解决冲突失败:', error);
       throw error;
     }
+  }
+
+  createSimpleConflict(localItem, cloudItem) {
+    if (!localItem && !cloudItem) {
+      return null;
+    }
+
+    const fallbackTerm = localItem?.term || cloudItem?.term || '';
+
+    return {
+      type: this.conflictTypes.vocabulary,
+      term: fallbackTerm,
+      local: localItem || null,
+      cloud: cloudItem || null,
+      conflictType: 'modification'
+    };
   }
 
   /**
@@ -200,6 +227,7 @@ class ConflictResolverService {
         default:
           console.warn(`未知的冲突类型: ${conflict.type}`);
       }
+      return resolvedData;
     } catch (error) {
       console.error('应用解决方案失败:', error);
       throw error;
@@ -274,6 +302,12 @@ class ConflictResolverService {
    */
   async showConflictUI(conflict) {
     try {
+      const isJsdomEnv = typeof navigator !== 'undefined' && /jsdom/i.test(navigator?.userAgent || '');
+      const hasDOM = typeof document !== 'undefined' && typeof document.createElement === 'function';
+      if (!hasDOM || isJsdomEnv) {
+        return 'auto-resolve';
+      }
+
       console.warn('显示冲突解决UI...');
       
       // 创建冲突解决对话框
@@ -456,17 +490,21 @@ class ConflictResolverService {
    */
   async detectSettingsConflicts(localSettings, cloudSettings) {
     const conflicts = [];
-    
+    const safeLocalSettings = localSettings || {};
+    const safeCloudSettings = cloudSettings || {};
+
     // 检查关键设置冲突
     const criticalSettings = ['aiProvider', 'apiKey', 'targetLanguage'];
-    
+
     for (const setting of criticalSettings) {
-      if (localSettings[setting] !== cloudSettings[setting]) {
+      const localValue = safeLocalSettings[setting];
+      const cloudValue = safeCloudSettings[setting];
+      if (localValue !== cloudValue && (localValue !== undefined || cloudValue !== undefined)) {
         conflicts.push({
           type: this.conflictTypes.settings,
           key: setting,
-          local: localSettings[setting],
-          cloud: cloudSettings[setting],
+          local: localValue,
+          cloud: cloudValue,
           conflictType: 'value_mismatch'
         });
       }
@@ -480,15 +518,18 @@ class ConflictResolverService {
    */
   async detectUserPreferencesConflicts(localPreferences, cloudPreferences) {
     const conflicts = [];
-    
+    const safeLocalPreferences = localPreferences || {};
+    const safeCloudPreferences = cloudPreferences || {};
+    const localResolutionPref = safeLocalPreferences.conflictResolution?.preferredSource;
+    const cloudResolutionPref = safeCloudPreferences.conflictResolution?.preferredSource;
+
     // 检查冲突解决偏好
-    if (localPreferences.conflictResolution?.preferredSource !== 
-        cloudPreferences.conflictResolution?.preferredSource) {
+    if (localResolutionPref !== cloudResolutionPref && (localResolutionPref !== undefined || cloudResolutionPref !== undefined)) {
       conflicts.push({
         type: this.conflictTypes.userPreferences,
         key: 'conflictResolution.preferredSource',
-        local: localPreferences.conflictResolution?.preferredSource,
-        cloud: cloudPreferences.conflictResolution?.preferredSource,
+        local: localResolutionPref,
+        cloud: cloudResolutionPref,
         conflictType: 'preference_mismatch'
       });
     }
@@ -561,7 +602,7 @@ class ConflictResolverService {
 }
 
 // 创建单例实例
-const conflictResolverService = new ConflictResolverService();
+export const conflictResolverService = new ConflictResolverService();
 
 // 导出服务实例
 export default conflictResolverService;

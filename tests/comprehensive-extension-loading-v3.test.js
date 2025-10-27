@@ -80,7 +80,7 @@ function checkJSONSyntax(filePath, description) {
     JSON.parse(content);
     logTest('l1', description, true);
     return true;
-  } catch (_) {
+  } catch (error) {
     logTest('l1', description, false, `JSON syntax error: ${error.message}`);
     return false;
   }
@@ -144,7 +144,7 @@ async function stopChrome() {
       if (error) // eslint-disable-next-line no-console
     console.log('Chrome cleanup error:', error.message);
     });
-  } catch (_) {
+  } catch (error) {
     // eslint-disable-next-line no-console
     console.log('Chrome cleanup error:', error.message);
   }
@@ -244,7 +244,7 @@ function testL2EnvironmentCompatibility() {
     logTest('l2', 'No import statements', !hasImportStatements, hasImportStatements ? 'Found import statements (incompatible with Service Worker)' : '');
     
     return !hasTypeModule && hasImportScripts && !hasImportStatements;
-  } catch (_) {
+  } catch (error) {
     logTest('l2', 'Environment compatibility', false, `Error: ${error.message}`);
     return false;
   }
@@ -296,7 +296,7 @@ async function testL3ExtensionLoadingVerification() {
     logTest('l3', 'Extension found in Chrome', extensionFound, extensionFound ? `Title: ${miniTranslate.title}` : 'Extension not found');
     
     return chromeStarted && extensionIdFound && swRegistered && extensionFound;
-  } catch (_) {
+  } catch (error) {
     logTest('l3', 'Extension loading verification', false, `Error: ${error.message}`);
     return false;
   }

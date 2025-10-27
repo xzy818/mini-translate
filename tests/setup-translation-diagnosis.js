@@ -48,7 +48,20 @@ global.chrome = {
   runtime: {
     sendMessage: vi.fn(),
     onMessage: { addListener: vi.fn() },
-    lastError: null
+    lastError: null,
+    getManifest: vi.fn(() => ({
+      oauth2: {
+        client_id: 'TEST_CLIENT_ID',
+        scopes: ['openid', 'email', 'profile']
+      }
+    }))
+  },
+  identity: {
+    getAuthToken: vi.fn(),
+    removeCachedAuthToken: vi.fn(),
+    onSignInChanged: {
+      addListener: vi.fn()
+    }
   },
   storage: {
     local: {
@@ -63,6 +76,9 @@ global.chrome = {
     create: vi.fn()
   }
 };
+
+// 提供与 jest 兼容的别名，复用 vitest 的 mock 能力
+global.jest = vi;
 
 // Mock fetch with 安全日志记录
 const _unused = global.fetch;
@@ -108,4 +124,3 @@ afterEach(() => {
 afterAll(() => {
   clearTemporaryKeys();
 });
-

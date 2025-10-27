@@ -277,7 +277,7 @@ describe('配置管理测试翻译诊断', () => {
         expect(typeof result).toBe('string');
         // eslint-disable-next-line no-console
     console.log('真实配置测试成功，翻译结果:', result);
-      } catch (_) {
+      } catch (error) {
         // eslint-disable-next-line no-console
     console.log('真实配置测试失败:', error.message);
         // 确保错误消息不包含真实 Key
@@ -335,7 +335,7 @@ describe('配置管理测试翻译诊断', () => {
           // eslint-disable-next-line no-console
     console.log(`${config.name} 测试成功:`, result);
           expect(result).toBeDefined();
-        } catch (_) {
+        } catch (error) {
           // eslint-disable-next-line no-console
     console.log(`${config.name} 测试失败:`, error.message);
           // 确保错误消息不包含真实 Key
@@ -368,7 +368,7 @@ describe('配置管理测试翻译诊断', () => {
 
       try {
         await translateText(config);
-      } catch (_) {
+      } catch (error) {
         // 验证错误日志不包含真实 Key
         const errorCalls = consoleSpy.error.mock.calls;
         errorCalls.forEach(call => {
@@ -425,7 +425,7 @@ describe('配置管理测试翻译诊断', () => {
 
         try {
           await translateText(config);
-        } catch (_) {
+        } catch (error) {
           // eslint-disable-next-line no-console
     console.log(`${scenario.name} 场景:`, {
             status: scenario.status,
@@ -440,4 +440,3 @@ describe('配置管理测试翻译诊断', () => {
     });
   });
 });
-
