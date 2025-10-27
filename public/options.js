@@ -637,6 +637,20 @@ export function initVocabulary(chromeLike) {
 }
 
 export function initCloudSync(notify) {
+  // 初始化云同步服务
+  async function initializeServices() {
+    try {
+      await googleAuthService.init();
+      await cloudSyncService.init();
+      console.warn('云同步服务初始化完成');
+    } catch (error) {
+      console.warn('云同步服务初始化失败:', error);
+    }
+  }
+
+  // 立即初始化服务
+  initializeServices();
+
   const loginBtn = query('google-login');
   const logoutBtn = query('google-logout');
   const syncNowBtn = query('sync-now');

@@ -11,6 +11,7 @@ class GoogleAuthService {
     this.accessToken = null;
     this.userInfo = null;
     this.authListeners = [];
+    this.isInitialized = false; // 新增：标志位
     
     // 绑定方法
     this.authenticate = this.authenticate.bind(this);
@@ -18,21 +19,35 @@ class GoogleAuthService {
     this.logout = this.logout.bind(this);
     this.onSignInChanged = this.onSignInChanged.bind(this);
     
-    // 初始化
-    this.init();
+    // 移除自动初始化
+    // this.init();
   }
 
   /**
    * 初始化认证服务
    */
   async init() {
+    // 新增：防止重复初始化
+    if (this.isInitialized) {
+      console.warn('Google认证服务已初始化，跳过重复初始化');
+      return;
+    }
+
     try {
+      // 新增：验证 OAuth 配置
+      const config = oauthConfig.getOAuthConfig();
+      if (!config.client_id || config.client_id === 'YOUR_CLIENT_ID') {
+        console.warn('OAuth client_id 未配置，Google认证服务已禁用');
+        return;
+      }
+
       // 检查现有认证状态
       await this.checkAuthStatus();
       
       // 设置认证状态监听器
       this.setupAuthListeners();
       
+      this.isInitialized = true;
       console.warn('Google认证服务已初始化');
     } catch (error) {
       console.error('初始化Google认证服务失败:', error);

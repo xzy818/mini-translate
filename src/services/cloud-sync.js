@@ -15,26 +15,41 @@ class CloudSyncService {
     this.retryCount = 0;
     this.maxRetries = OAuthConfig.sync.maxRetries;
     this.retryDelay = OAuthConfig.sync.retryDelay;
+    this.isInitialized = false; // 新增：标志位
     
     // 绑定方法
     this.syncData = this.syncData.bind(this);
     this.handleSyncError = this.handleSyncError.bind(this);
     
-    // 初始化
-    this.init();
+    // 移除自动初始化
+    // this.init();
   }
 
   /**
    * 初始化同步服务
    */
   async init() {
+    // 新增：防止重复初始化
+    if (this.isInitialized) {
+      console.warn('云端同步服务已初始化，跳过重复初始化');
+      return;
+    }
+
     try {
+      // 新增：验证 OAuth 配置
+      const validation = OAuthConfig.validateConfig();
+      if (!validation.isValid) {
+        console.warn('OAuth 配置无效，云端同步功能已禁用:', validation.errors);
+        return;
+      }
+
       // 加载上次同步时间
       await this.loadLastSyncTime();
       
       // 设置自动同步
       this.setupAutoSync();
       
+      this.isInitialized = true;
       console.warn('云端同步服务已初始化');
     } catch (error) {
       console.error('初始化云端同步服务失败:', error);
@@ -593,6 +608,13 @@ class CloudSyncService {
    * 设置自动同步
    */
   setupAutoSync() {
+    // 新增：检查配置有效性
+    const validation = OAuthConfig.validateConfig();
+    if (!validation.isValid) {
+      console.warn('OAuth 配置无效，跳过设置自动同步');
+      return;
+    }
+
     // 设置定时同步
     setInterval(() => {
       if (googleAuthService.isUserAuthenticated()) {
