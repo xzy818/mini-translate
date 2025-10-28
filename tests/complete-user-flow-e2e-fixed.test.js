@@ -65,9 +65,13 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
-          choices: [{
-            message: { content: expectedTranslation }
-          }]
+          output: {
+            choices: [
+              {
+                message: { content: expectedTranslation }
+              }
+            ]
+          }
         })
       });
 
@@ -82,17 +86,24 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
           mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
             if (msg.type === 'ADD_TERM') {
               // 模拟翻译API调用
-              const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
+              const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
               global.fetch(url, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
                 body: JSON.stringify({
                   model: msg.payload.model,
-                  messages: [{ role: 'user', content: msg.payload.selectionText }]
+                  input: {
+                    messages: [{ role: 'user', content: msg.payload.selectionText }]
+                  },
+                  parameters: {
+                    temperature: 0.3,
+                    max_tokens: 1000,
+                    result_format: 'message'
+                  }
                 })
               }).then(response => response.json())
                 .then(data => {
-                  const translation = data.choices[0].message.content;
+                  const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                   
                   // 模拟存储更新
                   mockChrome.storage.local.set.mockResolvedValue({});
@@ -150,9 +161,13 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
-          choices: [{
-            message: { content: expectedTranslation }
-          }]
+          output: {
+            choices: [
+              {
+                message: { content: expectedTranslation }
+              }
+            ]
+          }
         })
       });
 
@@ -165,17 +180,24 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
         setTimeout(() => {
           mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
             if (msg.type === 'TOGGLE_PAGE') {
-              const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
+              const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
               global.fetch(url, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
                 body: JSON.stringify({
                   model: msg.payload.model,
-                  messages: [{ role: 'user', content: msg.payload.selectionText }]
+                  input: {
+                    messages: [{ role: 'user', content: msg.payload.selectionText }]
+                  },
+                  parameters: {
+                    temperature: 0.3,
+                    max_tokens: 1000,
+                    result_format: 'message'
+                  }
                 })
               }).then(response => response.json())
                 .then(data => {
-                  const translation = data.choices[0].message.content;
+                  const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                   sendResponse({ ok: true, translation });
                   clearTimeout(timeout);
                   resolve(translation);
@@ -281,13 +303,20 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
           setTimeout(() => {
             mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
               if (msg.type === 'ADD_TERM') {
-                const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
+                const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
                 global.fetch(url, {
                   method: 'POST',
                   headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
                   body: JSON.stringify({
                     model: msg.payload.model,
-                    messages: [{ role: 'user', content: msg.payload.selectionText }]
+                    input: {
+                      messages: [{ role: 'user', content: msg.payload.selectionText }]
+                    },
+                    parameters: {
+                      temperature: 0.3,
+                      max_tokens: 1000,
+                      result_format: 'message'
+                    }
                   })
                 }).then(response => {
                   if (!response.ok) {
@@ -295,7 +324,7 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
                   }
                   return response.json();
                 }).then(data => {
-                  const translation = data.choices[0].message.content;
+                  const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                   sendResponse({ ok: true, result: translation });
                   clearTimeout(timeout);
                   resolve(translation);
@@ -348,17 +377,24 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
           setTimeout(() => {
             mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
               if (msg.type === 'ADD_TERM') {
-                const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
-                global.fetch(url, {
-                  method: 'POST',
-                  headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
-                  body: JSON.stringify({
-                    model: msg.payload.model,
+                const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
+               global.fetch(url, {
+                 method: 'POST',
+                 headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
+                 body: JSON.stringify({
+                  model: msg.payload.model,
+                  input: {
                     messages: [{ role: 'user', content: msg.payload.selectionText }]
+                  },
+                  parameters: {
+                    temperature: 0.3,
+                    max_tokens: 1000,
+                    result_format: 'message'
+                  }
                   })
                 }).then(response => response.json())
                   .then(data => {
-                    const translation = data.choices[0].message.content;
+                    const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                     sendResponse({ ok: true, result: translation });
                     clearTimeout(timeout);
                     resolve(translation);
@@ -405,15 +441,15 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
       // 模拟API调用
       global.fetch = vi.fn().mockImplementation((url, options) => {
         const body = JSON.parse(options.body);
-        const text = body.messages[0].content;
+        const text = body.input.messages[0].content;
         const index = texts.indexOf(text);
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            choices: [{
-              message: { content: translations[index] }
-            }]
-          })
+          output: {
+            choices: [{ message: { content: translations[index] } }]
+          }
+        })
         });
       });
 
@@ -426,17 +462,24 @@ describe('完整用户流程E2E测试 - 修复版本', () => {
           setTimeout(() => {
             mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
               if (msg.type === 'ADD_TERM') {
-                const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
+                const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
                 global.fetch(url, {
                   method: 'POST',
                   headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
                   body: JSON.stringify({
                     model: msg.payload.model,
-                    messages: [{ role: 'user', content: msg.payload.selectionText }]
+                    input: {
+                      messages: [{ role: 'user', content: msg.payload.selectionText }]
+                    },
+                    parameters: {
+                      temperature: 0.3,
+                      max_tokens: 1000,
+                      result_format: 'message'
+                    }
                   })
                 }).then(response => response.json())
                   .then(data => {
-                    const translation = data.choices[0].message.content;
+                    const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                     sendResponse({ ok: true, result: translation });
                     clearTimeout(timeout);
                     resolve(translation);

@@ -141,7 +141,7 @@ describe('配置管理测试翻译诊断', () => {
         text: 'diagnostic check',
         model: 'qwen-mt-turbo',
         apiKey: 'valid-key',
-        apiBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode'
+        apiBaseUrl: 'https://dashscope.aliyuncs.com/api/v1'
       };
 
       await expect(translateText(testConfig)).rejects.toMatchObject({

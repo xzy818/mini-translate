@@ -90,9 +90,13 @@ describe('完整用户流程E2E测试', () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
-          choices: [{
-            message: { content: expectedTranslation }
-          }]
+          output: {
+            choices: [
+              {
+                message: { content: expectedTranslation }
+              }
+            ]
+          }
         })
       });
 
@@ -101,8 +105,8 @@ describe('完整用户流程E2E测试', () => {
         mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
           if (msg.type === 'ADD_TERM') {
             // 验证URL构建逻辑
-            const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
-            expect(url).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
+            const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
+            expect(url).toBe('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation');
             
             // 模拟API调用
             global.fetch(url, {
@@ -113,13 +117,18 @@ describe('完整用户流程E2E测试', () => {
               },
               body: JSON.stringify({
                 model: msg.payload.model,
-                messages: [{ role: 'user', content: msg.payload.selectionText }],
-                temperature: 0.3,
-                max_tokens: 1000
+                input: {
+                  messages: [{ role: 'user', content: msg.payload.selectionText }]
+                },
+                parameters: {
+                  temperature: 0.3,
+                  max_tokens: 1000,
+                  result_format: 'message'
+                }
               })
             }).then(response => response.json())
               .then(data => {
-                const translation = data.choices[0].message.content;
+                const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                 
                 // 模拟存储更新
                 mockChrome.storage.local.set.mockResolvedValue({});
@@ -167,9 +176,13 @@ describe('完整用户流程E2E测试', () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
-          choices: [{
-            message: { content: expectedTranslation }
-          }]
+          output: {
+            choices: [
+              {
+                message: { content: expectedTranslation }
+              }
+            ]
+          }
         })
       });
 
@@ -178,8 +191,8 @@ describe('完整用户流程E2E测试', () => {
         mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
           if (msg.type === 'TOGGLE_PAGE') {
             // 验证URL构建
-            const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
-            expect(url).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
+            const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
+            expect(url).toBe('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation');
             
             // 模拟API调用
             global.fetch(url, {
@@ -190,11 +203,18 @@ describe('完整用户流程E2E测试', () => {
               },
               body: JSON.stringify({
                 model: msg.payload.model,
-                messages: [{ role: 'user', content: msg.payload.selectionText }]
+                input: {
+                  messages: [{ role: 'user', content: msg.payload.selectionText }]
+                },
+                parameters: {
+                  temperature: 0.3,
+                  max_tokens: 1000,
+                  result_format: 'message'
+                }
               })
             }).then(response => response.json())
               .then(data => {
-                const translation = data.choices[0].message.content;
+                const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                 
                 // 模拟页面内容更新
                 mockChrome.tabs.sendMessage.mockResolvedValue({});
@@ -287,14 +307,21 @@ describe('完整用户流程E2E测试', () => {
       const result = await new Promise((resolve, reject) => {
         mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
           if (msg.type === 'ADD_TERM') {
-            const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
+            const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
             
             global.fetch(url, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
               body: JSON.stringify({
                 model: msg.payload.model,
-                messages: [{ role: 'user', content: msg.payload.selectionText }]
+                input: {
+                  messages: [{ role: 'user', content: msg.payload.selectionText }]
+                },
+                parameters: {
+                  temperature: 0.3,
+                  max_tokens: 1000,
+                  result_format: 'message'
+                }
               })
             }).then(response => {
               if (!response.ok) {
@@ -302,7 +329,7 @@ describe('完整用户流程E2E测试', () => {
               }
               return response.json();
             }).then(data => {
-              const translation = data.choices[0].message.content;
+              const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
               sendResponse({ ok: true, translation });
               resolve(translation);
             }).catch(error => {
@@ -348,11 +375,18 @@ describe('完整用户流程E2E测试', () => {
               headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
               body: JSON.stringify({
                 model: msg.payload.model,
-                messages: [{ role: 'user', content: msg.payload.selectionText }]
+                input: {
+                  messages: [{ role: 'user', content: msg.payload.selectionText }]
+                },
+                parameters: {
+                  temperature: 0.3,
+                  max_tokens: 1000,
+                  result_format: 'message'
+                }
               })
             }).then(response => response.json())
               .then(data => {
-                const translation = data.choices[0].message.content;
+                const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                 sendResponse({ ok: true, translation });
                 resolve(translation);
               }).catch(error => {
@@ -377,19 +411,25 @@ describe('完整用户流程E2E测试', () => {
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({
-            choices: [{ message: { content: translations[0] } }]
+            output: {
+              choices: [{ message: { content: translations[0] } }]
+            }
           })
         })
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({
-            choices: [{ message: { content: translations[1] } }]
+            output: {
+              choices: [{ message: { content: translations[1] } }]
+            }
           })
         })
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({
-            choices: [{ message: { content: translations[2] } }]
+            output: {
+              choices: [{ message: { content: translations[2] } }]
+            }
           })
         });
 
@@ -410,18 +450,25 @@ describe('完整用户流程E2E测试', () => {
         const result = await new Promise((resolve) => {
           mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
             if (msg.type === 'ADD_TERM') {
-              const url = `${msg.payload.apiBaseUrl}/compatible-mode/v1/chat/completions`;
+              const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
               
               global.fetch(url, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
                 body: JSON.stringify({
                   model: msg.payload.model,
-                  messages: [{ role: 'user', content: msg.payload.selectionText }]
+                  input: {
+                    messages: [{ role: 'user', content: msg.payload.selectionText }]
+                  },
+                  parameters: {
+                    temperature: 0.3,
+                    max_tokens: 1000,
+                    result_format: 'message'
+                  }
                 })
               }).then(response => response.json())
                 .then(data => {
-                  const translation = data.choices[0].message.content;
+                  const translation = data.output?.text || data.output?.choices?.[0]?.message?.content;
                   sendResponse({ ok: true, translation });
                   resolve(translation);
                 });

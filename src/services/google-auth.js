@@ -29,7 +29,7 @@ class GoogleAuthService {
   async init() {
     // 新增：防止重复初始化
     if (this.isInitialized) {
-      console.warn('Google认证服务已初始化，跳过重复初始化');
+      console.info('Google认证服务已初始化，跳过重复初始化');
       return;
     }
 
@@ -37,7 +37,7 @@ class GoogleAuthService {
       // 新增：验证 OAuth 配置
       const config = oauthConfig.getOAuthConfig();
       if (!config.client_id || config.client_id === 'YOUR_CLIENT_ID') {
-        console.warn('OAuth client_id 未配置，Google认证服务已禁用');
+        console.info('OAuth client_id 未配置，Google认证服务已禁用');
         return;
       }
 
@@ -48,7 +48,7 @@ class GoogleAuthService {
       this.setupAuthListeners();
       
       this.isInitialized = true;
-      console.warn('Google认证服务已初始化');
+      console.info('Google认证服务已初始化');
     } catch (error) {
       console.error('初始化Google认证服务失败:', error);
     }
@@ -59,7 +59,7 @@ class GoogleAuthService {
    */
   async authenticate() {
     try {
-      console.warn('开始Google认证...');
+      console.info('开始Google认证...');
       
       // 检查OAuth配置
       const config = oauthConfig.getOAuthConfig();
@@ -83,7 +83,7 @@ class GoogleAuthService {
         // 通知认证状态变化
         this.notifyAuthStateChange(true);
         
-        console.warn('Google认证成功');
+        console.info('Google认证成功');
         return token;
       } else {
         throw new Error('认证失败：未获取到访问令牌');
@@ -136,7 +136,7 @@ class GoogleAuthService {
       }
       
       this.userInfo = await response.json();
-      console.warn('用户信息已获取:', this.userInfo);
+      console.info('用户信息已获取:', this.userInfo);
       
     } catch (error) {
       console.error('获取用户信息失败:', error);

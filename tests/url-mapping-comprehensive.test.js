@@ -64,10 +64,10 @@ describe('URL映射逻辑综合测试', () => {
 
     it('应该正确构建Qwen API URL（修复后）', () => {
       const baseUrl = mapBaseUrlByModel('qwen-mt-turbo');
-      const endpoint = '/compatible-mode/v1/chat/completions';
+      const endpoint = '/api/v1/services/aigc/text-generation/generation';
       const finalUrl = buildUrl(baseUrl, endpoint);
       
-      expect(finalUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
+      expect(finalUrl).toBe('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation');
     });
 
     it('应该正确构建OpenAI API URL', () => {
@@ -86,45 +86,45 @@ describe('URL映射逻辑综合测试', () => {
         switch (model) {
           case 'qwen-mt-turbo':
           case 'qwen-mt-plus':
-            return 'https://dashscope.aliyuncs.com/compatible-mode';  // 错误的URL
+            return 'https://dashscope.aliyuncs.com/api/v1';  // 错误的URL
           default:
             return '';
         }
       };
 
       const baseUrlOld = mapBaseUrlByModelOld('qwen-mt-turbo');
-      const endpoint = '/compatible-mode/v1/chat/completions';
+      const endpoint = '/api/v1/services/aigc/text-generation/generation';
       const finalUrlOld = buildUrl(baseUrlOld, endpoint);
       
       // 验证修复前的错误URL
-      expect(finalUrlOld).toBe('https://dashscope.aliyuncs.com/compatible-mode/compatible-mode/v1/chat/completions');
+      expect(finalUrlOld).toBe('https://dashscope.aliyuncs.com/api/v1/api/v1/services/aigc/text-generation/generation');
     });
 
     it('应该验证修复后的正确URL', () => {
       // 使用修复后的逻辑
       const baseUrlNew = mapBaseUrlByModel('qwen-mt-turbo');
-      const endpoint = '/compatible-mode/v1/chat/completions';
+      const endpoint = '/api/v1/services/aigc/text-generation/generation';
       const finalUrlNew = buildUrl(baseUrlNew, endpoint);
       
       // 验证修复后的正确URL
-      expect(finalUrlNew).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
+      expect(finalUrlNew).toBe('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation');
     });
 
     it('应该验证URL修复的效果', () => {
       // 修复前的错误URL
-      const errorUrl = 'https://dashscope.aliyuncs.com/compatible-mode/compatible-mode/v1/chat/completions';
+      const errorUrl = 'https://dashscope.aliyuncs.com/api/v1/api/v1/services/aigc/text-generation/generation';
       
       // 修复后的正确URL
-      const correctUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+      const correctUrl = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
       
       // 验证URL不同
       expect(errorUrl).not.toBe(correctUrl);
       
       // 验证修复后的URL不包含重复路径
-      expect(correctUrl).not.toContain('/compatible-mode/compatible-mode/');
+      expect(correctUrl).not.toContain('/api/v1/api/v1/');
       
       // 验证修复后的URL包含正确的路径
-      expect(correctUrl).toContain('/compatible-mode/v1/chat/completions');
+      expect(correctUrl).toContain('/api/v1/services/aigc/text-generation/generation');
     });
   });
 
@@ -163,7 +163,7 @@ describe('URL映射逻辑综合测试', () => {
       
       models.forEach(model => {
         const baseUrl = mapBaseUrlByModel(model);
-        const endpoint = model.includes('qwen') ? '/compatible-mode/v1/chat/completions' : '/v1/chat/completions';
+        const endpoint = model.includes('qwen') ? '/api/v1/services/aigc/text-generation/generation' : '/v1/chat/completions';
         const finalUrl = buildUrl(baseUrl, endpoint);
         expect(finalUrl).toBeTruthy();
       });
@@ -190,10 +190,10 @@ describe('URL映射逻辑综合测试', () => {
       expect(translationConfig.model).toBe('qwen-mt-turbo');
       
       // 模拟URL构建
-      const endpoint = '/compatible-mode/v1/chat/completions';
+      const endpoint = '/api/v1/services/aigc/text-generation/generation';
       const finalUrl = buildUrl(translationConfig.apiBaseUrl, endpoint);
       
-      expect(finalUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
+      expect(finalUrl).toBe('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation');
     });
 
     it('应该验证所有支持模型的配置', () => {

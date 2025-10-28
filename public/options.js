@@ -186,7 +186,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     }
 
     try {
-      console.warn('[test] 开始测试');
+      console.info('[test] 开始测试');
       const response = await sendTestMessage(payload);
       if (response && response.ok) {
         notify('测试通过');
@@ -243,7 +243,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
               reject(new Error(error.message));
             } else {
               // 立即响应表示测试已启动，等待存储变化获取结果
-              console.warn('[test] 测试已启动，等待结果...');
+              console.info('[test] 测试已启动，等待结果...');
             }
           }
         );

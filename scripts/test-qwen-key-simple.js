@@ -34,7 +34,7 @@ console.warn('\n🧪 开始 API Key 验证...');
 // 简单的 API 调用测试
 async function testApiKey() {
   try {
-    const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+    const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,14 +42,19 @@ async function testApiKey() {
       },
       body: JSON.stringify({
         model: 'qwen-mt-turbo',
-        messages: [
-          {
-            role: 'user',
-            content: 'hello'
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 100
+        input: {
+          messages: [
+            {
+              role: 'user',
+              content: 'hello'
+            }
+          ]
+        },
+        parameters: {
+          temperature: 0.3,
+          max_tokens: 100,
+          result_format: 'message'
+        }
       })
     });
 

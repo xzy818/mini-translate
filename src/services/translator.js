@@ -3,6 +3,8 @@
  * 支持多种翻译模型：DeepSeek V3、Qwen MT Turbo、Qwen MT Plus、gpt-4o-mini
  */
 
+import { MODEL_PROVIDERS } from '../config/model-providers.js';
+
 // 支持的模型类型
 export const SUPPORTED_MODELS = {
   DEEPSEEK_V3: 'deepseek-v3',
@@ -171,18 +173,73 @@ async function translateWithDeepSeek(text, apiKey, apiBaseUrl, timeout = DEFAULT
   }
 }
 
+const QWEN_DEFAULT_BASE = MODEL_PROVIDERS?.qwen?.baseUrl || 'https://dashscope.aliyuncs.com';
+const QWEN_TEXT_ENDPOINT = MODEL_PROVIDERS?.qwen?.endpoints?.chat || '/api/v1/services/aigc/text-generation/generation';
+
+function buildQwenUrl(apiBaseUrl) {
+  const raw = String(apiBaseUrl || '').trim();
+  if (!raw) {
+    return `${QWEN_DEFAULT_BASE}${QWEN_TEXT_ENDPOINT}`;
+  }
+
+  const normalized = raw
+    .replace(/\s+/g, '')
+    .replace(/\/+$/, '')
+    .replace(/\/compatible-mode$/i, '')
+    .replace(/\/v1$/i, '');
+
+  return `${normalized || QWEN_DEFAULT_BASE}${QWEN_TEXT_ENDPOINT}`;
+}
+
+function parseQwenResponse(data) {
+  if (!data) {
+    throw createTranslationError(TRANSLATION_ERRORS.API_ERROR, 'Qwen API 响应为空');
+  }
+
+  const textCandidate = data.output?.text;
+  if (typeof textCandidate === 'string' && textCandidate.trim()) {
+    return textCandidate.trim();
+  }
+
+  const choices = data.output?.choices || data.choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const message = choices[0]?.message;
+    const content = message?.content ?? message?.texts?.[0];
+    if (typeof content === 'string' && content.trim()) {
+      return content.trim();
+    }
+    if (Array.isArray(message?.content)) {
+      const chunk = message.content
+        .map((part) => (typeof part === 'string' ? part : part?.text))
+        .find((part) => typeof part === 'string' && part.trim());
+      if (chunk) {
+        return chunk.trim();
+      }
+    }
+  }
+
+  if (typeof data.result === 'string' && data.result.trim()) {
+    return data.result.trim();
+  }
+
+  throw createTranslationError(TRANSLATION_ERRORS.API_ERROR, 'Qwen API 响应格式错误');
+}
+
 /**
  * Qwen MT 翻译实现
  */
 async function translateWithQwen(text, apiKey, apiBaseUrl, model, timeout = DEFAULT_TIMEOUT) {
-  // Qwen 使用兼容模式的 OpenAI API 端点
-  const url = `${apiBaseUrl}/compatible-mode/v1/chat/completions`;
-  // Qwen 使用 OpenAI 兼容格式的请求
+  const url = buildQwenUrl(apiBaseUrl || QWEN_DEFAULT_BASE);
   const payload = {
     model,
-    messages: buildMessages(text, false),
-    temperature: 0.3,
-    max_tokens: 1000
+    input: {
+      messages: buildMessages(text, false)
+    },
+    parameters: {
+      temperature: 0.3,
+      max_tokens: 1000,
+      result_format: 'message'
+    }
   };
 
   const response = await fetchWithTimeout(url, {
@@ -193,7 +250,6 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model, timeout = DEFA
 
   if (!response.ok) {
     const errorText = await response.text();
-    // 记录模型与请求 URL 便于排查
     console.error('[Translator] API error', { model, url });
     const err = createTranslationError(TRANSLATION_ERRORS.API_ERROR, `Qwen API 错误 (${response.status}): ${errorText}`);
     err.statusCode = response.status;
@@ -202,7 +258,7 @@ async function translateWithQwen(text, apiKey, apiBaseUrl, model, timeout = DEFA
   }
 
   const data = await response.json();
-  return parseChatCompletion(data);
+  return parseQwenResponse(data);
 }
 
 /**
