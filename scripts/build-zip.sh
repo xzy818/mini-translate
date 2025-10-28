@@ -16,7 +16,7 @@ mkdir -p "$DIST_DIR"
 rsync -a public/ "$DIST_DIR"/
 rsync -a src/ "$DIST_DIR"/src/
 
-# Fix import paths in background.js (portable sed)
+# Fix import paths in background.js and options.js (portable sed)
 echo "🔧 Fixing import paths in background.js (portable sed)..."
 # Determine sed in-place syntax across environments
 if command -v gsed >/dev/null 2>&1; then
@@ -34,6 +34,13 @@ if [ -f "$DIST_DIR/background.js" ]; then
   "${SED_INPLACE[@]}" $'s|from "../src/|from "./src/|g' "$DIST_DIR/background.js" || true
 else
   echo "(info) $DIST_DIR/background.js not found; skip path fix"
+fi
+
+# Also fix import paths in options.js which runs in the extension Options page
+if [ -f "$DIST_DIR/options.js" ]; then
+  echo "🔧 Fixing import paths in options.js (portable sed)..."
+  "${SED_INPLACE[@]}" $'s|from '\''../src/|from '\''./src/|g' "$DIST_DIR/options.js" || true
+  "${SED_INPLACE[@]}" $'s|from "../src/|from "./src/|g' "$DIST_DIR/options.js" || true
 fi
 
 (
