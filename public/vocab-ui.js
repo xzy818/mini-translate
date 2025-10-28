@@ -326,7 +326,7 @@ class MemoryStorageClient {
 
 export function createStorageClient({ chromeLike, fallbackData } = {}) {
   const candidate = chromeLike ?? (typeof chrome !== 'undefined' ? chrome : undefined);
-  if (candidate && candidate.storage && candidate.storage.local) {
+  if (candidate && candidate.storage && candidate.storage.sync) {
     return new ChromeStorageClient(candidate);
   }
   return new MemoryStorageClient(fallbackData);

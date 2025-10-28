@@ -90,7 +90,7 @@ function normalizeVocabularyList(list) {
 export async function readVocabulary(chromeLike) {
   return new Promise((resolve, reject) => {
     try {
-      chromeLike.storage.local.get({ [VOCAB_KEY]: [] }, (result) => {
+      chromeLike.storage.sync.get({ [VOCAB_KEY]: [] }, (result) => {
         if (chromeLike.runtime?.lastError) {
           reject(new Error(chromeLike.runtime.lastError.message));
           return;
@@ -98,7 +98,7 @@ export async function readVocabulary(chromeLike) {
         const rawList = Array.isArray(result[VOCAB_KEY]) ? result[VOCAB_KEY] : [];
         const { list: normalized, changed } = normalizeVocabularyList(rawList);
         if (changed) {
-          chromeLike.storage.local.set({ [VOCAB_KEY]: normalized }, () => {
+          chromeLike.storage.sync.set({ [VOCAB_KEY]: normalized }, () => {
             if (chromeLike.runtime?.lastError) {
               reject(new Error(chromeLike.runtime.lastError.message));
               return;
@@ -120,7 +120,7 @@ export async function writeVocabulary(chromeLike, list) {
   const { list: normalized } = normalizeVocabularyList(normalizedInput);
   return new Promise((resolve, reject) => {
     try {
-      chromeLike.storage.local.set({ [VOCAB_KEY]: normalized }, () => {
+      chromeLike.storage.sync.set({ [VOCAB_KEY]: normalized }, () => {
         if (chromeLike.runtime?.lastError) {
           reject(new Error(chromeLike.runtime.lastError.message));
           return;
@@ -183,7 +183,7 @@ export async function removeVocabulary(chromeLike, term) {
 export async function readSettings(chromeLike) {
   return new Promise((resolve, reject) => {
     try {
-      chromeLike.storage.local.get({ [SETTINGS_KEY]: {} }, (result) => {
+      chromeLike.storage.sync.get({ [SETTINGS_KEY]: {} }, (result) => {
         if (chromeLike.runtime?.lastError) {
           reject(new Error(chromeLike.runtime.lastError.message));
           return;
@@ -199,7 +199,7 @@ export async function readSettings(chromeLike) {
 export async function writeSettings(chromeLike, settings) {
   return new Promise((resolve, reject) => {
     try {
-      chromeLike.storage.local.set({ [SETTINGS_KEY]: settings }, () => {
+      chromeLike.storage.sync.set({ [SETTINGS_KEY]: settings }, () => {
         if (chromeLike.runtime?.lastError) {
           reject(new Error(chromeLike.runtime.lastError.message));
           return;
