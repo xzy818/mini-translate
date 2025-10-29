@@ -29,12 +29,13 @@ function canonicalizeTerm(term) {
 // QA: 打印当前翻译配置上下文（model/baseUrl）
 function logCurrentTranslationContext(tag = '[qa] ctx') {
   try {
-    if (!chrome?.storage?.local) {
+    if (!chrome?.storage) {
       console.warn(`${tag} model/url`, { model: 'no-storage', apiBaseUrl: 'no-storage' });
       return;
     }
     // 同步获取，避免异步问题
-    chrome.storage.local.get(['settings'], (bag) => {
+    const area = chrome.storage.sync || chrome.storage.local;
+    area.get(['settings'], (bag) => {
       try {
         const model = bag?.settings?.model;
         const apiBaseUrl = mapBaseUrlByModel(model);
@@ -53,6 +54,16 @@ function setup() {
   initializeBackground(chrome);
   aiApiClient = new AIApiClient();
   initialized = true;
+}
+
+function safeSetup() {
+  try {
+    if (!initialized) {
+      setup();
+    }
+  } catch (e) {
+    console.warn('[qa] safeSetup failed', e?.message || e);
+  }
 }
 
 self.addEventListener('unhandledrejection', (event) => {
@@ -78,6 +89,7 @@ self.addEventListener('error', (event) => {
 });
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  safeSetup();
   if (!message || !message.type) {
     return false;
   }
@@ -498,6 +510,9 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onStartup.addListener(() => {
   setup();
 });
+
+// 初始兜底：在 worker 启动时确保完成初始化
+safeSetup();
 
 // QA 辅助函数
 async function resolveTermState(tabId, term) {

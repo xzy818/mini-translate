@@ -90,7 +90,12 @@ function normalizeVocabularyList(list) {
 export async function readVocabulary(chromeLike) {
   return new Promise((resolve, reject) => {
     try {
-      chromeLike.storage.sync.get({ [VOCAB_KEY]: [] }, (result) => {
+      const area = (chromeLike?.storage && (chromeLike.storage.sync || chromeLike.storage.local)) || null;
+      if (!area) {
+        resolve([]);
+        return;
+      }
+      area.get({ [VOCAB_KEY]: [] }, (result) => {
         if (chromeLike.runtime?.lastError) {
           reject(new Error(chromeLike.runtime.lastError.message));
           return;
@@ -98,7 +103,7 @@ export async function readVocabulary(chromeLike) {
         const rawList = Array.isArray(result[VOCAB_KEY]) ? result[VOCAB_KEY] : [];
         const { list: normalized, changed } = normalizeVocabularyList(rawList);
         if (changed) {
-          chromeLike.storage.sync.set({ [VOCAB_KEY]: normalized }, () => {
+          area.set({ [VOCAB_KEY]: normalized }, () => {
             if (chromeLike.runtime?.lastError) {
               reject(new Error(chromeLike.runtime.lastError.message));
               return;
@@ -120,7 +125,12 @@ export async function writeVocabulary(chromeLike, list) {
   const { list: normalized } = normalizeVocabularyList(normalizedInput);
   return new Promise((resolve, reject) => {
     try {
-      chromeLike.storage.sync.set({ [VOCAB_KEY]: normalized }, () => {
+      const area = (chromeLike?.storage && (chromeLike.storage.sync || chromeLike.storage.local)) || null;
+      if (!area) {
+        resolve();
+        return;
+      }
+      area.set({ [VOCAB_KEY]: normalized }, () => {
         if (chromeLike.runtime?.lastError) {
           reject(new Error(chromeLike.runtime.lastError.message));
           return;
@@ -183,7 +193,12 @@ export async function removeVocabulary(chromeLike, term) {
 export async function readSettings(chromeLike) {
   return new Promise((resolve, reject) => {
     try {
-      chromeLike.storage.sync.get({ [SETTINGS_KEY]: {} }, (result) => {
+      const area = (chromeLike?.storage && (chromeLike.storage.sync || chromeLike.storage.local)) || null;
+      if (!area) {
+        resolve({});
+        return;
+      }
+      area.get({ [SETTINGS_KEY]: {} }, (result) => {
         if (chromeLike.runtime?.lastError) {
           reject(new Error(chromeLike.runtime.lastError.message));
           return;
@@ -199,7 +214,12 @@ export async function readSettings(chromeLike) {
 export async function writeSettings(chromeLike, settings) {
   return new Promise((resolve, reject) => {
     try {
-      chromeLike.storage.sync.set({ [SETTINGS_KEY]: settings }, () => {
+      const area = (chromeLike?.storage && (chromeLike.storage.sync || chromeLike.storage.local)) || null;
+      if (!area) {
+        resolve();
+        return;
+      }
+      area.set({ [SETTINGS_KEY]: settings }, () => {
         if (chromeLike.runtime?.lastError) {
           reject(new Error(chromeLike.runtime.lastError.message));
           return;

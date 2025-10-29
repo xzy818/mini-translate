@@ -31,14 +31,32 @@ function buildTabKey(tabId) {
 }
 
 function setMenuContext(chromeLike, tabKey, context) {
+  const applyUpdate = (options) => {
+    try {
+      chromeLike.contextMenus.update(MENU_ID, options, () => {
+        const err = chromeLike.runtime?.lastError;
+        const msg = err?.message || '';
+        if (err && /not found|Cannot find menu item/i.test(msg)) {
+          // 菜单不存在：尝试创建后再更新一次
+          createContextMenus(chromeLike);
+          chromeLike.contextMenus.update(MENU_ID, options, () => {
+            const err2 = chromeLike.runtime?.lastError;
+            if (err2) console.warn('[qa] contextMenus.update failed:', err2.message);
+          });
+        } else if (err) {
+          console.warn('[qa] contextMenus.update error:', msg);
+        }
+      });
+    } catch (e) {
+      console.warn('[qa] contextMenus.update exception:', e?.message || e);
+    }
+  };
+
   if (context) {
-    chromeLike.contextMenus.update(MENU_ID, {
-      visible: true,
-      title: context.title
-    });
+    applyUpdate({ visible: true, title: context.title });
     menuState.set(tabKey, context);
   } else {
-    chromeLike.contextMenus.update(MENU_ID, { visible: false });
+    applyUpdate({ visible: false });
     menuState.delete(tabKey);
   }
 }
@@ -335,12 +353,19 @@ async function resolveMenuContext(chromeLike, info, tabId) {
 
 export async function createContextMenus(chromeLike) {
   chromeLike.contextMenus.removeAll(() => {
-    chromeLike.contextMenus.create({
-      id: MENU_ID,
-      title: 'mini-translate',
-      contexts: ['selection'],
-      visible: false
-    });
+    try {
+      chromeLike.contextMenus.create({
+        id: MENU_ID,
+        title: 'mini-translate',
+        contexts: ['selection'],
+        visible: false
+      }, () => {
+        const err = chromeLike.runtime?.lastError;
+        if (err) console.warn('[qa] contextMenus.create error:', err.message);
+      });
+    } catch (e) {
+      console.warn('[qa] contextMenus.create exception:', e?.message || e);
+    }
   });
 }
 
