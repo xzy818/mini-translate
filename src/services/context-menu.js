@@ -53,10 +53,12 @@ function setMenuContext(chromeLike, tabKey, context) {
   };
 
   if (context) {
-    applyUpdate({ visible: true, title: context.title });
+    // 始终保持菜单可见，仅更新标题（依赖 contexts: ['selection'] 控制出现时机）
+    applyUpdate({ title: context.title });
     menuState.set(tabKey, context);
   } else {
-    applyUpdate({ visible: false });
+    // 不再主动隐藏，避免某些平台上 visible 不生效导致菜单“消失不回”
+    applyUpdate({ title: 'mini-translate' });
     menuState.delete(tabKey);
   }
 }
@@ -358,7 +360,7 @@ export async function createContextMenus(chromeLike) {
         id: MENU_ID,
         title: 'mini-translate',
         contexts: ['selection'],
-        visible: false
+        visible: true
       }, () => {
         const err = chromeLike.runtime?.lastError;
         if (err) console.warn('[qa] contextMenus.create error:', err.message);

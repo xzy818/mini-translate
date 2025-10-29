@@ -85,7 +85,8 @@ export function createSettingsController({ chromeLike, notify, elements }) {
   const saveEl = elements.save;
   const testEl = elements.test;
 
-  const hasChrome = Boolean(chromeLike?.storage?.local);
+  const hasChrome = Boolean(chromeLike?.storage);
+  const area = hasChrome ? (chromeLike.storage.sync || chromeLike.storage.local) : null;
 
   async function load() {
     if (!hasChrome) return;
@@ -95,7 +96,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     }
     try {
       const result = await wrapAsync((resolve, reject) => {
-        chromeLike.storage.local.get(['settings'], (items) => {
+        area.get(['settings'], (items) => {
           const error = chromeLike.runtime?.lastError;
           if (error) {
             reject(new Error(error.message));
@@ -128,7 +129,7 @@ export function createSettingsController({ chromeLike, notify, elements }) {
     };
     try {
       await wrapAsync((resolve, reject) => {
-        chromeLike.storage.local.set({ settings: payload }, () => {
+        area.set({ settings: payload }, () => {
           const error = chromeLike.runtime?.lastError;
           if (error) {
             reject(new Error(error.message));
