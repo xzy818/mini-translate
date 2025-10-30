@@ -160,14 +160,10 @@ function fillVocabulary(chromeStub, count) {
     const tab = { id: 1 };
 
     await dispatchSelection(chromeStub, info.selectionText, tab.id);
-
-    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
-      MENU_ID,
-      expect.objectContaining({
-        title: expect.stringContaining('add & mini-translate · 选中: new-term'),
-        visible: true
-      })
-    );
+    // 检查spy的最新调用实际内容（第二参数）
+    const updateCall = chromeStub.contextMenus.update.mock.calls[0];
+    expect(updateCall[0]).toBe(MENU_ID);
+    expect(updateCall[1]).toMatchObject({ title: 'add & mini-translate · 选中: new-term', visible: true });
 
     chromeStub.contextMenus.update.mockClear();
     chromeStub.notifications.create.mockClear();
@@ -303,14 +299,9 @@ function fillVocabulary(chromeStub, count) {
     const tab = { id: 2 };
 
     await dispatchSelection(chromeStub, info.selectionText, tab.id);
-
-    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
-      MENU_ID,
-      expect.objectContaining({
-        title: expect.stringContaining('remove from mini-translate'),
-        visible: true
-      })
-    );
+    const updateCall = chromeStub.contextMenus.update.mock.calls[0];
+    expect(updateCall[0]).toBe(MENU_ID);
+    expect(updateCall[1]).toMatchObject({ title: 'remove from mini-translate · 选中: existing → 旧', visible: true });
 
     chromeStub.notifications.create.mockClear();
 
@@ -327,9 +318,8 @@ function fillVocabulary(chromeStub, count) {
   it('hides menu when selection is empty', async () => {
     await dispatchSelection(chromeStub, '', undefined);
 
-    expect(chromeStub.contextMenus.update).toHaveBeenCalledWith(
-      MENU_ID,
-      expect.objectContaining({ visible: false })
-    );
+    const updateCall = chromeStub.contextMenus.update.mock.calls[0];
+    expect(updateCall[0]).toBe(MENU_ID);
+    expect(updateCall[1]).toMatchObject({ title: 'mini-translate', visible: false });
   });
 });
