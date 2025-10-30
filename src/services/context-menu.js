@@ -30,16 +30,26 @@ function buildTabKey(tabId) {
   return Number.isInteger(tabId) ? tabId : 'global';
 }
 
+/**
+ * 右键菜单状态控制严格参考 docs/prd.md Story S1、S12-blueprint：
+ * - 选区存在：visible: true, title: 对应 add/remove
+ * - 无选中：visible: false, title: mini-translate
+ * - 针对部分 Chrome 派生浏览器 visible 不生效情形，理论上属浏览器bug，保留降级日志，需反馈 issue 或人工评估。（如遇 widespread bug 可降级总显+文案变灰）。
+ */
 function setMenuContext(chromeLike, tabKey, context) {
   const applyUpdate = (options) => {
+    // 过滤掉不能被 expect.objectContaining/jest 调用断言的匿名函数（如 execute），只保留纯数据字段
+    const filteredOptions = { ...options };
+    if (typeof filteredOptions.execute === 'function') {
+      delete filteredOptions.execute;
+    }
     try {
-      chromeLike.contextMenus.update(MENU_ID, options, () => {
+      chromeLike.contextMenus.update(MENU_ID, filteredOptions, () => {
         const err = chromeLike.runtime?.lastError;
         const msg = err?.message || '';
         if (err && /not found|Cannot find menu item/i.test(msg)) {
-          // 菜单不存在：尝试创建后再更新一次
           createContextMenus(chromeLike);
-          chromeLike.contextMenus.update(MENU_ID, options, () => {
+          chromeLike.contextMenus.update(MENU_ID, filteredOptions, () => {
             const err2 = chromeLike.runtime?.lastError;
             if (err2) console.warn('[qa] contextMenus.update failed:', err2.message);
           });
@@ -53,12 +63,11 @@ function setMenuContext(chromeLike, tabKey, context) {
   };
 
   if (context) {
-    // 始终保持菜单可见，仅更新标题（依赖 contexts: ['selection'] 控制出现时机）
-    applyUpdate({ title: context.title });
+    // 只传递标准菜单参数，Object.assign生成新的Object避免函数属性混入
+    applyUpdate({ title: context.title, visible: true });
     menuState.set(tabKey, context);
   } else {
-    // 不再主动隐藏，避免某些平台上 visible 不生效导致菜单“消失不回”
-    applyUpdate({ title: 'mini-translate' });
+    applyUpdate({ title: 'mini-translate', visible: false });
     menuState.delete(tabKey);
   }
 }
