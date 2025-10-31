@@ -8,7 +8,16 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-describe('完整用户流程E2E测试', () => {
+/*
+ * 本E2E测试用例可在本地执行，需提前执行 `source ~/.zshrc`，并保证存在export TEST_QWEN_KEY=你的key
+ * 用例会自动读取该环境变量，无需手动写死密钥。
+ */
+const testQwenKey = process.env.TEST_QWEN_KEY;
+// CI 环境（如 GitHub Actions）禁止运行本用例，仅在本地执行
+const __isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+const describeOrSkip = __isCI ? describe.skip : describe;
+
+describeOrSkip('完整用户流程E2E测试', () => {
   let mockChrome;
   let originalFetch;
   let backgroundScript;
@@ -81,7 +90,7 @@ describe('完整用户流程E2E测试', () => {
         payload: {
           selectionText: selectedText,
           model: 'qwen-mt-turbo',
-          apiKey: 'test-key',
+          apiKey: testQwenKey,
           apiBaseUrl: 'https://dashscope.aliyuncs.com'
         }
       };
@@ -167,7 +176,7 @@ describe('完整用户流程E2E测试', () => {
         payload: {
           selectionText: selectedText,
           model: 'qwen-mt-turbo',
-          apiKey: 'test-key',
+          apiKey: testQwenKey,
           apiBaseUrl: 'https://dashscope.aliyuncs.com'
         }
       };
@@ -292,7 +301,7 @@ describe('完整用户流程E2E测试', () => {
         payload: {
           selectionText: selectedText,
           model: 'qwen-mt-turbo',
-          apiKey: 'invalid-key',
+          apiKey: 'invalid-key', // 保持无效key场景测试
           apiBaseUrl: 'https://dashscope.aliyuncs.com'
         }
       };
@@ -351,7 +360,7 @@ describe('完整用户流程E2E测试', () => {
         payload: {
           selectionText: selectedText,
           model: 'qwen-mt-turbo',
-          apiKey: 'test-key',
+          apiKey: testQwenKey,
           apiBaseUrl: 'https://dashscope.aliyuncs.com'
         }
       };
@@ -370,6 +379,7 @@ describe('完整用户流程E2E测试', () => {
       const result = await new Promise((resolve, reject) => {
         mockChrome.runtime.onMessage.addListener.mockImplementation((msg, sender, sendResponse) => {
           if (msg.type === 'ADD_TERM') {
+            const url = `${msg.payload.apiBaseUrl}/api/v1/services/aigc/text-generation/generation`;
             global.fetch(url, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${msg.payload.apiKey}` },
@@ -442,7 +452,7 @@ describe('完整用户流程E2E测试', () => {
           payload: {
             selectionText: texts[i],
             model: 'qwen-mt-turbo',
-            apiKey: 'test-key',
+            apiKey: testQwenKey,
             apiBaseUrl: 'https://dashscope.aliyuncs.com'
           }
         };
