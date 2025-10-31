@@ -192,19 +192,26 @@ function normalizeList(list) {
 class ChromeStorageClient {
   constructor(chromeLike) {
     this.chrome = chromeLike;
+    const storage = chromeLike?.storage ?? {};
+    this.area = storage.sync || storage.local || null;
+    this.areaName = storage.sync ? 'sync' : storage.local ? 'local' : null;
   }
 
   async getVocabulary() {
     const chrome = this.chrome;
+    const area = this.area;
+    if (!chrome || !area) {
+      return [];
+    }
     const result = await new Promise((resolve, reject) => {
       try {
-        chrome.storage.local.get({ miniTranslateVocabulary: [] }, (items) => {
+        area.get({ miniTranslateVocabulary: [] }, (items) => {
           const lastError = chrome.runtime && chrome.runtime.lastError;
           if (lastError) {
             reject(new Error(lastError.message));
             return;
           }
-          resolve(items.miniTranslateVocabulary);
+          resolve(items?.miniTranslateVocabulary);
         });
       } catch (error) {
         reject(error);
@@ -215,9 +222,13 @@ class ChromeStorageClient {
 
   async setVocabulary(list) {
     const chrome = this.chrome;
+    const area = this.area;
+    if (!chrome || !area) {
+      return;
+    }
     await new Promise((resolve, reject) => {
       try {
-        chrome.storage.local.set({ miniTranslateVocabulary: list }, () => {
+        area.set({ miniTranslateVocabulary: list }, () => {
           const lastError = chrome.runtime && chrome.runtime.lastError;
           if (lastError) {
             reject(new Error(lastError.message));
@@ -270,7 +281,8 @@ class ChromeStorageClient {
       return () => {};
     }
     const handler = (changes, area) => {
-      if (area !== 'local' || !changes.miniTranslateVocabulary) return;
+      if (!changes?.miniTranslateVocabulary) return;
+      if (this.areaName && area !== this.areaName) return;
       const next = normalizeList(changes.miniTranslateVocabulary.newValue);
       callback(next);
     };
@@ -326,7 +338,7 @@ class MemoryStorageClient {
 
 export function createStorageClient({ chromeLike, fallbackData } = {}) {
   const candidate = chromeLike ?? (typeof chrome !== 'undefined' ? chrome : undefined);
-  if (candidate && candidate.storage && candidate.storage.sync) {
+  if (candidate && candidate.storage && (candidate.storage.sync || candidate.storage.local)) {
     return new ChromeStorageClient(candidate);
   }
   return new MemoryStorageClient(fallbackData);
