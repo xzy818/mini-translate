@@ -39,12 +39,6 @@ export default defineConfig({
         'test-reports/',
         'scripts/',
         'docs/**',
-        // 排除纯配置/元数据文件，避免拉低覆盖率
-        '**/*.config.*',
-        'eslint.config.js',
-        'vitest.config.js',
-        'vitest.e2e.config.js',
-        '*.md',
         // 排除非 *.test.js 的测试辅助脚本，避免拉低覆盖率
         'tests/**/*.js',
         'tests/setup-*.js',
